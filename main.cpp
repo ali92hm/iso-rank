@@ -41,7 +41,7 @@ int main(int argc, const char * argv[])
     
     std::string EXTENSION = ".dat";
     //int NUMBER_OF_FILES = 1;
-    std::string File = "3";
+    std::string File = "1";
     
 
     SparseMatrix<float> matrix_A(12,12);
@@ -58,7 +58,7 @@ int main(int argc, const char * argv[])
     std::string n2 = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/2.dat";
     SparseMatrix<float> b (n2);
     std::cout << matrix_A << std::endl;
-    //isoRank(matrix_A, matrix_A);
+    isoRank(matrix_A, matrix_A);
 
     
     

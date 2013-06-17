@@ -94,3 +94,26 @@ return vertex_name;
 int vertex:: get_tarjan_flag(){
     return tarjan_flag;
 }
+
+/*
+ * takes an array of vertex objects vertices and an integer
+ * signifying a component of the graph. The function returns
+ * an integer array where vertices that don't belong to the
+ * component are masked out.
+ */
+int* component_mask(vertex* vertices, int component, int number_nodes){
+    int* comp_mask=(int *)malloc(sizeof(int) * number_nodes);
+    
+    for(int i=0;i<number_nodes;i++){
+        comp_mask[i]=0;
+    }
+    
+    for(int i=0;i<number_nodes;i++){
+        vertex* curr_vertex= &vertices[i];
+        if((*curr_vertex).get_low_link()==component){
+            comp_mask[i]= 1;
+        }
+    }
+    
+    return comp_mask;
+}
