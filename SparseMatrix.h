@@ -150,6 +150,11 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
         while( _file_reader.good())
         {
             getline(_file_reader, line );
+            std::cout<< line << std::endl;
+            if (line == "")
+            {
+                continue;
+            }
             _split(line, values,'\t');
             this->_edges[values[0]-1][values[1]-1] = 1;
             i++;
