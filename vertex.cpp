@@ -19,6 +19,11 @@ vertex::vertex(int a,int b){
     this->tarjan_flag=0;
 }
 
+vertex::~vertex()
+{
+    
+}
+
 /*vertex class function
  *operator == that checks if this vertex is equal to parameter
  */
@@ -74,25 +79,25 @@ void vertex::set_low_link(long b){
  *returns this vertex's index
  */
 long vertex:: get_index(){
-  return index;
+  return this->index;
 }
 
 /*vertex class function
  *returns this vertex's low link
  */
 long vertex:: get_low_link(){
-  return low_link;
+  return this->low_link;
 }
 
 /*vertex class function
  *returns this vertex's name
  */
 int vertex:: get_vertex_name(){
-return vertex_name;
+return this->vertex_name;
 }
 
 int vertex:: get_tarjan_flag(){
-    return tarjan_flag;
+    return this->tarjan_flag;
 }
 
 /*

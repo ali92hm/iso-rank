@@ -14,6 +14,7 @@ class vertex{
 public:
   vertex();
   vertex (int, int);
+    virtual ~vertex();
   vertex* operator=(const vertex *rhs);
   vertex& operator=(const vertex &rhs);
   bool operator!=(const vertex &rhs);
