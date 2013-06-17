@@ -41,7 +41,7 @@ int main(int argc, const char * argv[])
     
     std::string EXTENSION = ".dat";
     //int NUMBER_OF_FILES = 1;
-    std::string File = "3";
+    std::string File = "1";
     
 
 //    std::cout<< matrix_A << std::endl;

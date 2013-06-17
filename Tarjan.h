@@ -108,7 +108,7 @@ int contains(stack<vertex*>* s,vertex* w){
  */
 
 template <typename DT>
-void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_number,int* compIdx,std::vector<vertex*>* vertices,stack<vertex*>* st){
+void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_number,std::vector<vertex*>* vertices,stack<vertex*>* st){
     std::cout << "calling strong component on" << vertex_number << std::endl;
     std::flush(cout);
     
@@ -137,7 +137,7 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
         other_vertex=(*vertices)[sparse_vertex->col_index];
         
         if((*other_vertex).get_index()==-1){
-            strong_com(sm, num_vertices,index,sparse_vertex->col_index,compIdx,vertices,st);
+            strong_com(sm, num_vertices,index,sparse_vertex->col_index,vertices,st);
             (*curr_vertex).set_low_link(min((*curr_vertex).get_low_link(),(*other_vertex).get_low_link()));
         }
         else if(contains(st,other_vertex)==1){
@@ -173,7 +173,7 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
 template <typename DT>
 std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices,stack<vertex*>* st){
     
-    int* compIdx= new int[num_vertices]; //vector
+    //std::vector<int>* compIdx = new std::vector<int>(num_vertices); //vector
     std::vector<vertex*>* vertices= new std::vector<vertex*>(num_vertices);
     int index=0;
     
@@ -184,13 +184,13 @@ std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices,stack
     }
     
     for(int i=0;i<num_vertices;i++){
-            compIdx[i]=-1;
+           // compIdx[i]=-1;
     }
     
     for(int i=0;i<num_vertices;i++){
         if( (*vertices)[i]->get_low_link()==-1){
             //printf("unset vertex %d has low link of %d\n", i, vertices[i].get_low_link());
-            strong_com(sm,num_vertices,&index,i,compIdx,vertices,st);
+            strong_com(sm,num_vertices,&index,i,vertices,st);
         }
         else{
             //printf(" set vertex %d has low link of %d\n", i, vertices[i].get_low_link());
