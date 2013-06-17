@@ -26,7 +26,9 @@ int binary_search_index(SparseMatrix<DT> *sm, int curr_row){
     int mid=-1;
     sparse_matrix_element<DT>** sparse_graph=sm->getSparseForm();
     
-    while(start<=finish){
+    
+    
+    while(start<=finish&&mid>=0&&mid<sparse_size){
         mid=(start+finish)/2;
         
         if(sparse_graph[mid]->row_index==curr_row){
