@@ -109,7 +109,9 @@ int contains(stack<vertex*>* s,vertex* w){
 
 template <typename DT>
 void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_number,int* compIdx,std::vector<vertex*>* vertices,stack<vertex*>* st){
-    printf("calling strong component on %d\n", vertex_number);
+    std::cout << "calling strong component on" << vertex_number << std::endl;
+    std::flush(cout);
+    
     sparse_matrix_element<DT> **sparse_graph = sm->getSparseForm();
     int sparse_size=sm->getSparseFormSize();
     int sparse_edges_index = binary_search_index(sm,vertex_number);
@@ -171,7 +173,7 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
 template <typename DT>
 std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices,stack<vertex*>* st){
     
-    int* compIdx= new int[num_vertices];
+    int* compIdx= new int[num_vertices]; //vector
     std::vector<vertex*>* vertices= new std::vector<vertex*>(num_vertices);
     int index=0;
     
@@ -195,9 +197,10 @@ std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices,stack
         }
     }
     
-    for(int j=0;j<num_vertices;j++){
-        std::cout<<"low link of: " <<  j << ": " << (*vertices)[j]->get_low_link() << std::endl;
-    }
+//    for(int j=0;j<num_vertices;j++){
+//        std::cout<<"low link of: " <<  j << ": " << (*vertices)[j]->get_low_link() << std::endl;
+//        
+//    }
     
     return vertices;
 }

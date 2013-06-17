@@ -277,7 +277,7 @@ sparse_matrix_element<DT>** SparseMatrix<DT>::getSparseForm(){
             }
         }
         
-        
+        printf("alloced size: %d counter: %d\n",sparse_form_size,counter);
     }
     
     return sparse_form;
