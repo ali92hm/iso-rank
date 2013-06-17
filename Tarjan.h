@@ -110,7 +110,7 @@ int contains(stack<vertex*>* s,vertex* w){
 template <typename DT>
 void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_number,int* compIdx,std::vector<vertex*>* vertices,stack<vertex*>* st){
     printf("calling strong component on %d\n", vertex_number);
-    sparse_matrix_element<DT> **sparse_graph=sm->getSparseForm();
+    sparse_matrix_element<DT> **sparse_graph = sm->getSparseForm();
     int sparse_size=sm->getSparseFormSize();
     int sparse_edges_index = binary_search_index(sm,vertex_number);
     
