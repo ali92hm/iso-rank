@@ -20,6 +20,7 @@
 #include <fstream>
 #include "util.h"
 
+
 template <typename DT>
 class SparseMatrix;
 
@@ -524,7 +525,14 @@ unsigned int SparseMatrix<DT>::_split(const std::string &line, std::vector<unsig
     while( pos < line.size() )
     {
         const char* tmp = line.substr( initial_pos, pos - initial_pos).c_str();
-        vec.push_back(std::atoi(tmp));
+        char* other= new char[pos-initial_pos-initial_pos+1];
+        int i;
+        std::strcpy(other,tmp);
+        /*for(i=0;i<pos-initial_pos-initial_pos;i++){
+            other[i]=tmp[i];
+        }
+        other[i+1]='\0';*/
+        vec.push_back(std::atoi(other));
         initial_pos = pos + 1;
         pos = line.find(delim, initial_pos );
     }
