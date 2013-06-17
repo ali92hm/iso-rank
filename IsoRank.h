@@ -33,8 +33,8 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
     SparseMatrix<DT>* kron_prod = matrix_A.kron(matrix_B);
     std::stack<vertex*> vertex_stack;
     std::cout << *kron_prod << std::endl;
-    kron_prod->getSparseForm();
-    // graph_con_com(kron_prod, kron_prod->getNumberOfColumns(),&vertex_stack);
+   
+    graph_con_com(kron_prod, kron_prod->getNumberOfColumns(),&vertex_stack);
 //    
 ////    for(int i=0; i < kron_prod->getNumberOfColumns(); i++ )
 ////    {

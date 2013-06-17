@@ -189,7 +189,7 @@ std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices,stack
     for(int i=0;i<num_vertices;i++){
         if( (*vertices)[i]->get_low_link()==-1){
             //printf("unset vertex %d has low link of %d\n", i, vertices[i].get_low_link());
-            strong_com(sm,num_vertices,&index,i,compIdx,vertices,st);
+            //strong_com(sm,num_vertices,&index,i,compIdx,vertices,st);
         }
         else{
             //printf(" set vertex %d has low link of %d\n", i, vertices[i].get_low_link());
