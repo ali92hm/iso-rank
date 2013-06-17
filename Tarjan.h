@@ -119,7 +119,7 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
     sparse_matrix_element<DT> *sparse_vertex;
     (*curr_vertex).set_index(*index);
     (*curr_vertex).set_low_link(*index);
-    *index=*index+1;
+    (*index)=(*index)+1;
     //cout << "index: " << *index << endl;
     
     if(sparse_edges_index<sparse_size&&sparse_edges_index>-1){

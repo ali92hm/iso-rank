@@ -54,8 +54,8 @@ private:
 protected:
     unsigned short int _rows;
     unsigned short int _cols;
-    unsigned short int sparse_form_size;
-    sparse_matrix_element<DT>** sparse_form;
+    unsigned short int sparse_form_size = 0;
+    sparse_matrix_element<DT>** sparse_form = NULL;
     DT** _edges;
     
 public:
@@ -506,8 +506,7 @@ bool SparseMatrix<DT>::_initilalizeMatrix()
         
         success &= (this->_edges[i] != NULL);        //checking for memory issues.
     }
-    sparse_form_size=0;
-    sparse_form=NULL;
+    
     return success;
 }
 
