@@ -31,7 +31,14 @@ void getRandomMatrix(SparseMatrix<DT>& matrix )
 
 int main(int argc, const char * argv[])
 {
-    std::string DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
+#ifdef __linux__
+    std::string DIR_PATH = "/export/home/reu_share/input/";
+#endif
+
+#ifdef __APPLE__
+     std::string DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
+#endif
+    
     std::string EXTENSION = ".dat";
     //int NUMBER_OF_FILES = 1;
     std::string File = "3";
