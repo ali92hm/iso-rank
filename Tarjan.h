@@ -183,7 +183,7 @@ vertex* graph_con_com(SparseMatrix<DT> *sm, int num_vertices,stack<vertex*>* st)
     
     
     for(int j=0;j<num_vertices;j++){
-        vertices[j]=(vertex *)(new vertex(j,-1));
+        vertices[j]= new vertex(j,-1);
     }
     
     for(int i=0;i<num_vertices;i++){
