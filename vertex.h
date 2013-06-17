@@ -6,7 +6,9 @@
 
 
 class vertex{
-  int vertex_name,index,low_link;
+    int vertex_name;
+    long index;
+    long low_link;
 public:
   vertex();
   vertex (int, int);
@@ -14,10 +16,10 @@ public:
   vertex& operator=(const vertex &rhs);
   int operator!=(const vertex &rhs);
   int operator==(const vertex &rhs);
-  void set_index(int);
-  void set_low_link(int);
-  int get_index();
-  int get_low_link();
+  void set_index(long);
+  void set_low_link(long);
+  long get_index();
+  long get_low_link();
   int get_vertex_name();
 };
 

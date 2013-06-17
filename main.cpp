@@ -50,7 +50,7 @@ int main(int argc, const char * argv[])
     std::cout << a << std::endl;
     std::cout << *b << std::endl;
     
-    delete b;
+    isoRank(a, *b);
 
     
     

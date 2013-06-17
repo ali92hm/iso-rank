@@ -120,7 +120,7 @@ int* component_mask(vertex* vertices, int component, int number_nodes){
     for(int i=0;i<number_nodes;i++){
         vertex* curr_vertex= &vertices[i];
         if((*curr_vertex).get_low_link()==component){
-            comp_mask[i]=component;
+            comp_mask[i]= 1;
         }
     }
     

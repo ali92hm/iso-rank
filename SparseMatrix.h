@@ -111,7 +111,7 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
         throw FileDoesNotExistException();
     }
     
-    //Throw exception if thr input file has format errors
+    //Throw exception if the input file has format errors
     if (_file_reader.fail())
     {
         _file_reader.close();
@@ -391,7 +391,7 @@ SparseMatrix<DT>* SparseMatrix<DT>:: vec_times_mat(DT* vec, int vec_size){
     
     SparseMatrix<DT>* ret_matrix= new SparseMatrix<DT>(*this);
     if(_rows!=vec_size){
-        fprintf(stderr,"dimension mismatch");
+       fprintf(stderr,"dimension mismatch");
     }
     else{
         

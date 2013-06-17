@@ -56,28 +56,28 @@ vertex& vertex::operator=(const vertex &rhs){
 /*vertex class function
  *sets this vertex's index to a
  */
-void vertex::set_index(int a){
+void vertex::set_index(long a){
     this->index=a;
   }
 
 /*vertex class function
  *sets this vertex's low_link to b
  */
-void vertex::set_low_link(int b){
+void vertex::set_low_link(long b){
   this->low_link=b;
 }
 
 /*vertex class function
  *returns this vertex's index
  */
-int vertex:: get_index(){
+long vertex:: get_index(){
   return index;
 }
 
 /*vertex class function
  *returns this vertex's low link
  */
-int vertex:: get_low_link(){
+long vertex:: get_low_link(){
   return low_link;
 }
 
