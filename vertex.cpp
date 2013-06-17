@@ -22,15 +22,15 @@ vertex::vertex(int a,int b){
 /*vertex class function
  *operator == that checks if this vertex is equal to parameter
  */
-int vertex::operator==(const vertex &rhs){
+bool vertex::operator==(const vertex &rhs){
   return this->vertex_name==rhs.vertex_name;
 }
 
 /*vertex class function
  *operator != that checks if this vertex is not equal to parameter
  */
-int vertex::operator!=(const vertex &rhs){
-  return 1-(this->vertex_name==rhs.vertex_name);
+bool vertex::operator!=(const vertex &rhs){
+  return !(this->vertex_name==rhs.vertex_name);
 
 }
 
@@ -102,7 +102,7 @@ int vertex:: get_tarjan_flag(){
  * component are masked out.
  */
 int* component_mask(vertex* vertices, int component, int number_nodes){
-    int* comp_mask=(int *)malloc(sizeof(int) * number_nodes);
+    int* comp_mask= new int[number_nodes];//(int *)malloc(sizeof(int) * number_nodes);
     
     for(int i=0;i<number_nodes;i++){
         comp_mask[i]=0;

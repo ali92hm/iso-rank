@@ -16,8 +16,8 @@ public:
   vertex (int, int);
   vertex* operator=(const vertex *rhs);
   vertex& operator=(const vertex &rhs);
-  int operator!=(const vertex &rhs);
-  int operator==(const vertex &rhs);
+  bool operator!=(const vertex &rhs);
+  bool operator==(const vertex &rhs);
   void set_index(long);
   void set_low_link(long);
   long get_index();
