@@ -127,18 +127,17 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
         if (_file_reader.good())
         {
             getline(_file_reader, line);
-            //_split(line, values,'\t');
+            _split(line, values,'\t');
             
-            this->_rows = 14;//values[0];
-            this->_cols = 14;//values[1];
-            size = 62;//values[2];
+            this->_rows = values[0];
+            this->_cols = values[1];
+            size = values[2];
             
             if (!_initilalizeMatrix())
             {
                 _file_reader.close();
                 throw OutOfMemoryException();
             }
-            std::cout << (*this) << std::endl;
         }
         else
         {
@@ -150,12 +149,10 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
         while( _file_reader.good())
         {
             getline(_file_reader, line );
-           // _split(line, values,'\t');
-            //std::cout<< values[0]-1 << " " << values[1]-1 << std::endl;
-            //this->_edges[values[0]-1][values[1]-1] = 10;
+            _split(line, values,'\t');
+            this->_edges[values[0]-1][values[1]-1] = 1;
             i++;
         }
-        std::cout << (*this) << std::endl;
         if (size != i)
         {
             delete this;
