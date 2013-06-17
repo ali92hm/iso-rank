@@ -122,7 +122,7 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
     (*index)=(*index)+1;
     //cout << "index: " << *index << endl;
     
-    if(sparse_edges_index<sparse_size&&sparse_edges_index>-1){
+    if((sparse_edges_index<sparse_size&&sparse_edges_index) > -1){
         sparse_vertex=sparse_graph[sparse_edges_index];
     }
     else{
@@ -131,8 +131,7 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
     
     
     (*st).push(curr_vertex);
-    while(sparse_edges_index<sparse_size &&
-          sparse_vertex->row_index==vertex_number){
+    while( (sparse_edges_index < sparse_size) && (sparse_vertex->row_index==vertex_number) ){
         other_vertex=(*vertices)[sparse_vertex->col_index];
         
         if((*other_vertex).get_index()==-1){
@@ -189,7 +188,7 @@ std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices,stack
     for(int i=0;i<num_vertices;i++){
         if( (*vertices)[i]->get_low_link()==-1){
             //printf("unset vertex %d has low link of %d\n", i, vertices[i].get_low_link());
-            //strong_com(sm,num_vertices,&index,i,compIdx,vertices,st);
+            strong_com(sm,num_vertices,&index,i,compIdx,vertices,st);
         }
         else{
             //printf(" set vertex %d has low link of %d\n", i, vertices[i].get_low_link());
