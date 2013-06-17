@@ -11,6 +11,7 @@
 
 #include "SparseMatrix.h"
 #include "Tarjan.h"
+#include "util.h"
 #include <vector>
 
 template <typename DT>
