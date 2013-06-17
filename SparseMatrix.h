@@ -257,7 +257,7 @@ sparse_matrix_element<DT>** SparseMatrix<DT>::getSparseForm(){
             }
         }
         
-        sparse_form=(sparse_matrix_element<DT>**)malloc(sizeof(sparse_matrix_element<DT>*)*sparse_form_size);
+        sparse_form= new sparse_matrix_element<DT>* [sparse_form_size];
         int counter=0;
         
         for(int i=0;i<_rows;i++){
@@ -266,7 +266,7 @@ sparse_matrix_element<DT>** SparseMatrix<DT>::getSparseForm(){
                 
                 if(this->_edges[i][j]!=0){
                     
-                    sparse_matrix_element<DT> *ele= (sparse_matrix_element<DT>*)malloc(sizeof(sparse_matrix_element<DT>));
+                    sparse_matrix_element<DT> *ele= new sparse_matrix_element<DT>;
                     ele->row_index=i;
                     ele->col_index=j;
                     ele->value=this->_edges[i][j];
@@ -373,7 +373,7 @@ int SparseMatrix<DT>:: getSparseFormSize(){
  */
 template <typename DT>
 DT* SparseMatrix<DT>::sum_rows(){
-    DT* ret_arr=(DT *)malloc(sizeof(DT)*_rows);
+    DT* ret_arr= new DT[this->_rows];
     
 #pragma omp parallel for
     for(int i=0;i<_rows;i++){

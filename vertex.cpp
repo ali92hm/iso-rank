@@ -107,7 +107,7 @@ int vertex:: get_tarjan_flag(){
  * component are masked out.
  */
 int* component_mask(vertex* vertices, int component, int number_nodes){
-    int* comp_mask= new int[number_nodes];//(int *)malloc(sizeof(int) * number_nodes);
+    int* comp_mask= new int[number_nodes];
     
     for(int i=0;i<number_nodes;i++){
         comp_mask[i]=0;
