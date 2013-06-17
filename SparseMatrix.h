@@ -132,6 +132,7 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
             this->_rows = values[0];
             this->_cols = values[1];
             size = values[2];
+            std::cout<< _rows << " " << _cols << std::endl;
             
             if (!_initilalizeMatrix())
             {

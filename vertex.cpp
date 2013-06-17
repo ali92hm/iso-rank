@@ -5,8 +5,8 @@
 vertex:: vertex(){
  this->vertex_name=-1;
  this->index=-1;
- this->low_link=100000;
-
+ this->low_link=-1;
+this->tarjan_flag=0;
 }
 
 /*vertex class constructor
@@ -15,7 +15,8 @@ vertex:: vertex(){
 vertex::vertex(int a,int b){
   this->vertex_name=a;
   this->index=b;
-  this->low_link=1000000;
+  this->low_link=-1;
+    this->tarjan_flag=0;
 }
 
 /*vertex class function
@@ -64,7 +65,9 @@ void vertex::set_index(long a){
  *sets this vertex's low_link to b
  */
 void vertex::set_low_link(long b){
-  this->low_link=b;
+    //std::cout<< "setting low link of "<<this->get_vertex_name()<<  "to:" << b << std::endl;
+  this->tarjan_flag=1;
+    this->low_link=b;
 }
 
 /*vertex class function
@@ -86,4 +89,8 @@ long vertex:: get_low_link(){
  */
 int vertex:: get_vertex_name(){
 return vertex_name;
+}
+
+int vertex:: get_tarjan_flag(){
+    return tarjan_flag;
 }

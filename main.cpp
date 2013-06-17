@@ -17,7 +17,7 @@
 template <typename DT>
 void getRandomMatrix(SparseMatrix<DT>& matrix )
 {
-    std::srand(1);
+    std::srand(3);
     for(int i=0; i< matrix.getNumberOfRows() ; i++ )
     {
         for(int j=0; j < i; j++)
@@ -34,10 +34,11 @@ int main(int argc, const char * argv[])
     std::string DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
     std::string EXTENSION = ".dat";
     //int NUMBER_OF_FILES = 1;
-    std::string File = "1";
+    std::string File = "3";
+    
 
-//    SparseMatrix<float> matrix_A(3,3);
-//    getRandomMatrix(matrix_A);
+    SparseMatrix<float> matrix_A(12,12);
+    getRandomMatrix(matrix_A);
 //    std::cout<< matrix_A << std::endl;
 //    SparseMatrix<float> matrix_B(5,5);
 //    getRandomMatrix(matrix_B);
@@ -46,11 +47,11 @@ int main(int argc, const char * argv[])
     
     std::string file_name = DIR_PATH + File + EXTENSION;
     SparseMatrix<float> a (file_name);
-    SparseMatrix<float>* b = new SparseMatrix<float>(file_name);
-    std::cout << a << std::endl;
-    std::cout << *b << std::endl;
-    
-    isoRank(a, *b);
+    std::cout << matrix_A << std::endl;
+    std::string n2 = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/2.dat";
+    SparseMatrix<float> b (n2);
+    std::cout << matrix_A << std::endl;
+    //isoRank(matrix_A, matrix_A);
 
     
     
