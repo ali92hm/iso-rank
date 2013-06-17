@@ -54,8 +54,8 @@ private:
 protected:
     unsigned short int _rows;
     unsigned short int _cols;
-    unsigned short int sparse_form_size = 0;
-    sparse_matrix_element<DT>** sparse_form = NULL;
+    unsigned short int sparse_form_size;
+    sparse_matrix_element<DT>** sparse_form;
     DT** _edges;
     
 public:
@@ -486,11 +486,14 @@ void SparseMatrix<DT>::_copy(const SparseMatrix<DT>& matrix)
             this->_edges[i][j] = matrix._edges[i][j];
         }
     }
+    
 }
 
 template <typename DT>
 bool SparseMatrix<DT>::_initilalizeMatrix()
 {
+    this->sparse_form_size = 0;
+    this->sparse_form = NULL;
     bool success = true;
     
     this->_edges = new DT*[this->_rows];
