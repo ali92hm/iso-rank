@@ -75,7 +75,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
 ////        }
 //        
 ////    }
-    //delete vertices;
+    delete vertices;
     delete kron_prod;
     
 }
