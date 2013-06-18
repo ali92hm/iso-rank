@@ -55,10 +55,12 @@ int main(int argc, const char * argv[])
 //    }
     
 
-    SparseMatrix<float> a (4,4);
-    SparseMatrix<float> b (4,4);
+    SparseMatrix<float> a (14,14);
     getRandomMatrix(a);
-    getRandomMatrix(b);
+    SparseMatrix<float> b (a);
+
+
+    
     std::cout << a << std::endl;
     std::cout << b << std::endl;
     isoRank(a, b);

@@ -34,38 +34,59 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
     
    
     vector<vertex*> * vertices = graph_con_com(kron_prod, kron_prod->getNumberOfColumns());
+//    cout<< "connected comps: " <<endl;
+//    for (int i=0; i< vertices->size(); i++)
+//    {
+//        cout << (*vertices)[i]->get_low_link() << ", ";
+//    }
+//    cout<< endl;
     
     for(int i=0; i < kron_prod->getNumberOfColumns(); i++ )
     {
+//        cout << "Starting the for loop " << i << endl;
         vector<int>* comp_mask = component_mask(*vertices, i);
         if (comp_mask == NULL)
         {
+//            cout << "comp_mask was NULL" << endl;
             continue;
         }
     
         SparseMatrix<DT>* L = kron_prod->getScatteredSelection(*comp_mask,*comp_mask);
-    
-        DT* sum = L->sum_rows();
-        DT* D_neg1  = new DT[kron_prod->getNumberOfRows()];
-        DT* D_0pt5  = new DT[kron_prod->getNumberOfRows()];
-        DT* D_neg0pt5  = new DT[kron_prod->getNumberOfRows()];
+//        cout << "Matrix L \n" << *L << endl;
         
-        for(int j=0; j < kron_prod->getNumberOfRows(); j++)
+        
+        DT* sum = L->sum_rows();
+        DT* D_neg1  = new DT[L->getNumberOfRows()];
+        DT* D_0pt5  = new DT[L->getNumberOfRows()];
+        DT* D_neg0pt5  = new DT[L->getNumberOfRows()];
+        
+        for(int j=0; j < L->getNumberOfRows(); j++)
         {
             D_neg1[j] = 1.0/sum[j];
             D_0pt5[j] = sqrt(sum[j]);
             D_neg0pt5[j] = 1.0/D_0pt5[j];
         }
     
-        SparseMatrix<DT>* M = L->vec_times_mat(D_neg1,kron_prod->getNumberOfRows() );
-        SparseMatrix<DT>* Ms =
-        (L->vec_times_mat(D_neg0pt5,kron_prod->getNumberOfRows()))->mat_times_vec(D_neg0pt5,kron_prod->getNumberOfRows());
+        SparseMatrix<DT>* M = L->vec_times_mat(D_neg1,L->getNumberOfRows() );
+        SparseMatrix<DT>* Ms = (L->vec_times_mat(D_neg0pt5,L->getNumberOfRows()))->mat_times_vec(D_neg0pt5,L->getNumberOfRows());
         if(!Ms->isSymmetric())
         {
             throw NotASymmetricMatrixException();
         }
     
-        cout<< "Ms Matrix" << endl << *Ms << endl;
+//        cout<< "Ms Matrix" << endl << *Ms << endl;
+        ARluSymStdEig<double> EigProb(4, (*Ms->getARmatrix()), "LM");
+        EigProb.FindEigenvectors();
+        //Solution(matrix, EigProb);
+        for (int i=0; i!=EigProb.ConvergedEigenvalues(); i++) {
+            std::cout << "Eigenvalue[" << (i+1) << "] = ";
+            std::cout << EigProb.Eigenvalue(i) << std::endl;
+            std::cout << "Eigenvector[" << (i+1) << "] : ";
+            for (int j=0; j!=EigProb.GetN(); j++) {
+                std::cout << EigProb.Eigenvector(i,j) << std::endl;
+            }
+            std::cout << std::endl;
+        }
     
         delete comp_mask;
         delete L;

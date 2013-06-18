@@ -125,7 +125,7 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
     (*index)=(*index)+1;
     //cout << "index: " << *index << endl;
     
-    if((sparse_edges_index<sparse_size&&sparse_edges_index) > -1){
+    if( (sparse_edges_index<sparse_size) && (sparse_edges_index > -1) ){
         sparse_vertex=sparse_graph[sparse_edges_index];
     }
     else{

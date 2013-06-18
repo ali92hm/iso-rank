@@ -18,9 +18,18 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
-#include "util.h"
 #include <sstream>
 #include <iterator>
+#include <iomanip>
+#include <cstring>
+#include <stdexcept>
+#include <limits>
+#include <math.h>
+#include "util.h"
+#include "dsmatrxa.h"
+#include "ardsmat.h"
+#include "ardssym.h"
+#include "lsymsol.h"
 
 
 template <typename DT>
@@ -77,6 +86,7 @@ public:
     sparse_matrix_element<DT>** getSparseForm();
     int getSparseFormSize();
     SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
+    ARdsSymMatrix<DT>* SparseMatrix<DT>::getARMatrix();
     //Mutators
     SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
     DT* sum_rows();
@@ -368,6 +378,26 @@ SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_
         }
     }
     return res_matrix;
+}
+
+template <typename DT>
+ARdsSymMatrix<DT>* SparseMatrix<DT>::getARMatrix()
+{
+    int sparse_size=this->_rows;
+    
+    int arr_size= sparse_size*(sparse_size+1)/2;
+    DT nzval[arr_size];
+    int counter=0;
+    
+    for(int i=0;i<sparse_size;i++){
+        for(int j=0;j<=i;j++){
+            nzval[counter]= this->_edges[i][j];
+            counter++;
+        }
+    }
+    
+    ARdsSymMatrix<DT> *matrix = new ARdsSymMatrix<DT>(sparse_size, nzval,'L');
+    return matrix;
 }
 
 template <typename DT>
