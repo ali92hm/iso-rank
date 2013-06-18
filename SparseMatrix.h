@@ -170,6 +170,7 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
     }
     else
     {
+        std::cout<< "else" << std::endl;
         delete this;
         _file_reader.close();
         throw MatrixReaderException();
@@ -201,11 +202,14 @@ template <typename DT>
 SparseMatrix<DT>::~SparseMatrix()
 {
     std::cout << "Destructor" << std::endl;
-    for(int i=0; i < this->_rows; i++)
+    if (_edges != NULL)
     {
-        delete [] _edges[i];
+        for(int i=0; i < this->_rows; i++)
+        {
+            delete [] _edges[i];
+        }
+        delete [] _edges;
     }
-    delete [] _edges;
     
     if (sparse_form != NULL)
     {

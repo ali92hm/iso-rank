@@ -51,9 +51,9 @@ int main(int argc, const char * argv[])
 //    }
     
     std::string file_name = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/1.dat";
+
     SparseMatrix<float> a (file_name);
     std::cout << a << std::endl;
-
 
     
     
