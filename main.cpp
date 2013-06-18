@@ -50,10 +50,13 @@ int main(int argc, const char * argv[])
 //        }
 //    }
     
-    std::string file_name = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/1.dat";
 
-    SparseMatrix<float> a (file_name);
+    SparseMatrix<float> a (4,4);
+    SparseMatrix<float> b (3,3);
     std::cout << a << std::endl;
+    std::cout << b << std::endl;
+    isoRank(a, b);
+    
 
     
     
