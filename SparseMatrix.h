@@ -19,6 +19,8 @@
 #include <cmath>
 #include <fstream>
 #include "util.h"
+#include <sstream>
+#include <iterator>
 
 
 template <typename DT>
@@ -50,7 +52,7 @@ private:
     std::ifstream _file_reader;
     void _copy(const SparseMatrix<DT>&);
     bool _initilalizeMatrix();
-    static unsigned int _split(const std::string &line, std::vector<unsigned int> &vec ,char delim);
+    static void _split(const std::string &line, std::vector<unsigned int> &vec ,char delim);
     
 protected:
     unsigned short int _rows;
@@ -133,7 +135,7 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
             this->_rows = values[0];
             this->_cols = values[1];
             size = values[2];
-            std::cout<< _rows << " " << _cols << std::endl;
+        
             
             if (!_initilalizeMatrix())
             {
@@ -151,7 +153,6 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
         while( _file_reader.good())
         {
             getline(_file_reader, line );
-            std::cout<< line << std::endl;
             if (line == "")
             {
                 continue;
@@ -515,33 +516,17 @@ bool SparseMatrix<DT>::_initilalizeMatrix()
 }
 
 template <typename DT>
-unsigned int SparseMatrix<DT>::_split(const std::string &line, std::vector<unsigned int> &vec ,char delim)
+void SparseMatrix<DT>::_split(const std::string &line, std::vector<unsigned int> &vec ,char delim)
 {
-    unsigned long pos = line.find(delim);
-    unsigned long initial_pos = 0;
-    
     vec.clear();
+    std::istringstream iss(line);
+    std::vector<string> tokens;
+    std::copy(istream_iterator<string>(iss), istream_iterator<string>(), back_inserter<vector<string> >(tokens));
     
-    while( pos < line.size() )
+    for (int i=0; i < tokens.size(); i++)
     {
-        const char* tmp = line.substr( initial_pos, pos - initial_pos).c_str();
-        char* other= new char[pos-initial_pos-initial_pos+1];
-        int i;
-        std::strcpy(other,tmp);
-        /*for(i=0;i<pos-initial_pos-initial_pos;i++){
-            other[i]=tmp[i];
-        }
-        other[i+1]='\0';*/
-        vec.push_back(std::atoi(other));
-        initial_pos = pos + 1;
-        pos = line.find(delim, initial_pos );
+        vec.push_back(std::atoi(tokens[i].c_str()));
     }
-    
-    // Add the last one
-    const char* tmp =  line.substr( initial_pos, std::min( pos, line.size()) - initial_pos).c_str();
-    vec.push_back( std::atoi(tmp) );
-    
-    return static_cast<unsigned int>(vec.size());
 }
 
 //===================================================================================================================================

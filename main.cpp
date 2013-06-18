@@ -8,7 +8,64 @@
 
 #include "SparseMatrix.h"
 #include "IsoRank.h"
+#include <vector>
 #include <ctime>
+
+
+
+
+#ifdef __linux__
+std::string DIR_PATH = "/export/home/reu_share/input/";
+#endif
+
+#ifdef __APPLE__
+std::string DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
+#endif
+
+void commandLineArgs(int argc,const char* argv[]);
+
+int main(int argc, const char * argv[])
+{
+
+    if (argc > 1)
+    {
+        commandLineArgs(argc, argv);
+    }
+    
+//    std::string EXTENSION = ".dat";
+//    int NUMBER_OF_FILES = 1;
+//    std::vector<SparseMatrix<float>*> input_graphs (NUMBER_OF_FILES);
+//    
+//    for(int i=1; i <= NUMBER_OF_FILES; i++ )
+//    {
+//        std::string file_name = DIR_PATH + std::to_string(NUMBER_OF_FILES) + EXTENSION;
+//        input_graphs.push_back(new SparseMatrix<float> (file_name));
+//    }
+//    
+//    for (int i=0; i < NUMBER_OF_FILES; i++)
+//    {
+//        for(int j=i; j< NUMBER_OF_FILES; j++ )
+//        {
+//            isoRank(*input_graphs[i], *input_graphs[j]);
+//        }
+//    }
+    
+    std::string file_name = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/1.dat";
+    SparseMatrix<float> a (file_name);
+    std::cout << a << std::endl;
+
+
+    
+    
+    return 0;
+}
+
+void commandLineArgs(int argc,const char* argv[])
+{
+    
+    
+}
+
 
 /*
  * generate a random square matrix of type int
@@ -26,43 +83,5 @@ void getRandomMatrix(SparseMatrix<DT>& matrix )
         }
     }
 }
-
-
-
-int main(int argc, const char * argv[])
-{
-#ifdef __linux__
-    std::string DIR_PATH = "/export/home/reu_share/input/";
-#endif
-
-#ifdef __APPLE__
-     std::string DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
-#endif
-    
-    std::string EXTENSION = ".dat";
-    //int NUMBER_OF_FILES = 1;
-    std::string File = "1";
-    
-
-//    std::cout<< matrix_A << std::endl;
-//    SparseMatrix<float> matrix_B(5,5);
-//    getRandomMatrix(matrix_B);
-//    std::cout<< matrix_B << std::endl;
-//    isoRank(matrix_A, matrix_B);
-    
-    std::string file_name = DIR_PATH + File + EXTENSION;
-    SparseMatrix<float> a (file_name);
-    std::cout << a << std::endl;
-    std::string n2 = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/2.dat";
-    //SparseMatrix<float> b (n2);
-//    std::cout << matrix_A << std::endl;
-    isoRank(a, a);
-
-    
-    
-    return 0;
-}
-
-
 
 
