@@ -10,6 +10,8 @@
 #include "IsoRank.h"
 #include <vector>
 #include <ctime>
+#include "Tarjan.h"
+#include "vertex.h"
 
 
 
@@ -54,12 +56,13 @@ int main(int argc, const char * argv[])
     
 
     SparseMatrix<float> a (4,4);
-    SparseMatrix<float> b (3,3);
+    SparseMatrix<float> b (4,4);
     getRandomMatrix(a);
     getRandomMatrix(b);
     std::cout << a << std::endl;
     std::cout << b << std::endl;
     isoRank(a, b);
+
     
 
     
@@ -81,7 +84,7 @@ void commandLineArgs(int argc,const char* argv[])
 template <typename DT>
 void getRandomMatrix(SparseMatrix<DT>& matrix )
 {
-    std::srand(3);
+    std::srand(time(0));
     for(int i=0; i< matrix.getNumberOfRows() ; i++ )
     {
         for(int j=0; j < i; j++)

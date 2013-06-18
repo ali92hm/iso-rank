@@ -23,12 +23,12 @@ int binary_search_index(SparseMatrix<DT> *sm, int curr_row){
     int start=0;
     int sparse_size=sm->getSparseFormSize();
     int finish=sparse_size-1;
-    int mid=-1;
+    int mid=0;
     sparse_matrix_element<DT>** sparse_graph=sm->getSparseForm();
     
     
     
-    while(start<=finish&&mid>=0&&mid<sparse_size){
+    while(start<=finish && mid>=0 && mid<sparse_size){
         mid=(start+finish)/2;
         
         if(sparse_graph[mid]->row_index==curr_row){
@@ -111,8 +111,7 @@ int contains(stack<vertex*>* s,vertex* w){
 
 template <typename DT>
 void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_number,std::vector<vertex*>* vertices,stack<vertex*>* st){
-    std::cout << "calling strong component on" << vertex_number << std::endl;
-    std::flush(cout);
+    //std::cout << "calling strong component on" << vertex_number << std::endl;
     
     sparse_matrix_element<DT> **sparse_graph = sm->getSparseForm();
     int sparse_size=sm->getSparseFormSize();
@@ -175,7 +174,6 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
 template <typename DT>
 std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices){
     
-    //std::vector<int>* compIdx = new std::vector<int>(num_vertices); //vector
     stack<vertex*>* st = new stack<vertex*>();
     std::vector<vertex*>* vertices= new std::vector<vertex*>(num_vertices);
     int index=0;

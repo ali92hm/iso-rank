@@ -170,7 +170,6 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
     }
     else
     {
-        std::cout<< "else" << std::endl;
         delete this;
         _file_reader.close();
         throw MatrixReaderException();
@@ -201,7 +200,6 @@ SparseMatrix<DT>::SparseMatrix(const SparseMatrix<DT>& matrix)
 template <typename DT>
 SparseMatrix<DT>::~SparseMatrix()
 {
-    std::cout << "Matrix Destructor" << std::endl;
     if (_edges != NULL)
     {
         for(int i=0; i < this->_rows; i++)
@@ -292,8 +290,6 @@ sparse_matrix_element<DT>** SparseMatrix<DT>::getSparseForm(){
                 }
             }
         }
-        
-        printf("alloced size: %d counter: %d\n",sparse_form_size,counter);
     }
     
     return sparse_form;
@@ -464,7 +460,7 @@ std::ostream& operator<<(std::ostream& stream, const SparseMatrix<DT>& matrix)
     {
         for( int j = 0; j< matrix._cols; j++)
         {
-            stream << matrix._edges[i][j] << " ";
+            stream << matrix._edges[i][j] << ' ';
         }
         stream << "\n";
     }

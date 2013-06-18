@@ -13,16 +13,14 @@ this->tarjan_flag=0;
  *parameter a is vertex_name b is the index
  */
 vertex::vertex(int a,int b){
-  this->vertex_name=a;
-  this->index=b;
-  this->low_link=-1;
+    this->vertex_name=a;
+    this->index=b;
+    this->low_link=-1;
     this->tarjan_flag=0;
 }
 
 vertex::~vertex()
 {
-    std::cout << "Vertex Destructor" << std::endl;
-
 }
 
 /*vertex class function

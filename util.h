@@ -132,16 +132,21 @@ DT* scalar_multiplication(DT *old_row,int size, DT scaling_factor){
  */
 vector<int>* component_mask(vector<vertex*>& vertices, int component){
     
-    vector<int>* comp_mask = new vector<int>(vertices.size(),0);
+    vector<int>* comp_mask = NULL;
+    bool hasConnectedComponeents = false;
     
     for(int i=0;i< vertices.size();i++)
     {
         vertex* curr_vertex= vertices[i];
         if((*curr_vertex).get_low_link()==component){
+            if (!hasConnectedComponeents)
+            {
+                comp_mask = new vector<int>(vertices.size(),0);
+                hasConnectedComponeents = true;
+            }
             (*comp_mask)[i]= 1;
         }
     }
-    
     return comp_mask;
 }
 
