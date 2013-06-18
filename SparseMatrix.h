@@ -86,7 +86,7 @@ public:
     sparse_matrix_element<DT>** getSparseForm();
     int getSparseFormSize();
     SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
-    ARdsSymMatrix<DT>* SparseMatrix<DT>::getARMatrix();
+    ARdsSymMatrix<double>* getARMatrix();
     //Mutators
     SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
     DT* sum_rows();
@@ -381,12 +381,12 @@ SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_
 }
 
 template <typename DT>
-ARdsSymMatrix<DT>* SparseMatrix<DT>::getARMatrix()
+ARdsSymMatrix<double>* SparseMatrix<DT>::getARMatrix()
 {
     int sparse_size=this->_rows;
     
     int arr_size= sparse_size*(sparse_size+1)/2;
-    DT nzval[arr_size];
+    double nzval[arr_size];
     int counter=0;
     
     for(int i=0;i<sparse_size;i++){
@@ -396,7 +396,7 @@ ARdsSymMatrix<DT>* SparseMatrix<DT>::getARMatrix()
         }
     }
     
-    ARdsSymMatrix<DT> *matrix = new ARdsSymMatrix<DT>(sparse_size, nzval,'L');
+    ARdsSymMatrix<double> *matrix = new ARdsSymMatrix<double>(sparse_size, nzval,'L');
     return matrix;
 }
 
