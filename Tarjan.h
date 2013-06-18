@@ -173,9 +173,10 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
  */
 
 template <typename DT>
-std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices,stack<vertex*>* st){
+std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices){
     
     //std::vector<int>* compIdx = new std::vector<int>(num_vertices); //vector
+    stack<vertex*>* st = new stack<vertex*>();
     std::vector<vertex*>* vertices= new std::vector<vertex*>(num_vertices);
     int index=0;
     
@@ -203,7 +204,7 @@ std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices,stack
 //        std::cout<<"low link of: " <<  j << ": " << (*vertices)[j]->get_low_link() << std::endl;
 //        
 //    }
-    
+    delete st;
     return vertices;
 }
 

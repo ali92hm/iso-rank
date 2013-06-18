@@ -23,6 +23,8 @@ std::string DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/gra
 #endif
 
 void commandLineArgs(int argc,const char* argv[]);
+template <typename DT>
+void getRandomMatrix(SparseMatrix<DT>& matrix );
 
 int main(int argc, const char * argv[])
 {
@@ -53,6 +55,8 @@ int main(int argc, const char * argv[])
 
     SparseMatrix<float> a (4,4);
     SparseMatrix<float> b (3,3);
+    getRandomMatrix(a);
+    getRandomMatrix(b);
     std::cout << a << std::endl;
     std::cout << b << std::endl;
     isoRank(a, b);
