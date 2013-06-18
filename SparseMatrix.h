@@ -52,7 +52,7 @@ private:
     std::ifstream _file_reader;
     void _copy(const SparseMatrix<DT>&);
     bool _initilalizeMatrix();
-    static void _split(const std::string &line, std::vector<unsigned int> &vec ,char delim);
+    static void _split(const std::string &line, std::vector<unsigned int> &vec);
     
 protected:
     unsigned short int _rows;
@@ -80,7 +80,7 @@ public:
     //Mutators
     SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
     DT* sum_rows();
-    SparseMatrix<DT>*  vec_times_mat(DT*, int);
+    SparseMatrix<DT>* vec_times_mat(DT*, int);
     SparseMatrix<DT>* mat_times_vec(DT*, int);
     
     //operators
@@ -130,7 +130,7 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
         if (_file_reader.good())
         {
             getline(_file_reader, line);
-            _split(line, values,'\t');
+            _split(line, values);
             
             this->_rows = values[0];
             this->_cols = values[1];
@@ -157,7 +157,7 @@ SparseMatrix<DT>::SparseMatrix(std::string &file_path)
             {
                 continue;
             }
-            _split(line, values,'\t');
+            _split(line, values);
             this->_edges[values[0]-1][values[1]-1] = 1;
             i++;
         }
@@ -200,11 +200,21 @@ SparseMatrix<DT>::SparseMatrix(const SparseMatrix<DT>& matrix)
 template <typename DT>
 SparseMatrix<DT>::~SparseMatrix()
 {
+    std::cout << "Destructor" << std::endl;
     for(int i=0; i < this->_rows; i++)
     {
         delete [] _edges[i];
     }
     delete [] _edges;
+    
+    if (sparse_form != NULL)
+    {
+        for(int i=0; i < sparse_form_size; i++)
+        {
+            delete sparse_form[i];
+        }
+        delete [] sparse_form;
+    }
 }
 
 //===========================================================ACCESSORS===============================================================
@@ -488,7 +498,6 @@ void SparseMatrix<DT>::_copy(const SparseMatrix<DT>& matrix)
             this->_edges[i][j] = matrix._edges[i][j];
         }
     }
-    
 }
 
 template <typename DT>
@@ -516,7 +525,7 @@ bool SparseMatrix<DT>::_initilalizeMatrix()
 }
 
 template <typename DT>
-void SparseMatrix<DT>::_split(const std::string &line, std::vector<unsigned int> &vec ,char delim)
+void SparseMatrix<DT>::_split(const std::string &line, std::vector<unsigned int> &vec)
 {
     vec.clear();
     std::istringstream iss(line);
