@@ -124,6 +124,27 @@ DT* scalar_multiplication(DT *old_row,int size, DT scaling_factor){
     return ret_row;
 }
 
+/*
+ * takes an array of vertex objects vertices and an integer
+ * signifying a component of the graph. The function returns
+ * an integer array where vertices that don't belong to the
+ * component are masked out.
+ */
+vector<int>* component_mask(vector<vertex*>& vertices, int component){
+    
+    vector<int>* comp_mask = new vector<int>(vertices.size(),0);
+    
+    for(int i=0;i< vertices.size();i++)
+    {
+        vertex* curr_vertex= vertices[i];
+        if((*curr_vertex).get_low_link()==component){
+            (*comp_mask)[i]= 1;
+        }
+    }
+    
+    return comp_mask;
+}
+
 
 
 #endif

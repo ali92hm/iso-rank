@@ -34,47 +34,46 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
     std::cout << *kron_prod << std::endl;
     
    
-    vector<vertex*>* vertices = graph_con_com(kron_prod, kron_prod->getNumberOfColumns());
-//    
-////    for(int i=0; i < kron_prod->getNumberOfColumns(); i++ )
-////    {
-//        int* comp_mask=component_mask(vertices, 0, kron_prod->getNumberOfColumns());
-//        
-//        // Temp part should be replaced
-//        std::vector<int> temp_vec(kron_prod->getNumberOfRows());
-//        for(int j=0; j < kron_prod->getNumberOfRows() ;j++ )
+    vector<vertex*> * vertices = graph_con_com(kron_prod, kron_prod->getNumberOfColumns());
+    
+//    for(int i=0; i < kron_prod->getNumberOfColumns(); i++ )
+//    {
+        vector<int>* comp_mask = component_mask(*vertices, 0);
+        
+        SparseMatrix<DT>* L = kron_prod->getScatteredSelection(*comp_mask,*comp_mask);
+        std::cout << *L << std::endl;
+        DT* sum = L->sum_rows();
+        
+        DT* D_neg1  = new DT[kron_prod->getNumberOfRows()];
+        DT* D_0pt5  = new DT[kron_prod->getNumberOfRows()];
+        DT* D_neg0pt5  = new DT[kron_prod->getNumberOfRows()];
+        
+        for(int j=0; j < kron_prod->getNumberOfRows(); j++)
+        {
+            D_neg1[j] = 1.0/sum[j];
+            D_0pt5[j] = sqrt(sum[j]);
+            D_neg0pt5[j] = 1.0/D_0pt5[j];
+        }
+        
+        //SparseMatrix<DT>* M = L->vec_times_mat(D_neg1,kron_prod->getNumberOfRows() );
+       // SparseMatrix<DT>* Ms = (L->vec_times_mat(D_0pt5,kron_prod->getNumberOfRows()))->mat_times_vec(D_0pt5,kron_prod->getNumberOfRows());
+//        if(!Ms->isSymmetric())
 //        {
-//            temp_vec[j] = comp_mask[j];
-//            std::cout << temp_vec[j] << ", ";
+//            throw NotASymmetricMatrixException();
 //        }
-//        //temp ends
-//        
-//        SparseMatrix<DT>* L = kron_prod->getScatteredSelection(temp_vec,temp_vec);
-//        std::cout << *L << std::endl;
-//        DT* sum = L->sum_rows();
-////        std::vector <DT> D_neg1 (kron_prod->getNumber);
-////        std::vector <DT> D_0pt5 (kron_prod->getNumber);
-////        std::vector <DT> D_neg0pt5 (kron_prod->getNumber);
-//        
-//        DT* D_neg1  = new DT[kron_prod->getNumberOfRows()];
-//        DT* D_0pt5  = new DT[kron_prod->getNumberOfRows()];
-//        DT* D_neg0pt5  = new DT[kron_prod->getNumberOfRows()];
-//        
-//        for(int j=0; j < kron_prod->getNumberOfRows(); j++)
-//        {
-//            D_neg1[j] = 1.0/sum[j];
-//            D_0pt5[j] = sqrt(sum[j]);
-//            D_neg0pt5[j] = 1.0/D_0pt5[j];
-//        }
-//        
-//        //SparseMatrix<DT>* M = L->vec_times_mat(D_neg1,kron_prod->getNumberOfRows() );
-//       // SparseMatrix<DT>* Ms = (L->vec_times_mat(D_0pt5,kron_prod->getNumberOfRows()))->mat_times_vec(D_0pt5,kron_prod->getNumberOfRows());
-////        if(!Ms->isSymmetric())
-////        {
-////            throw NotASymmetricMatrixException();
-////        }
-//        
-////    }
+    delete comp_mask;
+    delete L;
+    delete [] sum;
+    delete [] D_neg1;
+    delete [] D_0pt5;
+    delete [] D_neg0pt5;
+//    }
+
+    typename vector<vertex*>::iterator i;
+    for ( i = vertices->begin() ; i < vertices->end(); ++i )
+    {
+        delete * i;
+    }
     delete vertices;
     delete kron_prod;
     

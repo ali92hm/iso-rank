@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+
+
 class vertex{
     int vertex_name;
     long index;

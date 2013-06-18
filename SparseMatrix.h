@@ -201,7 +201,7 @@ SparseMatrix<DT>::SparseMatrix(const SparseMatrix<DT>& matrix)
 template <typename DT>
 SparseMatrix<DT>::~SparseMatrix()
 {
-    std::cout << "Destructor" << std::endl;
+    std::cout << "Matrix Destructor" << std::endl;
     if (_edges != NULL)
     {
         for(int i=0; i < this->_rows; i++)
