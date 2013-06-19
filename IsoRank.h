@@ -34,6 +34,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
     
    
     vector<vertex*> * vertices = graph_con_com(kron_prod, kron_prod->getNumberOfColumns());
+    vector<double*> eigenValues(kron_prod->getNumberOfColumns());
 //    cout<< "connected comps: " <<endl;
 //    for (int i=0; i< vertices->size(); i++)
 //    {
@@ -47,7 +48,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         vector<int>* comp_mask = component_mask(*vertices, i);
         if (comp_mask == NULL)
         {
-//            cout << "comp_mask was NULL" << endl;
+//          eigenValues[i] = NULL;
             continue;
         }
     
@@ -75,7 +76,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         }
     
         cout<< "Ms Matrix" << endl << *Ms << endl;
-        double* eig = Ms->getTopEigenVector();
+        eigenValues[i] = Ms->getTopEigenVector();
         
 
         delete comp_mask;
