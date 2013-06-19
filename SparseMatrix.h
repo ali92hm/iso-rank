@@ -410,7 +410,7 @@ double matrixArr[6] = { 0 , 0 ,0.707107 , 0, 0.707107 ,0  };
                 std::cout << EigProb.Eigenvector(i,j) << std::endl;
             }
             std::cout << std::endl;
-        }
+        }l
     return &EigProb;
 }
 
