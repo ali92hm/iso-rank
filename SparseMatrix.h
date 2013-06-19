@@ -86,7 +86,7 @@ public:
     sparse_matrix_element<DT>** getSparseForm();
     int getSparseFormSize();
     SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
-    ARdsSymMatrix<double>* getARMatrix();
+    ARluSymStdEig<double>* getARMatrix();
     //Mutators
     SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
     DT* sum_rows();
@@ -381,23 +381,37 @@ SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_
 }
 
 template <typename DT>
-ARdsSymMatrix<double>* SparseMatrix<DT>::getARMatrix()
+ARluSymStdEig<double>* SparseMatrix<DT>::getARMatrix()
 {
     int sparse_size=this->_rows;
     
-    int arr_size= sparse_size*(sparse_size+1)/2;
+    int arr_size= (sparse_size*(sparse_size+1))/2;
     double nzval[arr_size];
-    int counter=0;
+double matrixArr[6] = { 0 , 0 ,0.707107 , 0, 0.707107 ,0  };	    
+   int counter=0;
     
     for(int i=0;i<sparse_size;i++){
-        for(int j=0;j<=i;j++){
+        for(int j=i;j < sparse_size ;j++){
             nzval[counter]= this->_edges[i][j];
             counter++;
         }
     }
     
-    ARdsSymMatrix<double> *matrix = new ARdsSymMatrix<double>(sparse_size, nzval,'L');
-    return matrix;
+    ARdsSymMatrix<double> *matrix = new ARdsSymMatrix<double>(sparse_size,nzval,'L');
+
+       ARluSymStdEig<double> EigProb(1, *matrix, "LM");
+        EigProb.FindEigenvectors();
+     
+        for (int i=0; i!=EigProb.ConvergedEigenvalues(); i++) {
+            std::cout << "Eigenvalue[" << (i+1) << "] = ";
+            std::cout << EigProb.Eigenvalue(i) << std::endl;
+            std::cout << "Eigenvector[" << (i+1) << "] : ";
+            for (int j=0; j!=EigProb.GetN(); j++) {
+                std::cout << EigProb.Eigenvector(i,j) << std::endl;
+            }
+            std::cout << std::endl;
+        }
+    return &EigProb;
 }
 
 template <typename DT>

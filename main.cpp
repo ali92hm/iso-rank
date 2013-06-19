@@ -26,7 +26,7 @@ std::string DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/gra
 
 void commandLineArgs(int argc,const char* argv[]);
 template <typename DT>
-void getRandomMatrix(SparseMatrix<DT>& matrix );
+void getRandomMatrix(SparseMatrix<DT>& matrix, bool change );
 
 int main(int argc, const char * argv[])
 {
@@ -55,10 +55,10 @@ int main(int argc, const char * argv[])
 //    }
     
 
-    SparseMatrix<float> a (14,14);
-    getRandomMatrix(a);
-    SparseMatrix<float> b (a);
-
+    SparseMatrix<float> a (2,2);
+    getRandomMatrix(a, false);
+    SparseMatrix<float> b (3,3);
+    getRandomMatrix(b, false);
 
     
     std::cout << a << std::endl;
@@ -84,9 +84,16 @@ void commandLineArgs(int argc,const char* argv[])
  * @pram: int size of the matrix
  */
 template <typename DT>
-void getRandomMatrix(SparseMatrix<DT>& matrix )
+void getRandomMatrix(SparseMatrix<DT>& matrix, bool change )
 {
-    std::srand(time(0));
+    if (change)
+    {
+	std::srand(time(0));
+    }
+    else {
+	std::srand(1);
+    }
+    
     for(int i=0; i< matrix.getNumberOfRows() ; i++ )
     {
         for(int j=0; j < i; j++)
