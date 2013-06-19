@@ -75,20 +75,13 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         }
     
         cout<< "Ms Matrix" << endl << *Ms << endl;
-	ARluSymStdEig<double>  *EigProb=Ms->getARMatrix();
-        //ARluSymStdEig<double> EigProb(1, *matrix, "LM");
-        /*EigProb->FindEigenvectors();
-     
-        for (int i=0; i!=EigProb->ConvergedEigenvalues(); i++) {
-            std::cout << "Eigenvalue[" << (i+1) << "] = ";
-            std::cout << EigProb->Eigenvalue(i) << std::endl;
-            std::cout << "Eigenvector[" << (i+1) << "] : ";
-            for (int j=0; j!=EigProb->GetN(); j++) {
-                std::cout << EigProb->Eigenvector(i,j) << std::endl;
-            }
-            std::cout << std::endl;
-        }*/
-    
+        double* eig = Ms->getTopEigenVector();
+        
+        for (int j=0; i< Ms->getNumberOfRows(); j++)
+        {
+            cout<<eig[j] << ", ";
+        }
+
         delete comp_mask;
         delete L;
         delete [] sum;

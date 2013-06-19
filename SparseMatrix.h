@@ -86,7 +86,7 @@ public:
     sparse_matrix_element<DT>** getSparseForm();
     int getSparseFormSize();
     SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
-    ARluSymStdEig<double>* getARMatrix();
+    double* getTopEigenVector();
     //Mutators
     SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
     DT* sum_rows();
@@ -381,37 +381,33 @@ SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_
 }
 
 template <typename DT>
-ARluSymStdEig<double>* SparseMatrix<DT>::getARMatrix()
-{
-    int sparse_size=this->_rows;
+double* SparseMatrix<DT>::getTopEigenVector(){
     
-    int arr_size= (sparse_size*(sparse_size+1))/2;
+    
+    int arr_size= (this->_rows*(this->_rows+1))/2;
     double nzval[arr_size];
-double matrixArr[6] = { 0 , 0 ,0.707107 , 0, 0.707107 ,0  };	    
-   int counter=0;
+    int counter=0;
     
-    for(int i=0;i<sparse_size;i++){
-        for(int j=i;j < sparse_size ;j++){
+    for(int i=0; i<this->_rows; i++){
+        for(int j=i;j < this->_rows ;j++){
             nzval[counter]= this->_edges[i][j];
             counter++;
         }
     }
     
-    ARdsSymMatrix<double> *matrix = new ARdsSymMatrix<double>(sparse_size,nzval,'L');
-
-       ARluSymStdEig<double> EigProb(1, *matrix, "LM");
-        EigProb.FindEigenvectors();
+    ARdsSymMatrix<double> ARMatrix(this->_rows,nzval,'L');
+    ARluSymStdEig<double> eigProb(1, ARMatrix, "LM");
+    eigProb.FindEigenvectors();
+    
+    double* eigenVec = new double[eigProb.getN()];
      
-        for (int i=0; i!=EigProb.ConvergedEigenvalues(); i++) {
-            std::cout << "Eigenvalue[" << (i+1) << "] = ";
-            std::cout << EigProb.Eigenvalue(i) << std::endl;
-            std::cout << "Eigenvector[" << (i+1) << "] : ";
-            for (int j=0; j!=EigProb.GetN(); j++) {
-                std::cout << EigProb.Eigenvector(i,j) << std::endl;
-            }
-            std::cout << std::endl;
-        }l
-    return &EigProb;
+    for (int i=0; i < eigProb.GetN() ; i++)
+    {
+        eigenVec[i] = eigProb.Eigenvector(0,i);
+    }
+    
+     
+    return eigenVec;
 }
 
 template <typename DT>
