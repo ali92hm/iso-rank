@@ -56,9 +56,9 @@ int main(int argc, const char * argv[])
     
 
     SparseMatrix<float> a (2,2);
-    getRandomMatrix(a, false);
+    getRandomMatrix(a, true);
     SparseMatrix<float> b (3,3);
-    getRandomMatrix(b, false);
+    getRandomMatrix(b, true);
 
     
     std::cout << a << std::endl;

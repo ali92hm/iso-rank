@@ -77,10 +77,6 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         cout<< "Ms Matrix" << endl << *Ms << endl;
         double* eig = Ms->getTopEigenVector();
         
-        for (int j=0; i< Ms->getNumberOfRows(); j++)
-        {
-            cout<<eig[j] << ", ";
-        }
 
         delete comp_mask;
         delete L;

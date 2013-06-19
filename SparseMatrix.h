@@ -399,7 +399,7 @@ double* SparseMatrix<DT>::getTopEigenVector(){
     ARluSymStdEig<double> eigProb(1, ARMatrix, "LM");
     eigProb.FindEigenvectors();
     
-    double* eigenVec = new double[eigProb.getN()];
+    double* eigenVec = new double[eigProb.GetN()];
      
     for (int i=0; i < eigProb.GetN() ; i++)
     {
