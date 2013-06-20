@@ -95,7 +95,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         for (int j=0; j < L->getNumberOfRows(); j++)
         {
             eigenVec[j] = coef* (eigenVec[j]/vecLength);
-           
+            cout << eigenVec[j] << ", ";
         }
         
         eigenValues[i] = eigenVec;
@@ -110,6 +110,8 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         delete M;
         delete Ms;
     }
+
+    //Algorithms
 
     typename vector<vertex*>::iterator i;
     for ( i = vertices->begin() ; i < vertices->end(); ++i )
