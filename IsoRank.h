@@ -12,6 +12,7 @@
 #include "SparseMatrix.h"
 #include "Tarjan.h"
 #include "util.h"
+#include  "greedy_algorithms.h"
 #include <vector>
 
 template <typename DT>
@@ -77,7 +78,17 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
     
         cout<< "Ms Matrix" << endl << *Ms << endl;
         eigenValues[i] = Ms->getTopEigenVector();
-        
+
+	cout<<"eigenvector"<<endl;
+	for(int j=0;j<Ms->getNumberOfRows();j++){
+	  cout<< eigenValues[i][j]<< endl;
+	}
+
+
+        SparseMatrix<double>* sm = reshape(eigenValues[i], matrix_A.getNumberOfRows(), matrix_B.getNumberOfColumns());
+
+
+	cout<< "reshaped matrix " << endl << *sm <<endl;
 
         delete comp_mask;
         delete L;
