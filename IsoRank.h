@@ -36,26 +36,18 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
    
     vector<vertex*> * vertices = graph_con_com(kron_prod, kron_prod->getNumberOfColumns());
     vector<double*> eigenValues(kron_prod->getNumberOfColumns());
-//    cout<< "connected comps: " <<endl;
-//    for (int i=0; i< vertices->size(); i++)
-//    {
-//        cout << (*vertices)[i]->get_low_link() << ", ";
-//    }
-//    cout<< endl;
-    
+    vector<vector<int>*> comp_mask_values (kron_prod->getNumberOfColumns());
+
     for(int i=0; i < kron_prod->getNumberOfColumns(); i++ )
     {
-//        cout << "Starting the for loop " << i << endl;
         vector<int>* comp_mask = component_mask(*vertices, i);
+        comp_mask_values[i] = comp_mask;
         if (comp_mask == NULL)
         {
-//          eigenValues[i] = NULL;
             continue;
         }
     
         SparseMatrix<DT>* L = kron_prod->getScatteredSelection(*comp_mask,*comp_mask);
-//        cout << "Matrix L \n" << *L << endl;
-        
         
         DT* sum = L->sum_rows();
         DT* D_neg1  = new DT[L->getNumberOfRows()];
@@ -77,20 +69,33 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         }
     
         cout<< "Ms Matrix" << endl << *Ms << endl;
-        eigenValues[i] = Ms->getTopEigenVector();
 
-	cout<<"eigenvector"<<endl;
-	for(int j=0;j<Ms->getNumberOfRows();j++){
-	  cout<< eigenValues[i][j]<< endl;
-	}
+        double* eigenVec= Ms->getTopEigenVector();
+        double vecLength = 0;
+        for (int j=0; j < L->getNumberOfRows(); j++)
+        {
+            eigenVec[j] *= D_0pt5[j];
+            vecLength += pow(eigenVec[j],2);
+        }
+        
+        vecLength = sqrt(vecLength);
+        
+        int coef = 1;
+        if( eigenVec[0] < 0)
+        {
+            coef = -1;
+        }
+        
+        for (int j=0; j < L->getNumberOfRows(); j++)
+        {
+            eigenVec[j] = coef* (eigenVec[j]/vecLength);
+            cout << eigenVec[j] << ", ";
+        }
+        
+        eigenValues[i] = eigenVec;
+        
+>>>>>>> db584df8e11dbf50088a91ed1830be2df83c034a
 
-
-        SparseMatrix<double>* sm = reshape(eigenValues[i], matrix_A.getNumberOfRows(), matrix_B.getNumberOfColumns());
-
-
-	cout<< "reshaped matrix " << endl << *sm <<endl;
-
-        delete comp_mask;
         delete L;
         delete [] sum;
         delete [] D_neg1;
@@ -99,6 +104,11 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         delete M;
         delete Ms;
     }
+
+    //Algorithms
+
+    //comp_mask_values[i]
+    //eigenValues[i]
 
     typename vector<vertex*>::iterator i;
     for ( i = vertices->begin() ; i < vertices->end(); ++i )
