@@ -18,12 +18,12 @@
 template <typename DT>
 void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
 {
-    if (!matrix_A.isSquare() || !matrix_B.isSquare())
+  if (!matrix_A.isSquare() || !matrix_B.isSquare())
     {
-        throw NotASquareMatrixException();
+      throw NotASquareMatrixException();
     }
     
-    if (!matrix_A.isSymmetric() || !matrix_B.isSymmetric())
+  if (!matrix_A.isSymmetric() || !matrix_B.isSymmetric())
     {
         throw NotASymmetricMatrixException();
     }
@@ -31,11 +31,11 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
     // Degree distribution statistics
     
     
-    SparseMatrix<DT>* kron_prod = matrix_A.kron(matrix_B);
+     SparseMatrix<DT>* kron_prod = matrix_A.kron(matrix_B);
     
    
     vector<vertex*> * vertices = graph_con_com(kron_prod, kron_prod->getNumberOfColumns());
-    vector<double*> eigenValues(kron_prod->getNumberOfColumns());
+    double* eigenValues[kron_prod->getNumberOfColumns()];
     vector<vector<int>*> comp_mask_values (kron_prod->getNumberOfColumns());
 
     for(int i=0; i < kron_prod->getNumberOfColumns(); i++ )
@@ -44,6 +44,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         comp_mask_values[i] = comp_mask;
         if (comp_mask == NULL)
         {
+	  eigenValues[i]=NULL;
             continue;
         }
     
@@ -68,9 +69,9 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
             throw NotASymmetricMatrixException();
         }
     
-        cout<< "Ms Matrix" << endl << *Ms << endl;
+	//  cout<< "Ms Matrix" << endl << *Ms << endl;
 
-        double* eigenVec= Ms->getTopEigenVector();
+        double* eigenVec=  Ms->getTopEigenVector();
         double vecLength = 0;
         for (int j=0; j < L->getNumberOfRows(); j++)
         {
@@ -89,13 +90,11 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         for (int j=0; j < L->getNumberOfRows(); j++)
         {
             eigenVec[j] = coef* (eigenVec[j]/vecLength);
-            cout << eigenVec[j] << ", ";
+	    //    cout << eigenVec[j] << ", ";
         }
         
         eigenValues[i] = eigenVec;
         
->>>>>>> db584df8e11dbf50088a91ed1830be2df83c034a
-
         delete L;
         delete [] sum;
         delete [] D_neg1;
@@ -103,11 +102,48 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B)
         delete [] D_neg0pt5;
         delete M;
         delete Ms;
-    }
+    
 
     //Algorithms
 
-    //comp_mask_values[i]
+    }
+
+
+    SparseMatrix<DT>* scores= new SparseMatrix<DT>(matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns());
+    vector<int>* comp_mask_curr=comp_mask_values[0];
+    int counter_eig_vector=0;
+    int counter_comp_mask=0;
+
+    
+    for(int k=0;k<kron_prod->getNumberOfColumns();k++){
+     double* eigenvector=eigenValues[k];
+     if(eigenvector!=NULL) {
+       for(int j=0;j<scores->getNumberOfRows();j++){
+	 for(int i=0;i<scores->getNumberOfColumns();i++){
+	   if((*comp_mask_curr)[counter_comp_mask]==1){
+	     (*scores)[j][i]=eigenvector[counter_eig_vector];
+	     counter_eig_vector++;
+	   }
+	   else{
+	     (*scores)[j][i]=0;
+	   }
+	   counter_comp_mask++;
+	 }
+       }
+  
+              int assignment[matrix_A.getNumberOfRows()];
+
+             greedy_connectivity_2(*scores,matrix_A,matrix_B,assignment);
+       
+       // int* assignment= greedy_1(*scores);
+       for(int i=0;i<matrix_A.getNumberOfRows();i++){
+	 printf(" graph1: %d graph2: %d\n",i,assignment[i]);
+       }
+     }
+    }
+    
+
+  //comp_mask_values[i]
     //eigenValues[i]
 
     typename vector<vertex*>::iterator i;

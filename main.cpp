@@ -16,56 +16,70 @@
 
 
 
-
+/*
 #ifdef __linux__
-std::string DIR_PATH = "/export/home/reu_share/input/";
+std::string DIR_PATH = "/export/home/abhijit/graphs/";
 #endif
 
 #ifdef __APPLE__
 std::string DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
 #endif
-
+*/
 void commandLineArgs(int argc,const char* argv[]);
 template <typename DT>
 void getRandomMatrix(SparseMatrix<DT>& matrix, bool change );
 
 int main(int argc, const char * argv[])
 {
+  srand(time(NULL));
+  string DIR_PATH = "/export/home/abhijit/graphs/";
 
     if (argc > 1)
     {
         commandLineArgs(argc, argv);
     }
     
-//    std::string EXTENSION = ".dat";
-//    int NUMBER_OF_FILES = 1;
-//    std::vector<SparseMatrix<float>*> input_graphs (NUMBER_OF_FILES);
-//    
-//    for(int i=1; i <= NUMBER_OF_FILES; i++ )
-//    {
-//        std::string file_name = DIR_PATH + std::to_string(NUMBER_OF_FILES) + EXTENSION;
-//        input_graphs.push_back(new SparseMatrix<float> (file_name));
-//    }
-//    
-//    for (int i=0; i < NUMBER_OF_FILES; i++)
-//    {
-//        for(int j=i; j< NUMBER_OF_FILES; j++ )
-//        {
-//            isoRank(*input_graphs[i], *input_graphs[j]);
-//        }
-//    }
-    
+      std::string EXTENSION = ".dat";
+      int NUMBER_OF_FILES = 1;
+      std::vector<SparseMatrix<float>*> input_graphs (NUMBER_OF_FILES);
+      std::string file_name = DIR_PATH + "5" + EXTENSION;
+      std::string file_name2 = DIR_PATH + "4" + EXTENSION;
 
-    SparseMatrix<float> a (2,2);
+
+      SparseMatrix<float> *matrix=new SparseMatrix<float>(file_name);
+      SparseMatrix<float> *matrix2=new SparseMatrix<float>(file_name2);
+
+      std::cout << *matrix << std::endl;
+      std::cout << *matrix2 << std::endl;
+
+      isoRank(*matrix,*matrix2);
+      
+      /* for(int i=1; i <= NUMBER_OF_FILES; i++ )
+    {
+        std::string file_name = DIR_PATH + "1" + EXTENSION;
+        input_graphs.push_back(new SparseMatrix<float> (file_name));
+    }
+    
+    for (int i=0; i < NUMBER_OF_FILES; i++)
+    {
+        for(int j=i; j< NUMBER_OF_FILES; j++ )
+        {
+	  
+	  isoRank(*input_graphs[i], *input_graphs[j]);
+        }
+	}*/
+  
+
+  /* SparseMatrix<float> a (4,4);
     getRandomMatrix(a, true);
-    SparseMatrix<float> b (3,3);
+    SparseMatrix<float> b (5,5);
     getRandomMatrix(b, true);
 
     
     std::cout << a << std::endl;
     std::cout << b << std::endl;
     isoRank(a, b);
-
+  */
     
 
     

@@ -87,6 +87,7 @@ public:
     int getSparseFormSize();
     SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
     double* getTopEigenVector();
+    vector<int>* getNeighbors(int vertex);
     //Mutators
     SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
     DT* sum_rows();
@@ -379,6 +380,22 @@ SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_
     }
     return res_matrix;
 }
+
+
+
+template <typename DT>
+vector<int>* SparseMatrix<DT>::getNeighbors(int vertex){
+  vector<int>* neighbors=new vector<int>();
+  int counter=0;
+  for(int i=0;i<this->getNumberOfRows();i++){
+    if(this->_edges[i][vertex]==1){
+      neighbors->push_back(i);
+      //counter++;
+    }
+  }
+ 
+  return neighbors;
+} 
 
 template <typename DT>
 double* SparseMatrix<DT>::getTopEigenVector(){
