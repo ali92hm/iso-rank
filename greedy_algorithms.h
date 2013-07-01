@@ -53,14 +53,13 @@ SparseMatrix<DT>* reshape(double* &eigenvector,const int rows,const int cols, ve
  * @pram: matrix indicating the scores of nodal pairings
  */
 template <typename DT>
-int* greedy_1(SparseMatrix<DT>& matches){
+int* greedy_1(SparseMatrix<DT>& matches,int* assignment){
   DT total_score=0;
   int graph1_nodes=matches.getNumberOfRows();
   int graph2_nodes=matches.getNumberOfColumns();
 
   int num_of_nodes=min(graph1_nodes,graph2_nodes);
   int max_value;
-  int* assignment= (int*)malloc(sizeof(int)*graph1_nodes);
   int row,col;
   for(int i=0;i<graph1_nodes;i++){
     assignment[i]=-1;

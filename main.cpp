@@ -106,26 +106,26 @@ int main(int argc, const char * argv[])
                 {
                     if (G_USE_GREEDY_ALG)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[j], IsoRank.GREEDY);
+                        isoRank(*input_graphs[i], *input_graphs[j], 0);
                     }
                     
                     else if (G_USE_CON_ENF_1)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[j], IsoRank.CON_ENF_1);
+                        isoRank(*input_graphs[i], *input_graphs[j], 1);
                     }
                     
                     else if (G_USE_CON_ENF_2)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[j], IsoRank.CON_ENF_2);
+                        isoRank(*input_graphs[i], *input_graphs[j], 2);
                     }
                     
                     else if (G_USE_CON_ENF_3)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[j]), IsoRank.CON_ENF_3);
+                        isoRank(*input_graphs[i], *input_graphs[j], 3);
                     }
                     else if (G_USE_CON_ENF_4)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[j]), IsoRank.CON_ENF_4);
+                        isoRank(*input_graphs[i], *input_graphs[j], 4);
                     }
                 }
                 

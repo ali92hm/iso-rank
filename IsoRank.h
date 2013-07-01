@@ -44,7 +44,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
    
     vector<vertex*> * vertices = graph_con_com(kron_prod, kron_prod->getNumberOfColumns());
     double* eigenValues[kron_prod->getNumberOfColumns()];
-    vector<vector<int>*> comp_mask_values (kron_prod->getNumberOfColumns());
+    vector<vector<int>*> comp_mask_values (kron_prod->getNumberOfColumns()); 
 
     for(int i=0; i < kron_prod->getNumberOfColumns(); i++ )
     {
@@ -70,8 +70,10 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
             D_neg0pt5[j] = 1.0/D_0pt5[j];
         }
     
-        SparseMatrix<DT>* M = L->vec_times_mat(D_neg1,L->getNumberOfRows() );
-        SparseMatrix<DT>* Ms = (L->vec_times_mat(D_neg0pt5,L->getNumberOfRows()))->mat_times_vec(D_neg0pt5,L->getNumberOfRows());
+        //SparseMatrix<DT>* M = L->vec_times_mat(D_neg1,L->getNumberOfRows() );
+		SparseMatrix<DT>* lTimesD = L->vec_times_mat(D_neg0pt5,L->getNumberOfRows());
+        SparseMatrix<DT>* Ms = lTimesD->mat_times_vec(D_neg0pt5, L->getNumberOfRows());
+		delete lTimesD;
         if(!Ms->isSymmetric())
         {
             throw NotASymmetricMatrixException();
@@ -108,7 +110,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
         delete [] D_neg1;
         delete [] D_0pt5;
         delete [] D_neg0pt5;
-        delete M;
+        //delete M;
         delete Ms;
     
 
@@ -140,12 +142,12 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
             }
             
             
-            int assignment[matrix_A.getNumberOfRows()];
+            int* assignment = new int[matrix_A.getNumberOfRows()];
             
             switch (matching_algorithm)
             {
                 case 0:
-                    greedy_1(scores);
+                    greedy_1(*scores,assignment);
                     break;
                 case 1:
                      greedy_connectivity_1(*scores,matrix_A,matrix_B,assignment);
@@ -157,7 +159,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
                      greedy_connectivity_3(*scores,matrix_A,matrix_B,assignment);
                     break;
                 case 4:
-                     greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment);
+                     //greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment);
                     break;
                 default:
                     break;
@@ -168,20 +170,33 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
             for(int i=0;i<matrix_A.getNumberOfRows();i++){
                 printf(" graph1: %d graph2: %d\n",i,assignment[i]);
             }
+			delete [] assignment;
         }
     }
     
 
   //comp_mask_values[i]
     //eigenValues[i]
-
-    typename vector<vertex*>::iterator i;
-    for ( i = vertices->begin() ; i < vertices->end(); ++i )
+	 for(int k=0;k<kron_prod->getNumberOfColumns();k++)
+	{
+        delete [] eigenValues[k];
+	}
+	delete scores;
+	 typename vector<vector<int>*>::iterator i;
+    for ( i = comp_mask_values.begin() ; i < comp_mask_values.end(); ++i )
     {
-        delete * i;
+        delete  * i;
+    }
+
+
+    typename vector<vertex*>::iterator it;
+    for ( it = vertices->begin() ; it < vertices->end(); ++it )
+    {
+        delete * it;
     }
     delete vertices;
     delete kron_prod;
+	
     
 }
 

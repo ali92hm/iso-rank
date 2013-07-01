@@ -73,7 +73,7 @@ protected:
 public:
     //Constructors
     SparseMatrix();
-    SparseMatrix(std::string &file_path);
+    SparseMatrix(const std::string &file_path);
     SparseMatrix(int rows, int cols);
     SparseMatrix(const SparseMatrix<DT>&);
     //Destructor
@@ -114,7 +114,7 @@ SparseMatrix<DT>::SparseMatrix()
 }
 
 template<typename DT>
-SparseMatrix<DT>::SparseMatrix(std::string &file_path)
+SparseMatrix<DT>::SparseMatrix(const std::string &file_path)
 {
     _file_reader.open(file_path.c_str());
     
@@ -413,7 +413,7 @@ double* SparseMatrix<DT>::getTopEigenVector(){
     }
     
     ARdsSymMatrix<double> ARMatrix(this->_rows,nzval,'L');
-    ARluSymStdEig<double> eigProb(1, ARMatrix, "LM");
+    ARluSymStdEig<double> eigProb(1, ARMatrix, "LM",10);
     eigProb.FindEigenvectors();
     
     double* eigenVec = new double[eigProb.GetN()];
@@ -473,7 +473,9 @@ SparseMatrix<DT>* SparseMatrix<DT>:: vec_times_mat(DT* vec, int vec_size){
         
 #pragma omp for
         for(int i=0;i<_rows;i++){
-            ret_matrix->_edges[i] = scalar_multiplication(ret_matrix->_edges[i], _cols, vec[i]);
+			DT* tmp = ret_matrix->_edges[i];
+            ret_matrix->_edges[i] = scalar_multiplication(tmp, _cols, vec[i]);
+			delete [] tmp;
         }
     }
     return ret_matrix;
