@@ -385,7 +385,7 @@ void greedy_connectivity_4(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, 
 	if(size>1){
 	  struct coordinate_pair **rows_cols=find_all_values(matches_local,idx_array,size);
 	  int* valid_entries= get_valid_entries(graph1,assignment,size,&valid_entries_size);
-	  vector<int> prev_assigned = intersect(valid_entries,valid_entries_size,rows_cols,size);
+	//  vector<int> prev_assigned = intersect(valid_entries,valid_entries_size,rows_cols,size);
 
 
 	}
@@ -450,7 +450,7 @@ int* get_valid_entries(SparseMatrix<DT> graph1, int* ass,int size,int* ret_size)
     }
   }
 
-  int* ret_arr=new int[ret_size];
+  int* ret_arr=new int[*ret_size];
   int ret_arr_counter=0;
   int counter=0;
 
@@ -476,7 +476,7 @@ struct coordinate_pair** find_all_values(SparseMatrix<DT>& local_matches,int* va
   int rows=local_matches.getNumberOfRows();
   int cols=local_matches.getNumberOfColumns();
 
-  /*int size=0;  
+  int size=0;  
    SparseMatrix<DT>* local_matches_copy=new SparseMatrix<DT>(local_matches);
 
 for(int i=0;i<local_matches_copy.getNumberOfRows();i++){
@@ -490,7 +490,7 @@ for(int i=0;i<local_matches_copy.getNumberOfRows();i++){
     }
     }
 
-    local_matches_copy=new SparseMatrix<DT>(local_matches);*/
+    local_matches_copy=new SparseMatrix<DT>(local_matches);
 
 
  struct coordinate_pair **ret_value= new struct coordinate_pair*[size];

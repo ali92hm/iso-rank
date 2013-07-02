@@ -139,10 +139,8 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
                     }
                     counter_comp_mask++;
                 }
-            
-            
-            
-            int* assignment = new int[matrix_A.getNumberOfRows()];
+        }
+	int* assignment = new int[matrix_A.getNumberOfRows()];
             
             switch (matching_algorithm)
             {
@@ -171,7 +169,6 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
                 printf(" graph1: %d graph2: %d\n",i,assignment[i]);
             }
 			delete [] assignment;
-        }
 }
     }
     
