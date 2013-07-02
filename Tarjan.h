@@ -135,7 +135,8 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
     
     (*st).push(curr_vertex);
     while( (sparse_edges_index < sparse_size) && (sparse_vertex->row_index==vertex_number) ){
-        other_vertex=(*vertices)[sparse_vertex->col_index];
+	sparse_vertex=sparse_graph[sparse_edges_index];       
+	 other_vertex=(*vertices)[sparse_vertex->col_index];
         
         if((*other_vertex).get_index()==-1){
             strong_com(sm, num_vertices,index,sparse_vertex->col_index,vertices,st);
@@ -145,7 +146,7 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
             (*curr_vertex).set_low_link(min((*curr_vertex).get_low_link(),(*other_vertex).get_index()));
         }
         sparse_edges_index++;
-        sparse_vertex=sparse_graph[sparse_edges_index];
+        
     }
     
     

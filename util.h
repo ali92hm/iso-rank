@@ -114,7 +114,7 @@ DT std_dev(DT *arr, int arr_size){
 template <typename DT>
 DT* scalar_multiplication(DT *old_row,int size, DT scaling_factor){
     
-    DT* ret_row=(DT *)malloc(sizeof(DT)*size);
+    DT* ret_row= new DT[size];
     
 #pragma omp for
     for(int i=0;i<size;i++){
