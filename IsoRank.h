@@ -139,7 +139,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
                     }
                     counter_comp_mask++;
                 }
-            }
+            
             
             
             int* assignment = new int[matrix_A.getNumberOfRows()];
@@ -172,6 +172,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
             }
 			delete [] assignment;
         }
+}
     }
     
 
