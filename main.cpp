@@ -21,7 +21,7 @@
  *
  */
 #ifdef __linux__
-std::string G_DIR_PATH = "/export/home/reu_share/input/";
+std::string G_DIR_PATH = "/home/ali/workspace/ex/input/";
 #elif defined __APPLE__
 std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
 #endif
@@ -96,6 +96,7 @@ int main(int argc, const char * argv[])
     /*
      * Compute n choose 2 combination of graphs
      */
+	time_start = std::clock();
     for (int i = 0; i < input_graphs.size(); i++)
     {
         for(int j = (i + 1); j <  input_graphs.size(); j++)
@@ -140,6 +141,10 @@ int main(int argc, const char * argv[])
             }
         }
     }
+
+	 time_end = std::clock();
+ elapsed_time = (double) (time_end - time_start) / CLOCKS_PER_SEC * 1000.0;
+    std::cout << " completed in "<< elapsed_time << "(ms)." << endl;
     
     /*
      * Deleting objects
