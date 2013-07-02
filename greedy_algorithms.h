@@ -175,7 +175,7 @@ srand(time(NULL));
 	return;
       }
  
-      idxarr=find_values(*active_matches, score-prev_score-max_tol,&size);
+    // idxarr=find_values(*active_matches, score-prev_score-max_tol,&size);
       random_id=rand()%size+1;
       max= get_Max(active_matches,random_id,score-prev_score-max_tol,&row,&col);
     
@@ -381,19 +381,21 @@ void greedy_connectivity_4(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, 
 	score=0;
 	return_max(matches_local,&score,&row,&col);
 	idx_array=find_values(matches_local,score-max_tol,&size);
+	int valid_entries_size=0;
 	if(size>1){
 	  struct coordinate_pair **rows_cols=find_all_values(matches_local,idx_array,size);
-	  int* valid_columns= get_valid_columns(graph1,assignment,size);
-
+	  int* valid_entries= get_valid_entries(graph1,assignment,size,&valid_entries_size);
+	  vector<int> prev_assigned = intersect(valid_entries,valid_entries_size,rows_cols,size);
 
 
 	}
       }
     }
-
-
-
 }
+
+
+
+
 
 
 vector<int> intersect(int* cols, int cols_size, struct coordinate_pair** row_cols,int row_cols_size){
@@ -411,11 +413,10 @@ vector<int> intersect(int* cols, int cols_size, struct coordinate_pair** row_col
   }
   
   return ret_value;
-
 }
 
 template<typename DT>
-int* get_valid_columns(SparseMatrix<DT> graph1, int* ass,int size){
+int* get_valid_entries(SparseMatrix<DT> graph1, int* ass,int size,int* ret_size){
   
   vector<int> assigned;
   SparseMatrix<DT> graph_copy=new SparseMatrix<DT>(graph1);
@@ -426,7 +427,7 @@ int* get_valid_columns(SparseMatrix<DT> graph1, int* ass,int size){
     }
   }
   int invalidate=1;
-  int ret_size=0;
+  *ret_size=0;
 
   for(int i=0;i<graph_copy.getNumberOfRows();i++){
     for(int k=0;k<assigned.size();k++){
@@ -441,21 +442,26 @@ int* get_valid_columns(SparseMatrix<DT> graph1, int* ass,int size){
       }
     }
     else{
-      ret_size+=graph1.getNumberOfRows();
+      for(int j=0;j<graph_copy.getNumberOfColumns();j++){
+	if(graph_copy[i][j]==1)
+	  *ret_size=*ret_size+1;
+      }
       invalidate=1;
     }
   }
 
   int* ret_arr=new int[ret_size];
+  int ret_arr_counter=0;
   int counter=0;
 
 
   for(int i=0;i<graph1.getNumberOfColumns();i++){
     for(int j=0;j<graph1.getNumberOfRows();j++){
-      if(graph_copy[j][i]!=-DBL_MAX){
-	ret_arr[counter]=i;
-	counter++;
+      if(graph_copy[j][i]==1){
+	ret_arr[ret_arr_counter]=i;
+	ret_arr_counter++;
       }
+      counter++;
     }
   }
 
@@ -465,10 +471,13 @@ int* get_valid_columns(SparseMatrix<DT> graph1, int* ass,int size){
 
 
 template <typename DT>
-struct coordinate_pair** find_all_values(SparseMatrix<DT>& local_matches,DT* val,int val_size){
+struct coordinate_pair** find_all_values(SparseMatrix<DT>& local_matches,int* val,int val_size){
 
-  int size=0;  
-  SparseMatrix<DT>* local_matches_copy=new SparseMatrix<DT>(local_matches);
+  int rows=local_matches.getNumberOfRows();
+  int cols=local_matches.getNumberOfColumns();
+
+  /*int size=0;  
+   SparseMatrix<DT>* local_matches_copy=new SparseMatrix<DT>(local_matches);
 
 for(int i=0;i<local_matches_copy.getNumberOfRows();i++){
     for(int j=0;j<local_matches_copy.getNumberOfColumns();j++){
@@ -479,30 +488,28 @@ for(int i=0;i<local_matches_copy.getNumberOfRows();i++){
 	}
       }
     }
-}
+    }
 
- local_matches_copy=new SparseMatrix<DT>(local_matches);
+    local_matches_copy=new SparseMatrix<DT>(local_matches);*/
+
+
  struct coordinate_pair **ret_value= new struct coordinate_pair*[size];
  struct coordinate_pair *pair;
- int counter=0;
+ int counter=0,val_counter=0,ret_val_counter=0;
 
  for(int i=0;i<local_matches.getNumberOfRows();i++){
-    for(int j=0;j<local_matches.getNumberOfColumns();j++){
-      for(int k=0;k<val_size;k++){
-	if(val[k]==local_matches_copy[i][j]){
-	  local_matches_copy[i][j]=-DBL_MAX;
-	  pair=malloc(sizeof(struct coordinate_pair));
-	  pair->row=i;
-	  pair->col=j;
-	  ret_value[counter]=pair;
-	  counter++;
-	}
+    for(int j=0;j<local_matches.getNumberOfColumns();j++) {
+      if(val[val_counter]==counter) {
+	pair=malloc(sizeof(struct coordinate_pair));
+	pair->row=i;
+	pair->col=j;
+	ret_value[ret_val_counter]=pair;
+	ret_val_counter++;
+	val_counter++;
       }
+      counter++;
     }
  }
-
-
-  
  return ret_value;
 } 
 
@@ -588,14 +595,15 @@ DT* find_values(SparseMatrix<DT>& matches2,DT value,int *size){
   
   retarr=(DT*)malloc(sizeof(DT)*(*size));
   int counter=0;
-  
+  int retarr_counter=0;
   
   for(int i=0;i<matches2.getNumberOfRows();i++){
     for(int j=0;j<matches2.getNumberOfColumns();j++){
       if(matches2[i][j]>=value){
-	 retarr[counter]=matches2[i][j];
+	 retarr[counter]=retarr_counter;
 	  counter++;
 	}
+      retarr_counter++;
     }
     }
  
