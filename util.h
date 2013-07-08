@@ -75,6 +75,27 @@ DT max(DT* arr, int arr_size){
 }
 
 
+template<typename DT>
+vector<DT>* vector_max(vector<DT>* vec){
+  DT max_so_far= (*vec)[0];
+  vector<int>* ret_vec= new vector<int>();
+  int vec_counter=0;
+
+  for(int i=0;i<vec->size();i++){
+    if((*vec)[i]>max_so_far)
+      max_so_far=(*vec)[i];
+  }
+
+  for(int i=0;i<vec->size();i++){
+    if((*vec)[i]==max_so_far){
+      ret_vec->insert(ret_vec->begin()+vec_counter,i);
+      vec_counter++;
+    }
+  }
+  return ret_vec;
+}
+
+
 /*
  * returns the mean of all the floats in an array
  * @pram: pointer to array of floats
@@ -84,6 +105,8 @@ template <typename DT>
 DT mean(DT *arr,int arr_size){
     return sum_array(arr,arr_size)/arr_size;
 }
+
+
 
 /*
  * returns the standard deviation of the values in arr
@@ -104,6 +127,26 @@ DT std_dev(DT *arr, int arr_size){
     
 }
 
+
+template <typename DT>
+int* find_in_arr(DT* arr,DT val, int arr_size){
+  int counter=0;
+  
+  for(int i=0;i<arr_size;i++){
+    if(arr[i]==val)
+      counter++;
+  }
+  int* ret_arr= new int[counter];
+  counter=0;
+  for(int i=0;i<arr_size;i++){
+    if(arr[i]==val){
+      ret_arr[counter]=i;
+      counter++;
+    }
+  }
+
+  return ret_arr;
+}
 
 /*
  * multiples a vector by a scalar

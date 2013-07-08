@@ -43,7 +43,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
     
    
     vector<vertex*> * vertices = graph_con_com(kron_prod, kron_prod->getNumberOfColumns());
-    double* eigenValues[kron_prod->getNumberOfColumns()];
+    double** eigenValues = new double*[kron_prod->getNumberOfColumns()];
     vector<vector<int>*> comp_mask_values (kron_prod->getNumberOfColumns()); 
 
     for(int i=0; i < kron_prod->getNumberOfColumns(); i++ )
@@ -71,7 +71,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
         }
     
         //SparseMatrix<DT>* M = L->vec_times_mat(D_neg1,L->getNumberOfRows() );
-		SparseMatrix<DT>* lTimesD = L->vec_times_mat(D_neg0pt5,L->getNumberOfRows());
+	SparseMatrix<DT>* lTimesD = L->vec_times_mat(D_neg0pt5,L->getNumberOfRows());
         SparseMatrix<DT>* Ms = lTimesD->mat_times_vec(D_neg0pt5, L->getNumberOfRows());
 		delete lTimesD;
         if(!Ms->isSymmetric())
@@ -119,7 +119,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
     }
 
 
-    SparseMatrix<DT>* scores= new SparseMatrix<DT>(matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns());
+    SparseMatrix<double>* scores;
     vector<int>* comp_mask_curr=comp_mask_values[0];
     int counter_eig_vector=0;
     int counter_comp_mask=0;
@@ -128,21 +128,11 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
     for(int k=0;k<kron_prod->getNumberOfColumns();k++){
         double* eigenvector=eigenValues[k];
         if(eigenvector!=NULL) {
-            for(int j=0;j<scores->getNumberOfRows();j++){
-                for(int i=0;i<scores->getNumberOfColumns();i++){
-                    if((*comp_mask_curr)[counter_comp_mask]==1){
-                        (*scores)[j][i]=eigenvector[counter_eig_vector];
-                        counter_eig_vector++;
-                    }
-                    else{
-                        (*scores)[j][i]=0;
-                    }
-                    counter_comp_mask++;
-                }
-            }
-            
-            
-            int* assignment = new int[matrix_A.getNumberOfRows()];
+	  comp_mask_curr=comp_mask_values[k];
+	  int* tmp = new int[10];
+	  scores= reshape(eigenvector,matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns(),*comp_mask_curr);
+
+	    int* assignment = new int[matrix_A.getNumberOfRows()];
             
             switch (matching_algorithm)
             {
@@ -159,19 +149,18 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
                      greedy_connectivity_3(*scores,matrix_A,matrix_B,assignment);
                     break;
                 case 4:
-                     //greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment);
+		  greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment,100);
                     break;
                 default:
                     break;
             }
-           
-            
-            // int* assignment= greedy_1(*scores);
-            for(int i=0;i<matrix_A.getNumberOfRows();i++){
+	               for(int i=0;i<matrix_A.getNumberOfRows();i++){
                 printf(" graph1: %d graph2: %d\n",i,assignment[i]);
             }
 			delete [] assignment;
-        }
+
+
+	    }
     }
     
 
