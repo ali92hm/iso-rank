@@ -370,6 +370,7 @@ void greedy_connectivity_4(SparseMatrix<DT>& matches, SparseMatrix<float>& graph
 	  for(int k=0;k<valid_entries2_size;k++){
 	    int id=(*prev_assigned)[k];
 	    int sum=0;
+	//  vector<int> prev_assigned = intersect(valid_entries,valid_entries_size,rows_cols,size);
 
 	    for(int j=0;j<valid_entries2_size;j++){
 	      if(valid_entries2[j]==id){

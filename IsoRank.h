@@ -133,6 +133,20 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
 	  scores= reshape(eigenvector,matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns(),*comp_mask_curr);
 
 	    int* assignment = new int[matrix_A.getNumberOfRows()];
+
+            for(int j=0;j<scores->getNumberOfRows();j++){
+                for(int i=0;i<scores->getNumberOfColumns();i++){
+                    if((*comp_mask_curr)[counter_comp_mask]==1){
+                        (*scores)[j][i]=eigenvector[counter_eig_vector];
+                        counter_eig_vector++;
+                    }
+                    else{
+                        (*scores)[j][i]=0;
+                    }
+                    counter_comp_mask++;
+                }
+        }
+	int* assignment = new int[matrix_A.getNumberOfRows()];
             
             switch (matching_algorithm)
             {
@@ -161,6 +175,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
 
 
 	    }
+}
     }
     
 

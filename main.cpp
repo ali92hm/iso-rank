@@ -235,18 +235,19 @@ void parseCommandLineArgs(int argc,const char* argv[])
             {
                 G_USE_CON_ENF_2 = true;
                 G_USE_GREEDY_ALG = false;
-                std::cout << "Matching algorithm was set to enforcement 2." << std::endl;
+                std::cout << "Matching algorithm was set to connectivity enforcement 2." << std::endl;
             }
             else if (std::strncmp(argv[i], "con-enf-3", 9) == 0)
             {
                 G_USE_CON_ENF_3 = true;
                 G_USE_GREEDY_ALG = false;
-                std::cout << "Matching algorithm was set to enforcement 3." << std::endl;
+                std::cout << "Matching algorithm was set to connectivity enforcement 3." << std::endl;
             }
-            else if (std::strncmp(argv[i], "", 9) == 0) //TODO: andrew's algorithm
+            else if (std::strncmp(argv[i], "con-enf-4", 9) == 0)
             {
+            	G_USE_CON_ENF_4 = true;
                 G_USE_GREEDY_ALG = false;
-                std::cout << "Matching algorithm was set to ." << std::endl;
+                std::cout << "Matching algorithm was set to connectivity enforcement 4." << std::endl;
             }
             else
             {
@@ -283,9 +284,9 @@ void parseCommandLineArgs(int argc,const char* argv[])
         {
             assignment_app = "Connectivity Enforcement 3.";
         }
-        else if (G_USE_CON_ENF_3)   //TODO Andrew's alg
+        else if (G_USE_CON_ENF_4)
         {
-            assignment_app = "Connectivity Enforcement 3.";
+            assignment_app = "Connectivity Enforcement 4.";
         }
         cout << "Assignment approach: "<< assignment_app << endl;
     }
