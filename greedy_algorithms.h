@@ -6,9 +6,9 @@
 #include <vector>
 #include "SparseMatrix.h"
 
-
 #ifndef greedy_algorithm_h
 #define greedy_algorithm_h
+
 
 
 struct coordinate_pair{
@@ -16,35 +16,10 @@ struct coordinate_pair{
   int col;
 };
 
+vector<int>* intersect(int*, int, struct coordinate_pair**,int);
+void match_rest(int*, SparseMatrix<float>&, SparseMatrix<float>&);
+int* get_valid_entries(SparseMatrix<float>, int*,int,int*);
 
-
-/*
- * returns a SparseMatrix Object which is a reshaped eigenvector
- * @pram: a pointer to an array of doubles which represents the eigenvector
- * @pram: number of rows in the matrix returned
- * @pram: number of columns in the matrix returned
- * @pram: component mask vector indicating which nodes are present in current component
- */
-template <typename DT>
-SparseMatrix<DT>* reshape(double* &eigenvector,const int rows,const int cols, vector<int>* &comp_mask){
-  SparseMatrix<DT>* matrix= new SparseMatrix<DT>(rows,cols);
-  int counter_eig_vector=0;
-  int counter_comp_mask=0;
-  for(int j=0;j<matrix->getNumberOfColumns();j++){
-    for(int i=0;i<matrix->getNumberOfRows();i++){
-      if((*comp_mask)[counter_comp_mask]==1){
-	(*matrix)[i][j]=eigenvector[counter_eig_vector];
-	counter_eig_vector++;
-      }
-      else{
-	(*matrix)[i][j]=0;
-      }
-      counter_comp_mask++;
-    }
-  }
-
-  return matrix;
-}
 
 
 /*
@@ -84,7 +59,7 @@ int* greedy_1(SparseMatrix<DT>& matches,int* assignment){
  * @pram: pointer to the array that indicates the best matching
  */
 template<typename DT>
-int* greedy_connectivity_1(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, SparseMatrix<DT>& graph2,int* assignment){
+int* greedy_connectivity_1(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2,int* assignment){
   
   DT total_score=0;
   int graph1_nodes=matches.getNumberOfRows();
@@ -108,36 +83,7 @@ int* greedy_connectivity_1(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, 
   return assignment;
 }
 
-/* 
- * helper function for greedy_connectivity_1 sets certain rows and columns to -DBL_MAX 
- * @pram: pointer to the row which should be invalidated and turned to -inf 
- * @pram: pointer to the column which should be invalidated and turned to -inf
- * @pram: adjacency matrix for graph1
- * @pram: adjacency matrix for graph2
- * @pram: matrix indicating scores for nodal pairs 
- */
-template<typename DT>
-void neighbor_enforcement(int* row_index,int* col_index, SparseMatrix<float>& graph1,SparseMatrix<float>& graph2, SparseMatrix<DT>& matches){
-    for(int i=0;i<graph1.getNumberOfColumns();i++){
-      if(graph1[*row_index][i]==1){
-	for(int j=0;j<graph2.getNumberOfRows();j++){
-	  if(graph2[j][*col_index]==0){
-	    matches[i][j]=-DBL_MAX;
-	  }
-	}
-      }
-    }
-  
-    for(int i=0;i<graph2.getNumberOfColumns();i++){
-      if(graph2[*col_index][i]==1){
-	for(int j=0;j<graph1.getNumberOfRows();j++){
-	  if(graph1[j][*row_index]==0){
-	    matches[j][i]==-DBL_MAX;
-	  }
-	}
-      }
-    }
-}
+
 
 /*
  * performs a greedy matching and enforces connectivity by proceeding outwards radially
@@ -147,7 +93,7 @@ void neighbor_enforcement(int* row_index,int* col_index, SparseMatrix<float>& gr
  * @pram: pointer to the array that indicates the best matching 
  */
 template<typename DT>
-void greedy_connectivity_2(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, SparseMatrix<DT>& graph2,int* assignment){
+void greedy_connectivity_2(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2,int* assignment){
   DT max_tol=pow(10,-6),max;
   DT score=0,prev_score=0,final_score=0;
   
@@ -213,7 +159,7 @@ srand(time(NULL));
  * @pram: pointer to the array that indicates the best matching 
  */
 template<typename DT>
-void greedy_connectivity_3(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, SparseMatrix<DT>& graph2,int* assignment){
+void greedy_connectivity_3(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2,int* assignment){
   DT total_score=0;
   DT final_score=0;
   int row,col;
@@ -292,7 +238,7 @@ void greedy_connectivity_3(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, 
 
 
 template <typename DT>
-void greedy_connectivity_4(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, SparseMatrix<DT>& graph2,int* assignment,int num_iterations){
+void greedy_connectivity_4(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2,int* assignment,int num_iterations){
   DT optScore=0;
   vector<DT> broken1;
   vector<DT> broken2;
@@ -321,7 +267,7 @@ void greedy_connectivity_4(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, 
  return_max(matches, &score,&row,&col);
  DT* idx_array=find_values(matches,score - max_tol,&size);
  int random_id=rand()%size+1; 
- DT max= get_Max(matches,random_id,score-max_tol,&row,&col);
+ DT max= get_Max(&matches,random_id,score-max_tol,&row,&col);
  final_score+=max;
  assignment[row]=col;
  assigned_G1[row]=1;
@@ -345,19 +291,20 @@ void greedy_connectivity_4(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, 
 	neigh_2->erase(neigh_2->begin()+j);
       }
     }
-   SparseMatrix<DT> matches_local=new SparseMatrix<DT>(matches.getNumberOfRows(),matches.getNumberOfColumns());
-    set_matrix_values(matches_local, matches,  neigh_1, neigh_2);
+
+   SparseMatrix<DT>* matches_local=new SparseMatrix<DT>(matches.getNumberOfRows(),matches.getNumberOfColumns());
+    set_matrix_values(*matches_local, matches, *neigh_1, *neigh_2);
     score=0;
     size=0;
-    return_max(matches_local, &score,&row,&col);
-    idx_array=final_values(matches_local,score-max_tol,&size);
+    return_max(*matches_local, &score,&row,&col);
+    idx_array=find_values(*matches_local,score-max_tol,&size);
     random_id=rand()%size+1;
     max=get_Max(matches_local,random_id,score-max_tol,&row,&col);
     final_score+=max;
     assignment[row]=col;
     assigned_G1[row]=1;
     assigned_G2[col]=1;
-    invalidate(row,col,matches_local);
+    invalidate(row,col,*matches_local);
     invalidate(row,col,matches);
     add_order[1]=row;
     
@@ -374,22 +321,86 @@ void greedy_connectivity_4(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, 
 	neigh_2->erase(neigh_2->begin()+j);
       }
     }
-
+    int best_row,best_col;
     
     while(add_order[graph1.getNumberOfRows()-1]==0){
-      for(int i=0; i<min(neigh_1->size(),neigh_2->size());i++){
+      for(int i=0; i<min(neigh_1->size(),neigh_2->size());i++) {
 	score=0;
-	return_max(matches_local,&score,&row,&col);
-	idx_array=find_values(matches_local,score-max_tol,&size);
-	int valid_entries_size=0;
-	if(size>1){
-	  struct coordinate_pair **rows_cols=find_all_values(matches_local,idx_array,size);
+	return_max(*matches_local,&score,&row,&col);
+	idx_array=find_values(*matches_local,score-max_tol,&size);
+	int *rows_cols_size=0;
+	int valid_entries_size=0,valid_entries2_size=0;
+	struct coordinate_pair **rows_cols=find_all_values(*matches_local,idx_array,size,rows_cols_size);
+	if(size>1) {
 	  int* valid_entries= get_valid_entries(graph1,assignment,size,&valid_entries_size);
-	  vector<int> prev_assigned = intersect(valid_entries,valid_entries_size,rows_cols,size);
+	  vector<int>* prev_assigned = intersect(valid_entries,valid_entries_size,rows_cols,size);
+	  vector<int>* g1c_count;
+	  int g1c_count_counter=0;
+	  for(int k=0;k<prev_assigned->size();k++){
+	    int id=(*prev_assigned)[k];
+	    int sum=0;
 
+	    for(int j=0;j<valid_entries_size;j++){
+	      if(valid_entries[j]==id){
+		sum++;
+	      }
+	    }
 
+	    g1c_count->insert(g1c_count->begin()+g1c_count_counter,sum);
+	    g1c_count_counter++;
+	  }
+	  
+	  vector<int> *max_g1c=vector_max(g1c_count);
+	  int rand_number = rand()%(max_g1c->size());
+	  best_row=(*max_g1c)[rand_number];
+	  vector<int>* best_cols= new vector<int>();
+	  int best_cols_counter=0;
+	  for(int i=0;i<*rows_cols_size;i++){
+	    struct coordinate_pair *c_pair=rows_cols[i];
+	    if(c_pair->row==best_row){
+	      best_cols->insert(best_cols->begin()+best_cols_counter,c_pair->col);
+	      best_cols_counter++;
+	    }
+	  }
+
+	  int* valid_entries2= get_valid_entries(graph2,assignment,size,&valid_entries2_size);
+
+	  vector<int>* g2c_count;
+	  int g2c_count_counter=0;
+	  for(int k=0;k<valid_entries2_size;k++){
+	    int id=(*prev_assigned)[k];
+	    int sum=0;
+
+	    for(int j=0;j<valid_entries2_size;j++){
+	      if(valid_entries2[j]==id){
+		sum++;
+	      }
+	    }
+
+	    g2c_count->insert(g2c_count->begin()+g2c_count_counter,sum);
+	    g2c_count_counter++;
+	  }
+
+	  vector<int> *max_g2c=vector_max(g2c_count);
+	   rand_number = rand()%(max_g2c->size());
+	   best_col=(*max_g2c)[rand_number];
 	}
+	else{
+	  struct coordinate_pair *cp=rows_cols[0];
+	  best_row=cp->row;
+	  best_col=cp->col;
+	}
+	assignment[best_row]=best_col;
+	assigned_G1[best_row]=1;
+	assigned_G2[best_col]=1;
+	DT max_matches=matches[best_row][best_col];
+	invalidate(best_row,best_col,*matches_local);
+	invalidate(best_row,best_col,matches);
+	final_score+=max_matches;
+	
       }
+
+
     }
 }
 
@@ -398,15 +409,80 @@ void greedy_connectivity_4(SparseMatrix<DT>& matches, SparseMatrix<DT>& graph1, 
 
 
 
-vector<int> intersect(int* cols, int cols_size, struct coordinate_pair** row_cols,int row_cols_size){
-  vector<int> ret_value;
+
+/*
+ * returns a SparseMatrix Object which is a reshaped eigenvector
+ * @pram: a pointer to an array of doubles which represents the eigenvector
+ * @pram: number of rows in the matrix returned
+ * @pram: number of columns in the matrix returned
+ * @pram: component mask vector indicating which nodes are present in current component
+ */
+template <typename DT>
+SparseMatrix<DT>* reshape(DT* eigenvector,const int rows,const int cols, vector<int> &comp_mask){
+
+  SparseMatrix<DT>* matrix= new SparseMatrix<DT>(rows,cols);
+  int counter_eig_vector=0;
+  int counter_comp_mask=0;
+
+  for(int j=0;j<matrix->getNumberOfColumns();j++){
+    for(int i=0;i<matrix->getNumberOfRows();i++){
+      if(comp_mask[counter_comp_mask]==1){
+	(*matrix)[i][j]=eigenvector[counter_eig_vector];
+	counter_eig_vector++;
+      }
+      else{
+	(*matrix)[i][j]=0;
+      }
+      counter_comp_mask++;
+    }
+  }
+
+  return matrix;
+  
+}
+
+
+/* 
+ * helper function for greedy_connectivity_1 sets certain rows and columns to -DBL_MAX 
+ * @pram: pointer to the row which should be invalidated and turned to -inf 
+ * @pram: pointer to the column which should be invalidated and turned to -inf
+ * @pram: adjacency matrix for graph1
+ * @pram: adjacency matrix for graph2
+ * @pram: matrix indicating scores for nodal pairs 
+ */
+template<typename DT>
+void neighbor_enforcement(int* row_index,int* col_index, SparseMatrix<float>& graph1,SparseMatrix<float>& graph2, SparseMatrix<DT>& matches){
+    for(int i=0;i<graph1.getNumberOfColumns();i++){
+      if(graph1[*row_index][i]==1){
+	for(int j=0;j<graph2.getNumberOfRows();j++){
+	  if(graph2[j][*col_index]==0){
+	    matches[i][j]=-DBL_MAX;
+	  }
+	}
+      }
+    }
+  
+    for(int i=0;i<graph2.getNumberOfColumns();i++){
+      if(graph2[*col_index][i]==1){
+	for(int j=0;j<graph1.getNumberOfRows();j++){
+	  if(graph1[j][*row_index]==0){
+	    matches[j][i]==-DBL_MAX;
+	  }
+	}
+      }
+    }
+}
+
+
+vector<int>* intersect(int* cols, int cols_size, struct coordinate_pair** row_cols,int row_cols_size){
+  vector<int>* ret_value=new vector<int>();
   int counter=0;
 
   for(int j=0;j<row_cols_size;j++){ 
     int curr_row=row_cols[j]->row; 
     for(int i=0;i<cols_size;i++){
       if(curr_row==cols[i]){
-	ret_value.insert(ret_value.begin()+counter,curr_row);
+	ret_value->insert(ret_value->begin()+counter,curr_row);
 	counter++;
       }
     }
@@ -415,11 +491,12 @@ vector<int> intersect(int* cols, int cols_size, struct coordinate_pair** row_col
   return ret_value;
 }
 
-template<typename DT>
-int* get_valid_entries(SparseMatrix<DT> graph1, int* ass,int size,int* ret_size){
+
+
+int* get_valid_entries(SparseMatrix<float> graph1, int* ass,int size,int* ret_size){
   
   vector<int> assigned;
-  SparseMatrix<DT> graph_copy=new SparseMatrix<DT>(graph1);
+  SparseMatrix<float>* graph_copy=new SparseMatrix<float>(graph1);
 
   for(int i=0;i<size;i++){
     if(ass[i]!=-1){
@@ -429,7 +506,7 @@ int* get_valid_entries(SparseMatrix<DT> graph1, int* ass,int size,int* ret_size)
   int invalidate=1;
   *ret_size=0;
 
-  for(int i=0;i<graph_copy.getNumberOfRows();i++){
+  for(int i=0;i<graph_copy->getNumberOfRows();i++){
     for(int k=0;k<assigned.size();k++){
       if(assigned[k]==i){
 	invalidate=0;
@@ -437,27 +514,27 @@ int* get_valid_entries(SparseMatrix<DT> graph1, int* ass,int size,int* ret_size)
       }
     }
     if(invalidate==1){
-      for(int j=0;j<graph_copy.getNumberOfColumns();j++){
-	graph_copy[i][j]=-DBL_MAX;
+      for(int j=0;j<graph_copy->getNumberOfColumns();j++){
+	(*graph_copy)[i][j]=-DBL_MAX;
       }
     }
     else{
-      for(int j=0;j<graph_copy.getNumberOfColumns();j++){
-	if(graph_copy[i][j]==1)
+      for(int j=0;j<graph_copy->getNumberOfColumns();j++){
+	if((*graph_copy)[i][j]==1)
 	  *ret_size=*ret_size+1;
       }
       invalidate=1;
     }
   }
 
-  int* ret_arr=new int[ret_size];
+  int* ret_arr=new int[*ret_size];
   int ret_arr_counter=0;
   int counter=0;
 
 
   for(int i=0;i<graph1.getNumberOfColumns();i++){
     for(int j=0;j<graph1.getNumberOfRows();j++){
-      if(graph_copy[j][i]==1){
+      if((*graph_copy)[j][i]==1){
 	ret_arr[ret_arr_counter]=i;
 	ret_arr_counter++;
       }
@@ -471,28 +548,28 @@ int* get_valid_entries(SparseMatrix<DT> graph1, int* ass,int size,int* ret_size)
 
 
 template <typename DT>
-struct coordinate_pair** find_all_values(SparseMatrix<DT>& local_matches,int* val,int val_size){
+struct coordinate_pair** find_all_values(SparseMatrix<DT>& local_matches,DT* val,int val_size,int* row_cols_size){
 
   int rows=local_matches.getNumberOfRows();
   int cols=local_matches.getNumberOfColumns();
 
-  /*int size=0;  
+  int size=0;  
    SparseMatrix<DT>* local_matches_copy=new SparseMatrix<DT>(local_matches);
 
-for(int i=0;i<local_matches_copy.getNumberOfRows();i++){
-    for(int j=0;j<local_matches_copy.getNumberOfColumns();j++){
+for(int i=0;i<local_matches_copy->getNumberOfRows();i++){
+    for(int j=0;j<local_matches_copy->getNumberOfColumns();j++){
       for(int k=0;k<val_size;k++){
-	if(val[k]==local_matches_copy[i][j]){
-	  local_matches_copy[i][j]=-DBL_MAX;
+	if(val[k]==(*local_matches_copy)[i][j]){
+	  (*local_matches_copy)[i][j]=-DBL_MAX;
 	  size++;
 	}
       }
     }
     }
 
-    local_matches_copy=new SparseMatrix<DT>(local_matches);*/
+    local_matches_copy=new SparseMatrix<DT>(local_matches);
 
-
+    *row_cols_size=size;
  struct coordinate_pair **ret_value= new struct coordinate_pair*[size];
  struct coordinate_pair *pair;
  int counter=0,val_counter=0,ret_val_counter=0;
@@ -500,7 +577,7 @@ for(int i=0;i<local_matches_copy.getNumberOfRows();i++){
  for(int i=0;i<local_matches.getNumberOfRows();i++){
     for(int j=0;j<local_matches.getNumberOfColumns();j++) {
       if(val[val_counter]==counter) {
-	pair=malloc(sizeof(struct coordinate_pair));
+	pair=(struct coordinate_pair*)malloc(sizeof(struct coordinate_pair));
 	pair->row=i;
 	pair->col=j;
 	ret_value[ret_val_counter]=pair;
@@ -730,8 +807,7 @@ void invalidate(int row, int col, SparseMatrix<DT>& matches){
  * @pram: SparseMatrix representing graph1
  * @pram: SparseMatrix representing graph2 
  */
-template <typename DT>
-void match_rest(int* assignment, SparseMatrix<DT>& graph1, SparseMatrix<DT>& graph2){
+void match_rest(int* assignment, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2){
   printf("match rest called\n");
 
   if(graph1.getNumberOfRows()<=graph2.getNumberOfRows()){
