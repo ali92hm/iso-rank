@@ -26,10 +26,13 @@
 #include <limits>
 #include <math.h>
 #include "util.h"
+
+#ifdef __linux__
 #include "dsmatrxa.h"
 #include "ardsmat.h"
 #include "ardssym.h"
 #include "lsymsol.h"
+#endif
 
 
 template <typename DT>
@@ -399,8 +402,7 @@ vector<int>* SparseMatrix<DT>::getNeighbors(int vertex){
 
 template <typename DT>
 double* SparseMatrix<DT>::getTopEigenVector(){
-    
-    
+#ifdef __linux__
     int arr_size= (this->_rows*(this->_rows+1))/2;
     double nzval[arr_size];
     int counter=0;
@@ -422,9 +424,9 @@ double* SparseMatrix<DT>::getTopEigenVector(){
     {
         eigenVec[i] = eigProb.Eigenvector(0,i);
     }
-    
-     
+
     return eigenVec;
+#endif
 }
 
 template <typename DT>

@@ -5,7 +5,7 @@
 #include <math.h>
 #include <vector>
 #include <cmath>
-#include "SparseMatrix.h"
+#include "Matrix2D.h"
 #include "greedy_algorithms_helper.h"
 #include <limits>
 

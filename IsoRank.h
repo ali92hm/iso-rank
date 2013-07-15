@@ -9,10 +9,10 @@
 #ifndef Sparse_Matrix_IsoRank_h
 #define Sparse_Matrix_IsoRank_h
 
-#include "SparseMatrix.h"
+#include "Matrix2D.h"
 #include "Tarjan.h"
 #include "util.h"
-#include  "greedy_algorithms.h"
+#include "greedy_algorithms.h"
 #include <vector>
 
 int GREEDY = 0;

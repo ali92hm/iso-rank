@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
 //
 
-#include "SparseMatrix.h"
+#include "Matrix2D.h"
 #include "IsoRank.h"
 #include <vector>
 #include <ctime>
