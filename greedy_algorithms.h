@@ -5,7 +5,7 @@
 #include <math.h>
 #include <vector>
 #include <cmath>
-#include "Matrix2D.h"
+#include "Matricies/Matrix2D.h"
 #include "greedy_algorithms_helper.h"
 #include <limits>
 
@@ -282,7 +282,7 @@ int add_order_counter=2;
  init_array(add_order,graph1.getNumberOfRows(),-1);
  init_array(ass,graph1.getNumberOfRows(),0);
  init_array(assigned_G1,graph1.getNumberOfRows(),-1);
- init_array(assigned_G2,graph12.getNumberOfRows(),-1);
+ init_array(assigned_G2,graph2.getNumberOfRows(),-1);
 
 
   
@@ -338,10 +338,11 @@ DT max= get_Max(&matches,random_id,score-max_tol,&row,&col);
 
 int counter=0;
 int rows_cols_size;
-struct coordinate_pair **rows_cols
+struct coordinate_pair **rows_cols;
 int valid_entries_size,valid_entries2_size;
-int* valid_entries,valid_entries2;
-int g1c_count_counter
+int* valid_entries;
+int* valid_entries2;
+int g1c_count_counter;
 
  //remove nodes that are already assigned from consideration in the next assignment
  invalidate_neighbors(assigned_G1,neigh_1);
@@ -362,7 +363,7 @@ int g1c_count_counter
 	
 	valid_entries_size=0;
 	valid_entries2_size=0;
-	**rows_cols=find_all_values(*matches_local,idx_array,size,&rows_cols_size);
+	rows_cols=find_all_values(*matches_local,idx_array,size,&rows_cols_size);
 	delete []idx_array;
  
 	//if number of nodal pairings with a high score is greater than 1
@@ -371,12 +372,11 @@ int g1c_count_counter
 	  //looks through graph1 to see which edges exist and their intersection with node pairings with high enough scores
 	  valid_entries= get_valid_entries(graph1,assignment,graph1.getNumberOfRows(),&valid_entries_size);
 	  vector<int>* prev_assigned = intersect(valid_entries,valid_entries_size,rows_cols,size);
-	  vector<int> g1c_count(graph1.getNumberOfRows());
+	  vector<int> g1c_count(graph1.getNumberOfRows(), -1);
 	  g1c_count_counter=0;
 
 	  //find the connectivity of nodes being considered for matching
 	 
-	  init_array(g1c_count,graph1.getNumberOfRows(),-1);
 
 	  for(int k=0;k<prev_assigned->size();k++){
 	    int id=(*prev_assigned)[k];
@@ -422,11 +422,11 @@ int g1c_count_counter
 	    int id=(*cols_chosen)[k];
 	    int sum=0;
 
-	    for(int m=0;m<valid_entries2_size;m++){
-	      if(valid_entries2[m]==id){
-		sum++;
-	      }
-	    }
+	     for(int m=0;m<valid_entries2_size;m++){
+ 	      if(valid_entries2[m]==id){
+	 		sum++;
+ 	      }
+   }
 	    g2c_count[id]=sum;
 	    g2c_count_counter++;
 	  }

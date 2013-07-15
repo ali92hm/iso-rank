@@ -25,7 +25,7 @@
 #include <stdexcept>
 #include <limits>
 #include <math.h>
-#include "util.h"
+#include "../util.h"
 
 #ifdef __linux__
 #include "dsmatrxa.h"

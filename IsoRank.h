@@ -9,7 +9,7 @@
 #ifndef Sparse_Matrix_IsoRank_h
 #define Sparse_Matrix_IsoRank_h
 
-#include "Matrix2D.h"
+#include "Matricies/Matrix2D.h"
 #include "Tarjan.h"
 #include "util.h"
 #include "greedy_algorithms.h"
@@ -132,20 +132,20 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
 	  int* tmp = new int[10];
 	  scores= reshape(eigenvector,matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns(),*comp_mask_curr);
 
-	    int* assignment = new int[matrix_A.getNumberOfRows()];
-
-            for(int j=0;j<scores->getNumberOfRows();j++){
-                for(int i=0;i<scores->getNumberOfColumns();i++){
-                    if((*comp_mask_curr)[counter_comp_mask]==1){
-                        (*scores)[j][i]=eigenvector[counter_eig_vector];
-                        counter_eig_vector++;
-                    }
-                    else{
-                        (*scores)[j][i]=0;
-                    }
-                    counter_comp_mask++;
-                }
-        }
+// 	    int* assignment = new int[matrix_A.getNumberOfRows()];
+// 
+//             for(int j=0;j<scores->getNumberOfRows();j++){
+//                 for(int i=0;i<scores->getNumberOfColumns();i++){
+//                     if((*comp_mask_curr)[counter_comp_mask]==1){
+//                         (*scores)[j][i]=eigenvector[counter_eig_vector];
+//                         counter_eig_vector++;
+//                     }
+//                     else{
+//                         (*scores)[j][i]=0;
+//                     }
+//                     counter_comp_mask++;
+//                 }
+//         }
 	int* assignment = new int[matrix_A.getNumberOfRows()];
             
             switch (matching_algorithm)
@@ -163,20 +163,21 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
                      greedy_connectivity_3(*scores,matrix_A,matrix_B,assignment);
                     break;
                 case 4:
-		  greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment,100);
+		  			greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment);
                     break;
                 default:
                     break;
             }
-	               for(int i=0;i<matrix_A.getNumberOfRows();i++){
+	               for(int i=0;i<matrix_A.getNumberOfRows();i++)
+	               {
                 printf(" graph1: %d graph2: %d\n",i,assignment[i]);
-            }
+            	}
 			delete [] assignment;
 
 
 	    }
 }
-    }
+    //}
     
 
   //comp_mask_values[i]

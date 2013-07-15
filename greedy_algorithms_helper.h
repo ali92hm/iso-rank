@@ -5,7 +5,7 @@
 #include <math.h>
 #include <vector>
 #include <cmath>
-#include "Matrix2D.h"
+#include "Matricies/Matrix2D.h"
 #include <limits>
 
 #ifndef greedy_algorithm_helper_h
@@ -582,14 +582,17 @@ SparseMatrix<DT>* getPermMatrix(const int size){
 }
 
 
-void invalidate_neighbors(int* assignment, vector<int> *neigh){
+void invalidate_neighbors(int* assignment, vector<int> *neigh)
+{
    int hold;
 
    
-   for(int i=0;i<neigh->size();i++){
+   for(int i=0;i<neigh->size();i++)
+   {
       hold=(*neigh)[i];
-      if(assignment[hold]==1){
-	neigh->erase(neigh->begin()+i);
+      if(assignment[hold]==1)
+      {
+		neigh->erase(neigh->begin()+i);
       }
     }
 

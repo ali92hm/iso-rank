@@ -10,7 +10,7 @@
 #define _util_h
 
 #include "vertex.h"
-#include "Matrix2D.h"
+#include "Matricies/Matrix2D.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

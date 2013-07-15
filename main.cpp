@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
 //
 
-#include "Matrix2D.h"
+#include "Matricies/Matrix2D.h"
 #include "IsoRank.h"
 #include <vector>
 #include <ctime>
@@ -21,7 +21,7 @@
  *
  */
 #ifdef __linux__
-std::string G_DIR_PATH = "/export/home/abhijit/graphs/";
+std::string G_DIR_PATH = "/home/ali/workspace/ex/input/";
 #elif defined __APPLE__
 std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
 #endif
@@ -99,7 +99,7 @@ int main(int argc, const char * argv[])
 	time_start = std::clock();
     for (int i = 0; i < input_graphs.size(); i++)
     {
-        for(int j = (i + 1); j <  input_graphs.size(); j++)
+        for(int j = 0; j <  input_graphs.size(); j++)
         {
             try
             {
@@ -126,7 +126,7 @@ int main(int argc, const char * argv[])
                     }
                     else if (G_USE_CON_ENF_4)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[j], 4);
+                        isoRank(*input_graphs[i], *input_graphs[i], 4);
                     }
                 }
                 
