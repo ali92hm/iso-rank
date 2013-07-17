@@ -7,7 +7,7 @@
 //
 
 #ifndef Sparse_Matrix_IsoRank_h
-#define Sparse_Matrix_IsoRank_h
+#define Sparse_Matatorrix_IsoRank_h
 
 #include "Matricies/Matrix2D.h"
 #include "Tarjan.h"
@@ -24,7 +24,7 @@ int CON_ENF_4 = 4;
 
 
 template <typename DT>
-void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matching_algorithm)
+void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matching_algorithm,int* assignment)
 {
   if (!matrix_A.isSquare() || !matrix_B.isSquare())
     {
@@ -129,7 +129,6 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
         double* eigenvector=eigenValues[k];
         if(eigenvector!=NULL) {
 	  comp_mask_curr=comp_mask_values[k];
-	  int* tmp = new int[10];
 	  scores= reshape(eigenvector,matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns(),*comp_mask_curr);
 
 // 	    int* assignment = new int[matrix_A.getNumberOfRows()];
@@ -146,7 +145,6 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
 //                     counter_comp_mask++;
 //                 }
 //         }
-	int* assignment = new int[matrix_A.getNumberOfRows()];
             
             switch (matching_algorithm)
             {
@@ -163,17 +161,17 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
                      greedy_connectivity_3(*scores,matrix_A,matrix_B,assignment);
                     break;
                 case 4:
-		  			greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment);
+		    greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment);
                     break;
                 default:
                     break;
             }
-	               for(int i=0;i<matrix_A.getNumberOfRows();i++)
-	               {
-                printf(" graph1: %d graph2: %d\n",i,assignment[i]);
-            	}
-			delete [] assignment;
-
+	              
+	    for(int i=0;i<matrix_A.getNumberOfRows();i++)
+	    {
+	      printf(" graph1: %d graph2: %d\n",i,assignment[i]);
+	    }
+	
 
 	    }
 }
@@ -201,7 +199,7 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
     }
     delete vertices;
     delete kron_prod;
-	
+    delete []eigenValues;
     
 }
 

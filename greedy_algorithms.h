@@ -113,7 +113,6 @@ void greedy_connectivity_2(SparseMatrix<DT>& matches, SparseMatrix<float>& graph
   vector<int> assigned_G1;
   int size=0,random_id,vector_size=0,curr_row;
  
-srand(time(NULL));
 
 //run while loop until all nodes are assigned and scores matrix isn't all negative
  while(sum_array(assignment2,graph1_nodes)<min(graph1_nodes,graph2_nodes)&& return_max(*active_matches,&score,&row,&col)>-1)

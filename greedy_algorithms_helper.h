@@ -456,8 +456,6 @@ int return_max(SparseMatrix<DT>& matches, DT* total_score,int* max_row,int* max_
     //choose a random occurence of the maximum value
     // to set max_row and max_col to
 
-srand (time(NULL));
-
   int counter=0;
   int random_number= rand()%max_so_far_count+1;
   int set=0;
@@ -570,16 +568,17 @@ void match_rest(int* assignment, SparseMatrix<float>& graph1, SparseMatrix<float
  * returns a permutation matrix with dimensions size x size
  * @param: size of the permutation matrix
  */
-template <typename DT>
-SparseMatrix<DT>* getPermMatrix(const int size){
-  int* assignment=(int*)malloc(sizeof(int)*size);
-  SparseMatrix<DT>* ret_matrix=new SparseMatrix<DT>(size,size);
-  
+SparseMatrix<float>* getPermMatrix(int *ass, const int size){
+  SparseMatrix<float>* ret_matrix=new SparseMatrix<float>(size,size);
+  int hold;
   for(int i=0;i<size;i++){
-    ret_matrix[i][assignment[i]]=1;
+    hold=ass[i];
+    (*ret_matrix)[i][hold]=1;
   }
   return ret_matrix;
 }
+
+
 
 
 void invalidate_neighbors(int* assignment, vector<int> *neigh)

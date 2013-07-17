@@ -91,6 +91,7 @@ public:
     void operator()(int,int,T);
     SparseMatrix<T> kron(const SparseMatrix<T>&); /* WORKS SHOULD BE CHANGED */
     bool operator==(const SparseMatrix<T>&);
+    SparseMatrix<T>& operator- (SparseMatrix<T>& other_matrix);
     SparseMatrix<T>& operator= (const SparseMatrix<T>&);
     SparseMatrix<T> diagonalVectorTimesSparseMatrix(const std::vector<T>&);
     SparseMatrix<T> SparseMatrixTimesDiagonalVector(const std::vector<T>&);
@@ -191,6 +192,9 @@ inline bool SparseMatrix<T>::isSquare() const
 {
     return (this->_rows == this->_cols);
 }
+
+
+
 
 template <typename T>
 inline bool SparseMatrix<T>::isSymmetric() const
@@ -473,6 +477,7 @@ inline T SparseMatrix<T>::operator()(int i, int j) const
     else
         return find_res->second;
 }
+
 
 template <typename T>
 inline void SparseMatrix<T>::operator()(int i, int j, T value)

@@ -88,10 +88,12 @@ public:
     const bool isSymmetric();
     sparse_matrix_element<DT>** getSparseForm();
     int getSparseFormSize();
+    DT getFrobNorm();
     SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
     double* getTopEigenVector();
     vector<int>* getNeighbors(int vertex);
     //Mutators
+    SparseMatrix<DT> transpose();
     SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
     DT* sum_rows();
     SparseMatrix<DT>* vec_times_mat(DT*, int);
@@ -101,6 +103,8 @@ public:
     DT* operator[](int);
     friend std::ostream& operator<< <> (std::ostream& stream, const SparseMatrix<DT>& matrix);
     void operator= (const SparseMatrix<DT>&);
+    SparseMatrix<DT> operator-(SparseMatrix<DT>& other_matrix);
+    SparseMatrix<DT>* operator*(SparseMatrix<DT>& other_matrix);
 };
 
 //==========================================================CONSTRUCTORS============================================================
@@ -267,6 +271,18 @@ const bool SparseMatrix<DT>::isSymmetric()
     }
     
     return true;
+}
+template <typename T>
+T SparseMatrix<T>::getFrobNorm(){
+  T ret_val=0;
+
+  for(int i=0;i<this->getNumberOfRows();i++){
+    for(int j=0;j<this->getNumberOfColumns();j++){
+      ret_val+= (*this)[i][j] * (*this)[i][j];
+    }
+  }
+
+  return ret_val;
 }
 
 template <typename DT>
@@ -512,6 +528,22 @@ SparseMatrix<DT>* SparseMatrix<DT>::mat_times_vec(DT* vec, int vec_size){
     return ret_matrix;
 }
 
+
+template <typename DT>
+SparseMatrix<DT> SparseMatrix<DT>::transpose(){
+  SparseMatrix<DT> ret_matrix(this->getNumberOfColumns(),this->getNumberOfRows());
+
+
+  for(int i=0;i<this->getNumberOfRows();i++){
+    for(int j=0;j<this->getNumberOfColumns();j++){
+      ret_matrix[j][i]=(*this)[i][j];
+    }
+  }
+
+  return ret_matrix;
+}
+
+
 //==========================================================OPERATORS================================================================
 template <typename DT>
 std::ostream& operator<<(std::ostream& stream, const SparseMatrix<DT>& matrix)
@@ -533,6 +565,42 @@ template <typename DT>
 DT* SparseMatrix<DT>::operator[](int index)
 {
     return this->_edges[index];
+}
+
+template <typename DT>
+SparseMatrix<DT>* SparseMatrix<DT>::operator*(SparseMatrix<DT>& other_matrix){
+  SparseMatrix<DT>* ret_matrix=new SparseMatrix(this->getNumberOfRows(),other_matrix.getNumberOfColumns());
+  DT ret_val;
+  for(int i=0;i<this->getNumberOfRows();i++){
+    for(int j=0;j<other_matrix.getNumberOfColumns();j++){
+      ret_val=0;
+      for(int k=0;k<this->getNumberOfColumns();k++){
+	ret_val+=(*this)[i][k]*other_matrix[k][j];
+      }
+      (*ret_matrix)[i][j]=ret_val;
+    }
+  }
+  
+  return ret_matrix;
+}
+
+
+
+template <typename T>
+SparseMatrix<T> SparseMatrix<T>::operator-(SparseMatrix<T>& other_matrix){
+  SparseMatrix<T> ret_matrix(this->getNumberOfRows(),this->getNumberOfColumns());
+  
+
+  for(int i=0;i<this->getNumberOfRows();i++)
+  {   
+      for(int j=0;j<this->getNumberOfColumns();j++)
+      {
+	ret_matrix[i][j]=(*this)[i][j]-other_matrix[i][j];
+
+      }
+  }
+
+  return ret_matrix;
 }
 
 template <typename DT>

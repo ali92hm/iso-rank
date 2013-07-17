@@ -21,13 +21,13 @@
  *
  */
 #ifdef __linux__
-std::string G_DIR_PATH = "/home/ali/workspace/ex/input/";
+std::string G_DIR_PATH = "/home/abhijit/graphs/";
 #elif defined __APPLE__
 std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
 #endif
 
 
-int G_NUMBER_OF_FILES = 2;
+int G_NUMBER_OF_FILES = 1;
 std::string G_FILE_EXTENSION = ".dat";
 
 bool G_USE_ISORANK = true;
@@ -57,7 +57,10 @@ void parseCommandLineArgs(int argc, const char * argv[]);
  */
 int main(int argc, const char * argv[])
 {
-    /*
+ 
+  srand(time(NULL));
+  
+  /*
      *Configure the program to use the command line args
      */
     parseCommandLineArgs(argc, argv);
@@ -90,8 +93,8 @@ int main(int argc, const char * argv[])
     std::clock_t time_end = std::clock();
 	double elapsed_time = (double) (time_end - time_start) / CLOCKS_PER_SEC * 1000.0;
     std::cout << input_graphs.size() << " of " << G_NUMBER_OF_FILES << " graphs were successfully read in "<< elapsed_time << "(ms)." << endl;
-    
-    
+    int * best_assignment;
+    float best_frob_norm=DBL_MAX;
     
     /*
      * Compute n choose 2 combination of graphs
@@ -101,32 +104,36 @@ int main(int argc, const char * argv[])
     {
         for(int j = 0; j <  input_graphs.size(); j++)
         {
+	  for(int k=0;k<20;k++){
+	    int* assignment = new int[(*input_graphs[i]).getNumberOfRows()];
+	    init_array(assignment,(*input_graphs[i]).getNumberOfRows(),-1);
+
             try
             {
                 if (G_USE_ISORANK)
                 {
                     if (G_USE_GREEDY_ALG)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[j], 0);
+		      isoRank(*input_graphs[i], *input_graphs[j], 0,assignment);
                     }
                     
                     else if (G_USE_CON_ENF_1)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[j], 1);
+		      isoRank(*input_graphs[i], *input_graphs[j], 1,assignment);
                     }
                     
                     else if (G_USE_CON_ENF_2)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[j], 2);
+		      isoRank(*input_graphs[i], *input_graphs[j], 2,assignment);
                     }
                     
                     else if (G_USE_CON_ENF_3)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[j], 3);
+		      isoRank(*input_graphs[i], *input_graphs[j], 3,assignment);
                     }
                     else if (G_USE_CON_ENF_4)
                     {
-                        isoRank(*input_graphs[i], *input_graphs[i], 4);
+		      isoRank(*input_graphs[i], *input_graphs[i], 4,assignment);
                     }
                 }
                 
@@ -134,13 +141,52 @@ int main(int argc, const char * argv[])
                 {
                     //GPGM(*input_graphs[i], *input_graphs[j]);
                 }
+
+		
             }
             catch (std::exception& e)
             {
                 std::cerr << "Exception: " << e.what() << std::endl;
             }
+
+	    SparseMatrix<float>* perm_mat=getPermMatrix(assignment,(*input_graphs[i]).getNumberOfRows());
+	    SparseMatrix<float>* product=(*perm_mat)*(*input_graphs[i]);
+	    SparseMatrix<float> get_transpose=perm_mat->transpose();
+	    SparseMatrix<float>* final_mat=(*product)*get_transpose;
+	    SparseMatrix<float> ret_matrix= (*input_graphs[i])-(*final_mat);
+	    
+	    
+
+	    float frob_norm_hold=ret_matrix.getFrobNorm();
+	    printf("run number #%d with frob norm :%f\n",k,frob_norm_hold); 
+
+	    if(frob_norm_hold<best_frob_norm){
+	      best_frob_norm=frob_norm_hold;
+	      if(k!=0){
+	       delete []best_assignment;
+	      }
+	      best_assignment=assignment;
+	    }
+	    else{
+	      delete []assignment;
+	    }
+
+	    delete perm_mat;
+	    delete product;
+	    delete final_mat;
+	     
+	    
+	  }
+
+	  printf("best assignment with frobenius norm score: %f:\n",best_frob_norm);
+	  for(int k=0;k<(*input_graphs[i]).getNumberOfRows();k++){
+	    printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
+	  }
+	  delete []best_assignment;
         }
     }
+
+
 
 	 time_end = std::clock();
  elapsed_time = (double) (time_end - time_start) / CLOCKS_PER_SEC * 1000.0;
