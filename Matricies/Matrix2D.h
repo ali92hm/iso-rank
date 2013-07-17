@@ -26,12 +26,15 @@
 #include <limits>
 #include <math.h>
 #include "../util.h"
+#include <Eigen/Dense>
 
 #ifdef __linux__
+#ifdef ARPACK
 #include "dsmatrxa.h"
 #include "ardsmat.h"
 #include "ardssym.h"
 #include "lsymsol.h"
+#endif
 #endif
 
 
@@ -78,6 +81,7 @@ public:
     SparseMatrix();
     SparseMatrix(const std::string &file_path);
     SparseMatrix(int rows, int cols);
+    SparseMatrix(int rows, int cols, DT*);
     SparseMatrix(const SparseMatrix<DT>&);
     //Destructor
     virtual ~SparseMatrix();
@@ -92,6 +96,7 @@ public:
     SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
     double* getTopEigenVector();
     vector<int>* getNeighbors(int vertex);
+    DT* get1DArr();
     //Mutators
     SparseMatrix<DT> transpose();
     SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
@@ -205,6 +210,27 @@ SparseMatrix<DT>::SparseMatrix(int rows, int cols)
     if (!_initilalizeMatrix())
     {
         throw OutOfMemoryException();
+    }
+}
+
+template <typename DT>
+SparseMatrix<DT>::SparseMatrix(int rows, int cols, DT* dataArr)
+{
+    this->_rows = rows;
+    this->_cols = cols;
+    
+    this->sparse_form_size = 0;
+    this->sparse_form = NULL;
+    this->_edges = new DT*[this->_rows];
+    int counter = 0;
+    for(int i=0; i < this->_rows; i++)
+    {
+        this->_edges[i] = new DT[this->_cols];
+        for(int j=0; j< this->_cols; j++)
+        {
+            this->_edges[i][j] = dataArr[counter];
+            counter++;
+        }
     }
 }
 
@@ -400,6 +426,20 @@ SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_
     return res_matrix;
 }
 
+template <typename DT>
+DT* SparseMatrix<DT>::get1DArr()
+{
+	DT* dataArr = new DT[this->_rows*this->_cols];
+	int counter = 0;
+	for(int i = 0 ; i < this->_rows ; i++)
+	{
+		for(int j=0; j < this->_cols; j++)
+		{
+			dataArr[counter++] = this->_edges[i][j];
+		}
+	}
+	return dataArr;
+}
 
 
 template <typename DT>
@@ -419,6 +459,7 @@ vector<int>* SparseMatrix<DT>::getNeighbors(int vertex){
 template <typename DT>
 double* SparseMatrix<DT>::getTopEigenVector(){
 #ifdef __linux__
+#ifdef ARPACK
     int arr_size= (this->_rows*(this->_rows+1))/2;
     double nzval[arr_size];
     int counter=0;
@@ -443,6 +484,37 @@ double* SparseMatrix<DT>::getTopEigenVector(){
 
     return eigenVec;
 #endif
+#endif
+		std::cout<< "Start" << std::endl;
+		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> A_eigen = Eigen::MatrixXd::Zero(this->_rows, this->_cols);
+		for (long i=0; i< this->_rows; i++) 
+		{
+			for(int j = 0; j < this->_cols; j++)
+			{
+				A_eigen(i,j) = this->_edges[i][j];
+			}
+		}
+		Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;
+		es.compute(A_eigen);
+		
+		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> evals_eigen = es.eigenvalues();
+		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> evecs_eigen = es.eigenvectors();
+		double* eigenVec = new double[this->_rows];
+
+		for ( int i=0; i < this->_cols; i++)
+		{	
+			if (evals_eigen(i) == evals_eigen.maxCoeff())
+			{
+				for (int j= 0; j < this->_rows ; j++)
+				{
+					eigenVec[j] = evecs_eigen(j,i);
+				}
+				std::cout << "Eig" <<std::endl;
+				break;
+			}
+		}
+	std::cout<< "Ends" << std::endl;
+	return eigenVec;
 }
 
 template <typename DT>

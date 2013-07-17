@@ -13,6 +13,7 @@
 #include "Tarjan.h"
 #include "vertex.h"
 #include "greedy_algorithms.h"
+#include "mpi.h"
 
 
 
@@ -50,164 +51,218 @@ typedef float DataType;
 
 
 
-void parseCommandLineArgs(int argc, const char * argv[]);
+void parseCommandLineArgs(int argc, char * argv[]);
+template <typename DT>
+void MPI_Send_Matrix (SparseMatrix<DT>& matrix, int dest, int tag);
+SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat);
+//void  MPI_Recv_Matrix (int source, int tag , MPI_Status& stat);
+
+
 
 /*
  *
  */
-int main(int argc, const char * argv[])
+int main(int argc, char * argv[])
 {
- 
   srand(time(NULL));
   
-  /*
+	int num_procs;
+    int rank;
+ 	MPI_Status stat;
+    if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
+    {
+        std::cout << "fail to init" << std::endl;
+        //MPI_Abort();
+    }
+    
+    MPI_Comm_size (MPI_COMM_WORLD, &num_procs);
+    MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+    int tag1 = 4;
+    int size_tag = 3;
+    /*
      *Configure the program to use the command line args
      */
     parseCommandLineArgs(argc, argv);
-    
+    std::vector<SparseMatrix<DataType> > input_graphs;
+    std::clock_t time_start;
+    std::clock_t time_end;
+    double elapsed_time;
     /*
      * Struecutes that contain the input
      */
-    std::cout << "Reading " << G_NUMBER_OF_FILES << " graphs from: " << G_DIR_PATH << endl;
-    std::clock_t time_start = std::clock();
-    std::vector<SparseMatrix<DataType>*> input_graphs;
-    ostringstream itos_converter;
-    for(int i = 1; i <= G_NUMBER_OF_FILES; i++)
-    {
-        try
-        {
-            itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
-            input_graphs.push_back(new SparseMatrix<DataType>(itos_converter.str()));
-            //clearing the stream
-            itos_converter.str("");
-            itos_converter.clear();
-        }
-        catch (std::exception& e)
-        {
-            std::cerr <<"Exception: " << e.what() << '\n' << std::endl;
-            itos_converter.str("");
-            itos_converter.clear();
-        }
-    }
-    
-    std::clock_t time_end = std::clock();
-	double elapsed_time = (double) (time_end - time_start) / CLOCKS_PER_SEC * 1000.0;
-    std::cout << input_graphs.size() << " of " << G_NUMBER_OF_FILES << " graphs were successfully read in "<< elapsed_time << "(ms)." << endl;
-    int * best_assignment;
-    float best_frob_norm=DBL_MAX;
-    
-    /*
-     * Compute n choose 2 combination of graphs
-     */
-	time_start = std::clock();
-    for (int i = 0; i < input_graphs.size(); i++)
-    {
-        for(int j = 0; j <  input_graphs.size(); j++)
-        {
-	  for(int k=0;k<20;k++){
-	    int* assignment = new int[(*input_graphs[i]).getNumberOfRows()];
-	    init_array(assignment,(*input_graphs[i]).getNumberOfRows(),-1);
 
-            try
-            {
-                if (G_USE_ISORANK)
-                {
-                    if (G_USE_GREEDY_ALG)
-                    {
-		      isoRank(*input_graphs[i], *input_graphs[j], 0,assignment);
-                    }
-                    
-                    else if (G_USE_CON_ENF_1)
-                    {
-		      isoRank(*input_graphs[i], *input_graphs[j], 1,assignment);
-                    }
-                    
-                    else if (G_USE_CON_ENF_2)
-                    {
-		      isoRank(*input_graphs[i], *input_graphs[j], 2,assignment);
-                    }
-                    
-                    else if (G_USE_CON_ENF_3)
-                    {
-		      isoRank(*input_graphs[i], *input_graphs[j], 3,assignment);
-                    }
-                    else if (G_USE_CON_ENF_4)
-                    {
-		      isoRank(*input_graphs[i], *input_graphs[i], 4,assignment);
-                    }
-                }
-                
-                if (G_USE_GPGM)
-                {
-                    //GPGM(*input_graphs[i], *input_graphs[j]);
-                }
+    if (rank == 0)
+    {
+    	std::cout << "Reading " << G_NUMBER_OF_FILES << " graphs from: " << G_DIR_PATH << endl;
+    	time_start = std::clock();
+    	ostringstream itos_converter;
+		for(int i = 1; i <= G_NUMBER_OF_FILES; i++)
+		{
+			try
+			{
+				itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
+				input_graphs.push_back(SparseMatrix<DataType>(itos_converter.str()));
+				//clearing the stream
+				itos_converter.str("");
+				itos_converter.clear();
+			}
+			catch (std::exception& e)
+			{
+				std::cerr <<"Exception: " << e.what() << '\n' << std::endl;
+				itos_converter.str("");
+				itos_converter.clear();
+			}
+		}
+	
+		time_end = std::clock();
+		elapsed_time = (double) (time_end - time_start) / CLOCKS_PER_SEC * 1000.0;
+		std::cout << input_graphs.size() << " of " << G_NUMBER_OF_FILES << " graphs were successfully read in "<< elapsed_time << "(ms)." << endl;
+		
+ 		int send_size = input_graphs.size();		
+ 		MPI_Send(&send_size, 1, MPI_INT, 1, size_tag, MPI_COMM_WORLD);
+		for(int i = 0; i < input_graphs.size(); i++)
+		{	
+ 			MPI_Send_Matrix (input_graphs[i], 1, tag1);
+		}
+    }
+    else
+    {
+	  	int size_input;
+     	MPI_Recv(&size_input, 1, MPI_INT, 0, size_tag, MPI_COMM_WORLD, &stat);
+     	std::cout << size_input << std::endl;
+    	for(int i = 0; i < size_input; i++)
+		{	
+			input_graphs.push_back(MPI_Recv_Matrix (0, tag1 ,stat));
+			std::cout << "Recv " << input_graphs[i]  << std::endl;
+		}
+		int * best_assignment;
+    	float best_frob_norm=DBL_MAX;
+    	
+		/*
+		 * Compute n choose 2 combination of graphs
+		 */
+		time_start = std::clock();
+		for (int i = 0; i < input_graphs.size(); i++)
+		{
+			for(int j = 0; j <  input_graphs.size(); j++)
+			{
+		  for(int k=0;k<20;k++){
+			int* assignment = new int[(*input_graphs[i]).getNumberOfRows()];
+			init_array(assignment,(*input_graphs[i]).getNumberOfRows(),-1);
+
+				try
+				{
+					if (G_USE_ISORANK)
+					{
+						if (G_USE_GREEDY_ALG)
+						{
+				  isoRank(*input_graphs[i], *input_graphs[j], 0,assignment);
+						}
+					
+						else if (G_USE_CON_ENF_1)
+						{
+				  isoRank(*input_graphs[i], *input_graphs[j], 1,assignment);
+						}
+					
+						else if (G_USE_CON_ENF_2)
+						{
+				  isoRank(*input_graphs[i], *input_graphs[j], 2,assignment);
+						}
+					
+						else if (G_USE_CON_ENF_3)
+						{
+				  isoRank(*input_graphs[i], *input_graphs[j], 3,assignment);
+						}
+						else if (G_USE_CON_ENF_4)
+						{
+				  isoRank(*input_graphs[i], *input_graphs[i], 4,assignment);
+						}
+					}
+				
+					if (G_USE_GPGM)
+					{
+						//GPGM(*input_graphs[i], *input_graphs[j]);
+					}
 
 		
-            }
-            catch (std::exception& e)
-            {
-                std::cerr << "Exception: " << e.what() << std::endl;
-            }
+				}
+				catch (std::exception& e)
+				{
+					std::cerr << "Exception: " << e.what() << std::endl;
+				}
 
-	    SparseMatrix<float>* perm_mat=getPermMatrix(assignment,(*input_graphs[i]).getNumberOfRows());
-	    SparseMatrix<float>* product=(*perm_mat)*(*input_graphs[i]);
-	    SparseMatrix<float> get_transpose=perm_mat->transpose();
-	    SparseMatrix<float>* final_mat=(*product)*get_transpose;
-	    SparseMatrix<float> ret_matrix= (*input_graphs[i])-(*final_mat);
-	    
-	    
+			SparseMatrix<float>* perm_mat=getPermMatrix(assignment,(*input_graphs[i]).getNumberOfRows());
+			SparseMatrix<float>* product=(*perm_mat)*(*input_graphs[i]);
+			SparseMatrix<float> get_transpose=perm_mat->transpose();
+			SparseMatrix<float>* final_mat=(*product)*get_transpose;
+			SparseMatrix<float> ret_matrix= (*input_graphs[i])-(*final_mat);
+		
+		
 
-	    float frob_norm_hold=ret_matrix.getFrobNorm();
-	    printf("run number #%d with frob norm :%f\n",k,frob_norm_hold); 
+			float frob_norm_hold=ret_matrix.getFrobNorm();
+			printf("run number #%d with frob norm :%f\n",k,frob_norm_hold); 
 
-	    if(frob_norm_hold<best_frob_norm){
-	      best_frob_norm=frob_norm_hold;
-	      if(k!=0){
-	       delete []best_assignment;
-	      }
-	      best_assignment=assignment;
-	    }
-	    else{
-	      delete []assignment;
-	    }
+			if(frob_norm_hold<best_frob_norm){
+			  best_frob_norm=frob_norm_hold;
+			  if(k!=0){
+			   delete []best_assignment;
+			  }
+			  best_assignment=assignment;
+			}
+			else{
+			  delete []assignment;
+			}
 
-	    delete perm_mat;
-	    delete product;
-	    delete final_mat;
-	     
-	    
-	  }
+			delete perm_mat;
+			delete product;
+			delete final_mat;
+		 
+		
+		  }
 
-	  printf("best assignment with frobenius norm score: %f:\n",best_frob_norm);
-	  for(int k=0;k<(*input_graphs[i]).getNumberOfRows();k++){
-	    printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
-	  }
-	  delete []best_assignment;
-        }
-    }
+		  printf("best assignment with frobenius norm score: %f:\n",best_frob_norm);
+		  for(int k=0;k<(*input_graphs[i]).getNumberOfRows();k++){
+			printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
+		  }
+		  delete []best_assignment;
+			}
+		}
+	}
+	
+	
 
-
-
-	 time_end = std::clock();
- elapsed_time = (double) (time_end - time_start) / CLOCKS_PER_SEC * 1000.0;
-    std::cout << " completed in "<< elapsed_time << "(ms)." << endl;
-    
-    /*
-     * Deleting objects
-     */
-    vector<SparseMatrix<DataType>*>::iterator it;
-    for ( it = input_graphs.begin(); it < input_graphs.end(); ++it )
-    {
-        delete (*it);
-    }
-    
+    std::cout << "Process: "<< rank << " terminated" << std::endl; 
+    MPI_Finalize();
     return 0;
+}
+
+template <typename DT>
+void MPI_Send_Matrix (SparseMatrix<DT>& matrix, int dest, int tag)
+{
+    int m = matrix.getNumberOfRows();
+    int n = matrix.getNumberOfColumns();
+    MPI_Send(&m, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+    MPI_Send(&n, 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+    MPI_Send(matrix.get1DArr(), m*n*sizeof(DT), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
+}
+
+SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat)
+{
+    int m, n;
+    MPI_Recv(&m, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+    MPI_Recv(&n, 1, MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
+    DataType* dataArray = new DataType[m * n];
+    MPI_Recv(dataArray, m*n*sizeof(DataType), MPI_BYTE, source, tag + 3, MPI_COMM_WORLD, &stat);
+    SparseMatrix<DataType> matrix (m,n, dataArray);
+//     std::cout<< matrix << std::endl;
+    delete [] dataArray;
+    return matrix;
 }
 
 /*
  *
  */
-void parseCommandLineArgs(int argc,const char* argv[])
+void parseCommandLineArgs(int argc,char* argv[])
 {
     std::cout << "Reading command line arguments..." << std::endl;
     
