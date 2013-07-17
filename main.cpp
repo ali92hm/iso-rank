@@ -54,8 +54,8 @@ typedef float DataType;
 void parseCommandLineArgs(int argc, char * argv[]);
 template <typename DT>
 void MPI_Send_Matrix (SparseMatrix<DT>& matrix, int dest, int tag);
-// SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat);
-void  MPI_Recv_Matrix (int source, int tag , MPI_Status& stat);
+SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat);
+//void  MPI_Recv_Matrix (int source, int tag , MPI_Status& stat);
 
 
 
@@ -114,32 +114,29 @@ int main(int argc, char * argv[])
 		time_end = std::clock();
 		elapsed_time = (double) (time_end - time_start) / CLOCKS_PER_SEC * 1000.0;
 		std::cout << input_graphs.size() << " of " << G_NUMBER_OF_FILES << " graphs were successfully read in "<< elapsed_time << "(ms)." << endl;
-// 		int send_size = input_graphs.size();		
-// 		MPI_Send(&send_size, 1, MPI_INT, 1, size_tag, MPI_COMM_WORLD);
-		//for(int i = 0; i < input_graphs.size(); i++)
-		//{	
-			SparseMatrix<DataType> a (3,3);
-			a[1][1] = 4;
-// 			MPI_Send_Matrix (input_graphs[0], 1, tag1);
-			MPI_Send_Matrix (a, 1, tag1);
-		//}
+		
+ 		int send_size = input_graphs.size();		
+ 		MPI_Send(&send_size, 1, MPI_INT, 1, size_tag, MPI_COMM_WORLD);
+		for(int i = 0; i < input_graphs.size(); i++)
+		{	
+ 			MPI_Send_Matrix (input_graphs[i], 1, tag1);
+		}
     }
     else
     {
-   //  	int size_input;
-//     	MPI_Recv(&size_input, 1, MPI_INT, 0, size_tag, MPI_COMM_WORLD, &stat);
-//     	std::cout << size_input << std::endl;
-    	//for(int i = 0; i < size_input; i++)
-		//{	
-			//input_graphs.push_back(MPI_Recv_Matrix (0, tag1 ,stat));
-			MPI_Recv_Matrix (0, tag1 ,stat);
-			//std::cout << "Recv " << a  << std::endl;
-		//}
+	  	int size_input;
+     	MPI_Recv(&size_input, 1, MPI_INT, 0, size_tag, MPI_COMM_WORLD, &stat);
+     	std::cout << size_input << std::endl;
+    	for(int i = 0; i < size_input; i++)
+		{	
+			input_graphs.push_back(MPI_Recv_Matrix (0, tag1 ,stat));
+			std::cout << "Recv " << input_graphs[i]  << std::endl;
+		}
     	
 		/*
 		 * Compute n choose 2 combination of graphs
-		 */
-		// time_start = std::clock();
+		*/
+// 		time_start = std::clock();
 // 		for (int i = 0; i < input_graphs.size(); i++)
 // 		{
 // 			for(int j = i+1; j <  input_graphs.size(); j++)
@@ -214,7 +211,7 @@ void MPI_Send_Matrix (SparseMatrix<DT>& matrix, int dest, int tag)
     MPI_Send(matrix.get1DArr(), m*n*sizeof(DT), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
 }
 
-void MPI_Recv_Matrix (int source, int tag , MPI_Status& stat)
+SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat)
 {
     int m, n;
     MPI_Recv(&m, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
@@ -222,9 +219,9 @@ void MPI_Recv_Matrix (int source, int tag , MPI_Status& stat)
     DataType* dataArray = new DataType[m * n];
     MPI_Recv(dataArray, m*n*sizeof(DataType), MPI_BYTE, source, tag + 3, MPI_COMM_WORLD, &stat);
     SparseMatrix<DataType> matrix (m,n, dataArray);
-    std::cout<< matrix << std::endl;
-    //delete [] dataArray;
-    //return matrix;
+//     std::cout<< matrix << std::endl;
+    delete [] dataArray;
+    return matrix;
 }
 
 /*
