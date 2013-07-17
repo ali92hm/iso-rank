@@ -78,6 +78,7 @@ public:
     SparseMatrix();
     SparseMatrix(const std::string &file_path);
     SparseMatrix(int rows, int cols);
+    SparseMatrix(int rows, int cols, DT*);
     SparseMatrix(const SparseMatrix<DT>&);
     //Destructor
     virtual ~SparseMatrix();
@@ -91,6 +92,7 @@ public:
     SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
     double* getTopEigenVector();
     vector<int>* getNeighbors(int vertex);
+    DT* get1DArr();
     //Mutators
     SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
     DT* sum_rows();
@@ -201,6 +203,27 @@ SparseMatrix<DT>::SparseMatrix(int rows, int cols)
     if (!_initilalizeMatrix())
     {
         throw OutOfMemoryException();
+    }
+}
+
+template <typename DT>
+SparseMatrix<DT>::SparseMatrix(int rows, int cols, DT* dataArr)
+{
+    this->_rows = rows;
+    this->_cols = cols;
+    
+    this->sparse_form_size = 0;
+    this->sparse_form = NULL;
+    this->_edges = new DT*[this->_rows];
+    int counter = 0;
+    for(int i=0; i < this->_rows; i++)
+    {
+        this->_edges[i] = new DT[this->_cols];
+        for(int j=0; j< this->_cols; j++)
+        {
+            this->_edges[i][j] = dataArr[counter];
+            counter++;
+        }
     }
 }
 
@@ -384,6 +407,20 @@ SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_
     return res_matrix;
 }
 
+template <typename DT>
+DT* SparseMatrix<DT>::get1DArr()
+{
+	DT* dataArr = new DT[this->_rows*this->_cols];
+	int counter = 0;
+	for(int i = 0 ; i < this->_rows ; i++)
+	{
+		for(int j=0; j < this->_cols; j++)
+		{
+			dataArr[counter++] = this->_edges[i][j];
+		}
+	}
+	return dataArr;
+}
 
 
 template <typename DT>
