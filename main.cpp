@@ -22,7 +22,7 @@
  *
  */
 #ifdef __linux__
-std::string G_DIR_PATH = "/home/abhijit/graphs/";
+std::string G_DIR_PATH = "/home/ali/workspace/ex/input/";
 #elif defined __APPLE__
 std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
 #endif
@@ -147,8 +147,8 @@ int main(int argc, char * argv[])
 			for(int j = 0; j <  input_graphs.size(); j++)
 			{
 		  for(int k=0;k<20;k++){
-			int* assignment = new int[(*input_graphs[i]).getNumberOfRows()];
-			init_array(assignment,(*input_graphs[i]).getNumberOfRows(),-1);
+			int* assignment = new int[input_graphs[i].getNumberOfRows()];
+			init_array(assignment,input_graphs[i].getNumberOfRows(),-1);
 
 				try
 				{
@@ -156,26 +156,26 @@ int main(int argc, char * argv[])
 					{
 						if (G_USE_GREEDY_ALG)
 						{
-				  isoRank(*input_graphs[i], *input_graphs[j], 0,assignment);
+				  isoRank(input_graphs[i], input_graphs[j], 0,assignment);
 						}
 					
 						else if (G_USE_CON_ENF_1)
 						{
-				  isoRank(*input_graphs[i], *input_graphs[j], 1,assignment);
+				  isoRank(input_graphs[i], input_graphs[j], 1,assignment);
 						}
 					
 						else if (G_USE_CON_ENF_2)
 						{
-				  isoRank(*input_graphs[i], *input_graphs[j], 2,assignment);
+				  isoRank(input_graphs[i], input_graphs[j], 2,assignment);
 						}
 					
 						else if (G_USE_CON_ENF_3)
 						{
-				  isoRank(*input_graphs[i], *input_graphs[j], 3,assignment);
+				  isoRank(input_graphs[i], input_graphs[j], 3,assignment);
 						}
 						else if (G_USE_CON_ENF_4)
 						{
-				  isoRank(*input_graphs[i], *input_graphs[i], 4,assignment);
+				  isoRank(input_graphs[i], input_graphs[i], 4,assignment);
 						}
 					}
 				
@@ -191,11 +191,11 @@ int main(int argc, char * argv[])
 					std::cerr << "Exception: " << e.what() << std::endl;
 				}
 
-			SparseMatrix<float>* perm_mat=getPermMatrix(assignment,(*input_graphs[i]).getNumberOfRows());
-			SparseMatrix<float>* product=(*perm_mat)*(*input_graphs[i]);
+			SparseMatrix<float>* perm_mat=getPermMatrix(assignment,input_graphs[i].getNumberOfRows());
+			SparseMatrix<float>* product=(*perm_mat)*input_graphs[i];
 			SparseMatrix<float> get_transpose=perm_mat->transpose();
 			SparseMatrix<float>* final_mat=(*product)*get_transpose;
-			SparseMatrix<float> ret_matrix= (*input_graphs[i])-(*final_mat);
+			SparseMatrix<float> ret_matrix= input_graphs[i]-(*final_mat);
 		
 		
 
@@ -221,7 +221,7 @@ int main(int argc, char * argv[])
 		  }
 
 		  printf("best assignment with frobenius norm score: %f:\n",best_frob_norm);
-		  for(int k=0;k<(*input_graphs[i]).getNumberOfRows();k++){
+		  for(int k=0;k<input_graphs[i].getNumberOfRows();k++){
 			printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
 		  }
 		  delete []best_assignment;
@@ -254,7 +254,6 @@ SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat)
     DataType* dataArray = new DataType[m * n];
     MPI_Recv(dataArray, m*n*sizeof(DataType), MPI_BYTE, source, tag + 3, MPI_COMM_WORLD, &stat);
     SparseMatrix<DataType> matrix (m,n, dataArray);
-//     std::cout<< matrix << std::endl;
     delete [] dataArray;
     return matrix;
 }
