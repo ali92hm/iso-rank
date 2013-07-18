@@ -25,8 +25,12 @@ const int NUM_OF_ISORANK_IT = 20;
 
 struct IsoRank_Result
 {
-	int* assignments;
+
 	int frob_norm;
+        int assignment_length;
+	int* assignments;
+  
+
 };
 
 template <typename DT>
@@ -129,9 +133,9 @@ struct IsoRank_Result isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matr
     vector<int>* comp_mask_curr=comp_mask_values[0];
     int counter_eig_vector=0;
     int counter_comp_mask=0;
+    struct IsoRank_Result ret_val;
     
-    
-    for(int k=0;k<kron_prod->getNumberOfColumns();k++){
+    for(int k=0;k<kron_prod->getNumberOfColumns();k++) {
         double* eigenvector=eigenValues[k];
         if(eigenvector!=NULL) {
 	  comp_mask_curr=comp_mask_values[k];
@@ -211,13 +215,21 @@ struct IsoRank_Result isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matr
   			  {
   				printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
   			  }
- 			  delete []best_assignment;
+
+			  
+			  ret_val.frob_norm=best_frob_norm;
+			  ret_val.assignments=best_assignment;
+			  ret_val.assignment_length=matrix_A.getNumberOfRows();
+
+			  // delete []best_assignment;
 			
-	              
-	    
-	   	
+	    	   	
 
 	    }
+
+	    return ret_val;
+
+
 }
     //}
     
