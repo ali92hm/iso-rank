@@ -26,8 +26,6 @@ const int NUM_OF_ISORANK_IT = 20;
 struct IsoRank_Result
 {
 	int* assignments;
-	char* graph_name_A;
-	char* graph_name_B;
 	int frob_norm;
 };
 
