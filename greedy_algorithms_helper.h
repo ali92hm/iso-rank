@@ -519,10 +519,7 @@ void match_rest(int* assignment, SparseMatrix<float>& graph1, SparseMatrix<float
 
   
   if(graph1.getNumberOfRows()<=graph2.getNumberOfRows()){
-  	int orig_size=graph1.getNumberOfRows();  
-  
-  
-  
+    
     int unassigned_graph1[graph1.getNumberOfRows()];
     int unassigned_graph2[graph2.getNumberOfRows()];
     int counter1=0;
@@ -558,8 +555,39 @@ void match_rest(int* assignment, SparseMatrix<float>& graph1, SparseMatrix<float
     
   }
   else {
-  printf("match rest elsegit\n");
-  
+    int unassigned_graph1[graph1.getNumberOfRows()];
+    int unassigned_graph2[graph2.getNumberOfRows()];
+    int counter1=0;
+
+    //intialize arrays
+   for(int j=0;j<graph1.getNumberOfRows();j++){
+      unassigned_graph1[j]=-1;
+    }
+    for(int j=0;j<graph2.getNumberOfRows();j++){
+      unassigned_graph2[j]=1;
+    }
+    
+    //assign unassigned nodes
+    for(int j=0;j<graph1.getNumberOfRows();j++){
+      if(assignment[j]==-1){
+	unassigned_graph1[counter1]=j;
+	counter1++;
+      }
+      else{
+	unassigned_graph2[assignment[j]]=-1;
+      }
+    }
+   
+    for(int i=0;unassigned_graph1[i]!=-1;i++){
+      for(int j=0;j<graph2.getNumberOfRows();j++){
+	if(unassigned_graph2[j]==1){
+	  assignment[unassigned_graph1[i]]=j;
+	  unassigned_graph2[j]=-1;
+	  break;
+	}
+      }
+    }
+
     int counter=graph2.getNumberOfRows();
     for(int i=0;i<graph1.getNumberOfRows();i++){
       if(assignment[i]==-1){
@@ -586,8 +614,6 @@ SparseMatrix<float> getPermMatrix(int *ass, const int size){
   }
   return ret_matrix;
 }
-
-
 
 
 void invalidate_neighbors(int* assignment, vector<int> *neigh)
