@@ -558,7 +558,7 @@ void match_rest(int* assignment, SparseMatrix<float>& graph1, SparseMatrix<float
     
   }
   else {
-  printf("match rest else\n");
+  printf("match rest elsegit\n");
   
     int counter=graph2.getNumberOfRows();
     for(int i=0;i<graph1.getNumberOfRows();i++){
