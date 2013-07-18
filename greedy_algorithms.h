@@ -82,6 +82,8 @@ int* greedy_connectivity_1(SparseMatrix<DT>& matches, SparseMatrix<float>& graph
     neighbor_enforcement(&row,&col, graph1,graph2,matches);
   }
 
+    match_rest(assignment,graph1,graph2); 
+
   printf("score of matching: %f\n",total_score);
   return assignment;
 }
