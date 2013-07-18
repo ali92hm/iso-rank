@@ -609,7 +609,6 @@ SparseMatrix<float> getPermMatrix(int *ass, const int size){
   int hold;
   for(int i=0;i<size;i++){
     hold=ass[i];
-    printf("%d %d\n",hold,size);
    ret_matrix[i][hold]=1;
   }
   return ret_matrix;

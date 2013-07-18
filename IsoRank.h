@@ -175,37 +175,37 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
 				}
 				
 			
-			 	 for(int i=0;i<matrix_A.getNumberOfRows();i++)
-			    {
-	    		  printf(" graph1: %d graph2: %d\n",i,assignment[i]);
-	    		}
+// 			 	 for(int i=0;i<matrix_A.getNumberOfRows();i++)
+// 			    {
+// 	    		  printf(" graph1: %d graph2: %d\n",i,assignment[i]);
+// 	    		}
 					
-					printf("graph1 size: %d graph2 size: %d\n",matrix_A.getNumberOfRows(),matrix_B.getNumberOfRows());	
+				
 	    		    SparseMatrix<float> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows());
-//  				SparseMatrix<float> product=perm_mat*matrix_A;	
-//  				SparseMatrix<float> get_transpose=perm_mat.transpose();
-//  				SparseMatrix<float> final_mat=product*get_transpose;
-//  				SparseMatrix<float> ret_matrix= matrix_A-final_mat;
-//  	
-//  				float frob_norm_hold=ret_matrix.getFrobNorm(); 
-// 
-// 				if(frob_norm_hold<best_frob_norm)
-// 				{
-// 				  best_frob_norm=frob_norm_hold;
-// 				  best_assignment=assignment;
-// 				}
+	  				SparseMatrix<float> product=perm_mat*matrix_A;	
+	  				SparseMatrix<float> get_transpose=perm_mat.transpose();
+	  				SparseMatrix<float> final_mat=product*get_transpose;
+	  				SparseMatrix<float> ret_matrix= matrix_A-final_mat;
+  	
+	  				float frob_norm_hold=ret_matrix.getFrobNorm(); 
+ 
+ 				if(frob_norm_hold<best_frob_norm)
+ 				{
+ 				  best_frob_norm=frob_norm_hold;
+ 				  best_assignment=assignment;
+ 				}
 
 		 	
  				
 			}
 		
 
-// 			  printf("best assignment with frobenius norm score: %f:\n",best_frob_norm);
-//  			  for(int k=0;k<matrix_A.getNumberOfRows();k++)
-//  			  {
-//  				printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
-//  			  }
-// 			  delete []best_assignment;
+ 			  printf("best assignment with frobenius norm score: %f:\n",best_frob_norm);
+  			  for(int k=0;k<matrix_A.getNumberOfRows();k++)
+  			  {
+  				printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
+  			  }
+ 			  delete []best_assignment;
 			
 	              
 	    

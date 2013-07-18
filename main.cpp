@@ -22,7 +22,7 @@
  *
  */
 #ifdef __linux__
-std::string G_DIR_PATH = "/home/abhijit/graphs/";
+std::string G_DIR_PATH = "/home/ali/workspace/ex/input/";
 #elif defined __APPLE__
 std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
 #endif
@@ -51,7 +51,7 @@ typedef float DataType;
 
 
 
-void parseCommandLineArgs(int argc, char * argv[]);
+void parseCommandLineArgs(int argc, char * argv[], int rank);
 template <typename DT>
 void MPI_Send_Matrix (SparseMatrix<DT>& matrix, int dest, int tag);
 SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat);
@@ -83,7 +83,7 @@ int main(int argc, char * argv[])
     /*
      *Configure the program to use the command line args
      */
-    parseCommandLineArgs(argc, argv);
+    parseCommandLineArgs(argc, argv, rank);
     std::vector<SparseMatrix<DataType> > input_graphs;
     std::clock_t time_start;
     std::clock_t time_end;
@@ -129,17 +129,17 @@ int main(int argc, char * argv[])
 				{
 					MPI_Send_Matrix (input_graphs[i], counter, tag1*counter);
 					MPI_Send_Matrix (input_graphs[j], counter, tag1*counter+10);
-					std::cout <<"Master: sending matrix to rank:" << counter << std::endl;
+// 					std::cout <<"Master: sending matrix to rank:" << counter << std::endl;
 					counter++;
 				}
 				else
 				{
 					int dest;
 					MPI_Recv(&dest, 1, MPI_INT, MPI_ANY_SOURCE, tag1+10, MPI_COMM_WORLD,&stat);
-					std::cout <<"Master: received request for more graphs from: "<< dest<< std::endl;
+// 					std::cout <<"Master: received request for more graphs from: "<< dest<< std::endl;
 					MPI_Send_Matrix (input_graphs[i], dest, tag1*dest);
 					MPI_Send_Matrix (input_graphs[j], dest, tag1*dest+10);
-					std::cout <<"Master: sending more graphs to: "<< dest<< std::endl;
+// 					std::cout <<"Master: sending more graphs to: "<< dest<< std::endl;
 				}
 			}
 		}
@@ -149,7 +149,7 @@ int main(int argc, char * argv[])
  			SparseMatrix<DataType> emptyMat(0,0);
  			MPI_Send_Matrix (emptyMat, i, tag1*i);
  			MPI_Send_Matrix (emptyMat, i, tag1*i+10);
- 			std::cout <<"Master: sending terminate signal to rank:" << i << std::endl;
+//  			std::cout <<"Master: sending terminate signal to rank:" << i << std::endl;
  			
  		} 
 
@@ -162,7 +162,7 @@ int main(int argc, char * argv[])
     		SparseMatrix<DataType> mat2 = MPI_Recv_Matrix (0, tag1*rank +10 ,stat);
 			if (mat1.getNumberOfRows()==0 && mat2.getNumberOfRows()==0)
 			{
-				std::cout << "Process: "<< rank << "received terminate signal from master"<< std::endl;
+// 				std::cout << "Process: "<< rank << "received terminate signal from master"<< std::endl;
 				break;
 			}
 			else if(mat1.getNumberOfRows()<mat2.getNumberOfRows()){
@@ -188,8 +188,8 @@ int main(int argc, char * argv[])
 							if (G_USE_GREEDY_ALG)
 							{
 								
-					  			//isoRank(mat1, mat2, 0,assignment);
-					  			std::cout << "Process " << rank << ": isoRank " << endl;
+					  			isoRank(mat1, mat2, 0,assignment);
+// 								std::cout << "Process " << rank << ": isoRank " << endl;
 							}
 					
 							else if (G_USE_CON_ENF_1)
@@ -225,14 +225,14 @@ int main(int argc, char * argv[])
 					}
 						
 
-			  std::cout << "Process: "<< rank << ": requesting for more graphs from master" << std::endl;
+// 			  std::cout << "Process: "<< rank << ": requesting for more graphs from master" << std::endl;
 			  MPI_Send(&rank, 1, MPI_INT, 0, tag1+10, MPI_COMM_WORLD);
 			}
 	}
 	
 	
 
-    std::cout << "Process: "<< rank << " terminated" << std::endl; 
+//     std::cout << "Process: "<< rank << " terminated" << std::endl; 
     MPI_Finalize();
     return 0;
 }
@@ -262,7 +262,7 @@ SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat)
 /*
  *
  */
-void parseCommandLineArgs(int argc,char* argv[])
+void parseCommandLineArgs(int argc,char* argv[], int rank)
 {
   //  std::cout << "Reading command line arguments..." << std::endl;
     
@@ -361,40 +361,43 @@ void parseCommandLineArgs(int argc,char* argv[])
         }
     }
     
-   //  std::cout << "\n\n" <<"Program configuration: " << std::endl;
-//     std::cout << "Working directory: '" << G_DIR_PATH << "'" << std::endl;
-//     std::cout << "File Extention: '" << G_FILE_EXTENSION << "'" << std::endl;
-//     std::cout << "Number of graphs to read: " << G_NUMBER_OF_FILES << std::endl;
-//     if (G_USE_ISORANK)
-//     {
-//         std::cout << "Graph matching algorithm: IsoRank." << std::endl;
-//         std::string assignment_app;
-//         if (G_USE_GREEDY_ALG)
-//         {
-//             assignment_app = "Greedy.";
-//         }
-//         else if (G_USE_CON_ENF_1)
-//         {
-//             assignment_app = "Connectivity Enforcement 1.";
-//         }
-//         else if (G_USE_CON_ENF_2)
-//         {
-//             assignment_app = "Connectivity Enforcement 2.";
-//         }
-//         else if (G_USE_CON_ENF_3)
-//         {
-//             assignment_app = "Connectivity Enforcement 3.";
-//         }
-//         else if (G_USE_CON_ENF_4)
-//         {
-//             assignment_app = "Connectivity Enforcement 4.";
-//         }
-//         cout << "Assignment approach: "<< assignment_app << endl;
-//     }
-//     else if (G_USE_GPGM)
-//     {
-//         std::cout << "Graph matching algorithm: GPGM." << std::endl;
-//     }
-//     
-//     cout << '\n' << endl;
+    if (rank == 0)
+    {
+		std::cout << "\n\n" <<"Program configuration: " << std::endl;
+		std::cout << "Working directory: '" << G_DIR_PATH << "'" << std::endl;
+		std::cout << "File Extention: '" << G_FILE_EXTENSION << "'" << std::endl;
+		std::cout << "Number of graphs to read: " << G_NUMBER_OF_FILES << std::endl;
+		if (G_USE_ISORANK)
+		{
+			std::cout << "Graph matching algorithm: IsoRank." << std::endl;
+			std::string assignment_app;
+			if (G_USE_GREEDY_ALG)
+			{
+				assignment_app = "Greedy.";
+			}
+			else if (G_USE_CON_ENF_1)
+			{
+				assignment_app = "Connectivity Enforcement 1.";
+			}
+			else if (G_USE_CON_ENF_2)
+			{
+				assignment_app = "Connectivity Enforcement 2.";
+			}
+			else if (G_USE_CON_ENF_3)
+			{
+				assignment_app = "Connectivity Enforcement 3.";
+			}
+			else if (G_USE_CON_ENF_4)
+			{
+				assignment_app = "Connectivity Enforcement 4.";
+			}
+			cout << "Assignment approach: "<< assignment_app << endl;
+		}
+		else if (G_USE_GPGM)
+		{
+			std::cout << "Graph matching algorithm: GPGM." << std::endl;
+		}
+	
+		cout << '\n' << endl;
+    }
 }
