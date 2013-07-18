@@ -1,5 +1,5 @@
 CC=mpicxx
-CFLAGS= -g
+CFLAGS= -g -DEIGEN
 INCLUDE= -I/usr/local/include/eigen3/
 
 all:

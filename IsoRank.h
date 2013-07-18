@@ -23,8 +23,16 @@ int CON_ENF_4 = 4;
 
 const int NUM_OF_ISORANK_IT = 20;
 
+struct IsoRank_Result
+{
+	int* assignments;
+	char* graph_name_A;
+	char* graph_name_B;
+	int frob_norm;
+};
+
 template <typename DT>
-void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matching_algorithm,int* assignment)
+struct IsoRank_Result isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matching_algorithm,int* assignment)
 {
   if (!matrix_A.isSquare() || !matrix_B.isSquare())
     {

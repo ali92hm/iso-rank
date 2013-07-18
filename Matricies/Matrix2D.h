@@ -27,6 +27,7 @@
 #include <math.h>
 #include "../util.h"
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #ifdef __linux__
 #ifdef ARPACK
@@ -73,6 +74,7 @@ protected:
     unsigned short int _rows;
     unsigned short int _cols;
     unsigned short int sparse_form_size;
+    char* _graph_name;
     sparse_matrix_element<DT>** sparse_form;
     DT** _edges;
     
@@ -93,6 +95,8 @@ public:
     sparse_matrix_element<DT>** getSparseForm();
     int getSparseFormSize();
     DT getFrobNorm();
+    const char* getGraphName();
+    void setGraphName(const char* name);
     SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
     double* getTopEigenVector();
     vector<int>* getNeighbors(int vertex);
@@ -129,6 +133,7 @@ template<typename DT>
 SparseMatrix<DT>::SparseMatrix(const std::string &file_path)
 {
     _file_reader.open(file_path.c_str());
+    std::strcpy(this->_graph_name, file_path.c_str());
     
     //Throw exception if file doesn't exists.
     if(_file_reader.bad())
@@ -458,7 +463,6 @@ vector<int>* SparseMatrix<DT>::getNeighbors(int vertex){
 
 template <typename DT>
 double* SparseMatrix<DT>::getTopEigenVector(){
-#ifdef __linux__
 #ifdef ARPACK
     int arr_size= (this->_rows*(this->_rows+1))/2;
     double nzval[arr_size];
@@ -484,8 +488,7 @@ double* SparseMatrix<DT>::getTopEigenVector(){
 
     return eigenVec;
 #endif
-#endif
-		std::cout<< "Start" << std::endl;
+#ifdef EIGEN
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> A_eigen = Eigen::MatrixXd::Zero(this->_rows, this->_cols);
 		for (long i=0; i< this->_rows; i++) 
 		{
@@ -509,12 +512,11 @@ double* SparseMatrix<DT>::getTopEigenVector(){
 				{
 					eigenVec[j] = evecs_eigen(j,i);
 				}
-				std::cout << "Eig" <<std::endl;
 				break;
 			}
 		}
-	std::cout<< "Ends" << std::endl;
 	return eigenVec;
+#endif
 }
 
 template <typename DT>
@@ -522,8 +524,19 @@ int SparseMatrix<DT>:: getSparseFormSize(){
     return sparse_form_size;
 }
 
+template <typename DT>
+const char* SparseMatrix<DT>::getGraphName()
+{
+	return this->_graph_name;
+}
+
 //===========================================================MUTATORS================================================================
 
+template <typename DT>
+void SparseMatrix<DT>::setGraphName(const char* name)
+{
+	std::strcpy(this->_graph_name, name);
+}
 /*
  * returns an array of floats where each array element corresponds to sum of entries in a matrix row
  * @pram: pointer to 2-d array of floats

@@ -28,7 +28,7 @@ std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/g
 #endif
 
 
-int G_NUMBER_OF_FILES = 5;
+int G_NUMBER_OF_FILES = 25;
 std::string G_FILE_EXTENSION = ".dat";
 
 bool G_USE_ISORANK = true;
@@ -120,12 +120,12 @@ int main(int argc, char * argv[])
 		std::cout << input_graphs.size() << " of " << G_NUMBER_OF_FILES << " graphs were successfully read in "<< elapsed_time << "(ms)." << endl;
 
 		time_start = std::clock();
-		int counter = 1;
+		int counter = 2;
 		for (int i = 0; i < input_graphs.size(); i++)
 		{
 			for(int j = i +1; j <  input_graphs.size(); j++)
 			{
-				if (counter < num_procs)
+				if (counter < num_procs - 1)
 				{
 					MPI_Send_Matrix (input_graphs[i], counter, tag1*counter);
 					MPI_Send_Matrix (input_graphs[j], counter, tag1*counter+10);
@@ -144,7 +144,7 @@ int main(int argc, char * argv[])
 			}
 		}
 		
- 		for(int i=1; i < num_procs; i++)
+ 		for(int i=1; i < num_procs -1; i++)
  		{
  			SparseMatrix<DataType> emptyMat(0,0);
  			MPI_Send_Matrix (emptyMat, i, tag1*i);
@@ -153,6 +153,10 @@ int main(int argc, char * argv[])
  			
  		} 
 
+    }
+    else if (rank == 1)
+    {
+    	//collecting results
     }
     else
     {
@@ -257,6 +261,16 @@ SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat)
     SparseMatrix<DataType> matrix (m,n, dataArray);
     delete [] dataArray;
     return matrix;
+}
+
+void MPI_Send_IsoRank_Result (IsoRank_Result&, int dest, int tag)
+{
+
+}
+
+IsoRank_Result MPI_Recv (int source, int tag, MPI_Status& stat)
+{
+
 }
 
 /*
