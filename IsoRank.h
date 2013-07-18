@@ -21,7 +21,7 @@ int CON_ENF_2 = 2;
 int CON_ENF_3 = 3;
 int CON_ENF_4 = 4;
 
-
+const int NUM_OF_ISORANK_IT = 20;
 
 template <typename DT>
 void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matching_algorithm,int* assignment)
@@ -145,33 +145,71 @@ void isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matchin
 //                     counter_comp_mask++;
 //                 }
 //         }
-            
-            switch (matching_algorithm)
-            {
-                case 0:
-                    greedy_1(*scores,assignment);
-                    break;
-                case 1:
-                     greedy_connectivity_1(*scores,matrix_A,matrix_B,assignment);
-                    break;
-                case 2:
-                     greedy_connectivity_2(*scores,matrix_A,matrix_B,assignment);
-                    break;
-                case 3:
-                     greedy_connectivity_3(*scores,matrix_A,matrix_B,assignment);
-                    break;
-                case 4:
-		    greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment);
-                    break;
-                default:
-                    break;
-            }
+			SparseMatrix<double>* scores_copy=new SparseMatrix<double>(*scores);
+			int * best_assignment=new int[matrix_A.getNumberOfRows()];
+			float best_frob_norm=DBL_MAX;
+			
+			for (int num_it = 0; num_it < NUM_OF_ISORANK_IT; num_it++)
+			{
+			init_array(assignment,matrix_A.getNumberOfRows(),-1);
+				*scores=*scores_copy;
+				switch (matching_algorithm)
+				{
+					case 0:
+						greedy_1(*scores,matrix_A,matrix_B,assignment);
+						break;
+					case 1:
+						 greedy_connectivity_1(*scores,matrix_A,matrix_B,assignment);
+						break;
+					case 2:
+						 greedy_connectivity_2(*scores,matrix_A,matrix_B,assignment);
+						break;
+					case 3:
+						 greedy_connectivity_3(*scores,matrix_A,matrix_B,assignment);
+						break;
+					case 4:
+						greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment);
+						break;
+					default:
+						break;
+				}
+				
+			
+			 	 for(int i=0;i<matrix_A.getNumberOfRows();i++)
+			    {
+	    		  printf(" graph1: %d graph2: %d\n",i,assignment[i]);
+	    		}
+					
+					printf("graph1 size: %d graph2 size: %d\n",matrix_A.getNumberOfRows(),matrix_B.getNumberOfRows());	
+	    		    SparseMatrix<float> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows());
+//  				SparseMatrix<float> product=perm_mat*matrix_A;	
+//  				SparseMatrix<float> get_transpose=perm_mat.transpose();
+//  				SparseMatrix<float> final_mat=product*get_transpose;
+//  				SparseMatrix<float> ret_matrix= matrix_A-final_mat;
+//  	
+//  				float frob_norm_hold=ret_matrix.getFrobNorm(); 
+// 
+// 				if(frob_norm_hold<best_frob_norm)
+// 				{
+// 				  best_frob_norm=frob_norm_hold;
+// 				  best_assignment=assignment;
+// 				}
+
+		 	
+ 				
+			}
+		
+
+// 			  printf("best assignment with frobenius norm score: %f:\n",best_frob_norm);
+//  			  for(int k=0;k<matrix_A.getNumberOfRows();k++)
+//  			  {
+//  				printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
+//  			  }
+// 			  delete []best_assignment;
+			
 	              
-	    for(int i=0;i<matrix_A.getNumberOfRows();i++)
-	    {
-	      printf(" graph1: %d graph2: %d\n",i,assignment[i]);
-	    }
-	
+	    
+	   	
 
 	    }
 }

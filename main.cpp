@@ -28,7 +28,7 @@ std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/g
 #endif
 
 
-int G_NUMBER_OF_FILES = 1;
+int G_NUMBER_OF_FILES = 5;
 std::string G_FILE_EXTENSION = ".dat";
 
 bool G_USE_ISORANK = true;
@@ -77,6 +77,7 @@ int main(int argc, char * argv[])
     
     MPI_Comm_size (MPI_COMM_WORLD, &num_procs);
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+    bool terminate = false;
     int tag1 = 4;
     int size_tag = 3;
     /*
@@ -118,115 +119,119 @@ int main(int argc, char * argv[])
 		elapsed_time = (double) (time_end - time_start) / CLOCKS_PER_SEC * 1000.0;
 		std::cout << input_graphs.size() << " of " << G_NUMBER_OF_FILES << " graphs were successfully read in "<< elapsed_time << "(ms)." << endl;
 		
- 		int send_size = input_graphs.size();		
- 		MPI_Send(&send_size, 1, MPI_INT, 1, size_tag, MPI_COMM_WORLD);
-		for(int i = 0; i < input_graphs.size(); i++)
-		{	
- 			MPI_Send_Matrix (input_graphs[i], 1, tag1);
+//  		int send_size = input_graphs.size();		
+//  		MPI_Send(&send_size, 1, MPI_INT, 1, size_tag, MPI_COMM_WORLD);
+// 		for(int i = 0; i < input_graphs.size(); i++)
+// 		{	
+//  			MPI_Send_Matrix (input_graphs[i], 1, tag1);
+// 		}
+			time_start = std::clock();
+		int counter = 1;
+		for (int i = 0; i < input_graphs.size(); i++)
+		{
+			for(int j = i +1; j <  input_graphs.size(); j++)
+			{
+				if (counter < num_procs)
+				{
+					MPI_Send_Matrix (input_graphs[i], counter, tag1*counter);
+					MPI_Send_Matrix (input_graphs[j], counter, tag1*counter+10);
+					printf("sent to rank: %d\n",counter);
+					counter++;
+				}
+			// 	else
+// 				{
+// 					int dest;
+// 					MPI_Recv(&dest, 1, MPI_INT, MPI_ANY_SOURCE, tag1+10, MPI_COMM_WORLD,&stat);
+// 					MPI_Send_Matrix (input_graphs[i], dest, tag1);
+// 					MPI_Send_Matrix (input_graphs[j], dest, tag1);
+// 				}
+			}
 		}
+		
+ 		for(int i=1; i < num_procs; i++)
+ 		{
+ 			SparseMatrix<DataType> emptyMat(0,0);
+ 			MPI_Send_Matrix (emptyMat, i, tag1*i);
+ 			MPI_Send_Matrix (emptyMat, i, tag1*i+10);
+ 			printf("sent to rank: %d\n",i);
+ 			
+ 		} 
+
     }
     else
     {
-	  	int size_input;
-     	MPI_Recv(&size_input, 1, MPI_INT, 0, size_tag, MPI_COMM_WORLD, &stat);
-     	std::cout << size_input << std::endl;
-    	for(int i = 0; i < size_input; i++)
-		{	
-			input_graphs.push_back(MPI_Recv_Matrix (0, tag1 ,stat));
-			std::cout << "Recv " << input_graphs[i]  << std::endl;
-		}
-		int * best_assignment;
-    	float best_frob_norm=DBL_MAX;
-    	
-		/*
-		 * Compute n choose 2 combination of graphs
-		 */
-		time_start = std::clock();
-		for (int i = 0; i < input_graphs.size(); i++)
-		{
-			for(int j = 0; j <  input_graphs.size(); j++)
+    	while(true)
+    	{
+    		SparseMatrix<DataType> mat1 = MPI_Recv_Matrix (0, tag1*rank ,stat);
+    		SparseMatrix<DataType> mat2 = MPI_Recv_Matrix (0, tag1*rank +10 ,stat);
+			if (mat1.getNumberOfRows()==0 && mat2.getNumberOfRows()==0)
 			{
-		  for(int k=0;k<20;k++){
-			int* assignment = new int[input_graphs[i].getNumberOfRows()];
-			init_array(assignment,input_graphs[i].getNumberOfRows(),-1);
+				printf("breaking out of while loop rank: %d\n",rank);
+				break;
+			}
+			else if(mat1.getNumberOfRows()<mat2.getNumberOfRows()){
+			SparseMatrix<DataType>* mat_hold=&mat1;
+			mat1=mat2;
+			mat2=*mat_hold;
+			
+			}
+			
+		
+			/*
+			 * Compute n choose 2 combination of graphs
+			 */
 
-				try
-				{
-					if (G_USE_ISORANK)
+			
+				int* assignment = new int[mat1.getNumberOfRows()];
+				init_array(assignment,mat1.getNumberOfRows(),-1);
+
+					try
 					{
-						if (G_USE_GREEDY_ALG)
+						if (G_USE_ISORANK)
 						{
-				  isoRank(input_graphs[i], input_graphs[j], 0,assignment);
-						}
+							if (G_USE_GREEDY_ALG)
+							{
+								
+					  			isoRank(mat1, mat2, 0,assignment);
+					  			//std::cout << "From rank " << rank << '\n' << "done " << "matrix" << endl;
+							}
 					
-						else if (G_USE_CON_ENF_1)
-						{
-				  isoRank(input_graphs[i], input_graphs[j], 1,assignment);
-						}
+							else if (G_USE_CON_ENF_1)
+							{
+					 		 	isoRank(mat1, mat2, 1,assignment);
+							}
 					
-						else if (G_USE_CON_ENF_2)
-						{
-				  isoRank(input_graphs[i], input_graphs[j], 2,assignment);
-						}
+							else if (G_USE_CON_ENF_2)
+							{
+					  			isoRank(mat1, mat2, 2,assignment);
+							}
 					
-						else if (G_USE_CON_ENF_3)
-						{
-				  isoRank(input_graphs[i], input_graphs[j], 3,assignment);
+							else if (G_USE_CON_ENF_3)
+							{
+					  			isoRank(mat1, mat2, 3,assignment);
+							}
+							else if (G_USE_CON_ENF_4)
+							{
+					 			 isoRank(mat1, mat2, 4,assignment);
+							}
 						}
-						else if (G_USE_CON_ENF_4)
-						{
-				  isoRank(input_graphs[i], input_graphs[i], 4,assignment);
-						}
-					}
 				
-					if (G_USE_GPGM)
-					{
-						//GPGM(*input_graphs[i], *input_graphs[j]);
+						if (G_USE_GPGM)
+						{
+							//GPGM(mat1,mat2);
+						}
+
+		
 					}
+					catch (std::exception& e)
+					{
+						std::cerr << "Exception: " << e.what() << std::endl;
+					}
+						
 
-		
-				}
-				catch (std::exception& e)
-				{
-					std::cerr << "Exception: " << e.what() << std::endl;
-				}
-
-			SparseMatrix<float>* perm_mat=getPermMatrix(assignment,input_graphs[i].getNumberOfRows());
-			SparseMatrix<float>* product=(*perm_mat)*input_graphs[i];
-			SparseMatrix<float> get_transpose=perm_mat->transpose();
-			SparseMatrix<float>* final_mat=(*product)*get_transpose;
-			SparseMatrix<float> ret_matrix= input_graphs[i]-(*final_mat);
-		
-		
-
-			float frob_norm_hold=ret_matrix.getFrobNorm();
-			printf("run number #%d with frob norm :%f\n",k,frob_norm_hold); 
-
-			if(frob_norm_hold<best_frob_norm){
-			  best_frob_norm=frob_norm_hold;
-			  if(k!=0){
-			   delete []best_assignment;
-			  }
-			  best_assignment=assignment;
+			 
+// 			  MPI_Send(&rank, 1, MPI_INT, 0, tag1+10, MPI_COMM_WORLD);
 			}
-			else{
-			  delete []assignment;
-			}
-
-			delete perm_mat;
-			delete product;
-			delete final_mat;
-		 
-		
-		  }
-
-		  printf("best assignment with frobenius norm score: %f:\n",best_frob_norm);
-		  for(int k=0;k<input_graphs[i].getNumberOfRows();k++){
-			printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
-		  }
-		  delete []best_assignment;
-			}
-		}
 	}
 	
 	
@@ -263,11 +268,11 @@ SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat)
  */
 void parseCommandLineArgs(int argc,char* argv[])
 {
-    std::cout << "Reading command line arguments..." << std::endl;
+  //  std::cout << "Reading command line arguments..." << std::endl;
     
     if ( argc < 2)
     {
-        std::cout <<"No arguments were passed." << std::endl;
+    //    std::cout <<"No arguments were passed." << std::endl;
     }
     
     for (int i = 1; i < argc; i++)
@@ -360,40 +365,40 @@ void parseCommandLineArgs(int argc,char* argv[])
         }
     }
     
-    std::cout << "\n\n" <<"Program configuration: " << std::endl;
-    std::cout << "Working directory: '" << G_DIR_PATH << "'" << std::endl;
-    std::cout << "File Extention: '" << G_FILE_EXTENSION << "'" << std::endl;
-    std::cout << "Number of graphs to read: " << G_NUMBER_OF_FILES << std::endl;
-    if (G_USE_ISORANK)
-    {
-        std::cout << "Graph matching algorithm: IsoRank." << std::endl;
-        std::string assignment_app;
-        if (G_USE_GREEDY_ALG)
-        {
-            assignment_app = "Greedy.";
-        }
-        else if (G_USE_CON_ENF_1)
-        {
-            assignment_app = "Connectivity Enforcement 1.";
-        }
-        else if (G_USE_CON_ENF_2)
-        {
-            assignment_app = "Connectivity Enforcement 2.";
-        }
-        else if (G_USE_CON_ENF_3)
-        {
-            assignment_app = "Connectivity Enforcement 3.";
-        }
-        else if (G_USE_CON_ENF_4)
-        {
-            assignment_app = "Connectivity Enforcement 4.";
-        }
-        cout << "Assignment approach: "<< assignment_app << endl;
-    }
-    else if (G_USE_GPGM)
-    {
-        std::cout << "Graph matching algorithm: GPGM." << std::endl;
-    }
-    
-    cout << '\n' << endl;
+   //  std::cout << "\n\n" <<"Program configuration: " << std::endl;
+//     std::cout << "Working directory: '" << G_DIR_PATH << "'" << std::endl;
+//     std::cout << "File Extention: '" << G_FILE_EXTENSION << "'" << std::endl;
+//     std::cout << "Number of graphs to read: " << G_NUMBER_OF_FILES << std::endl;
+//     if (G_USE_ISORANK)
+//     {
+//         std::cout << "Graph matching algorithm: IsoRank." << std::endl;
+//         std::string assignment_app;
+//         if (G_USE_GREEDY_ALG)
+//         {
+//             assignment_app = "Greedy.";
+//         }
+//         else if (G_USE_CON_ENF_1)
+//         {
+//             assignment_app = "Connectivity Enforcement 1.";
+//         }
+//         else if (G_USE_CON_ENF_2)
+//         {
+//             assignment_app = "Connectivity Enforcement 2.";
+//         }
+//         else if (G_USE_CON_ENF_3)
+//         {
+//             assignment_app = "Connectivity Enforcement 3.";
+//         }
+//         else if (G_USE_CON_ENF_4)
+//         {
+//             assignment_app = "Connectivity Enforcement 4.";
+//         }
+//         cout << "Assignment approach: "<< assignment_app << endl;
+//     }
+//     else if (G_USE_GPGM)
+//     {
+//         std::cout << "Graph matching algorithm: GPGM." << std::endl;
+//     }
+//     
+//     cout << '\n' << endl;
 }

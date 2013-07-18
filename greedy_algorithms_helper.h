@@ -515,8 +515,14 @@ void invalidate(int row, int col, SparseMatrix<DT>& matches){
  */
 void match_rest(int* assignment, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2){
 
+	
+
   
   if(graph1.getNumberOfRows()<=graph2.getNumberOfRows()){
+  	int orig_size=graph1.getNumberOfRows();  
+  
+  
+  
     int unassigned_graph1[graph1.getNumberOfRows()];
     int unassigned_graph2[graph2.getNumberOfRows()];
     int counter1=0;
@@ -552,11 +558,13 @@ void match_rest(int* assignment, SparseMatrix<float>& graph1, SparseMatrix<float
     
   }
   else {
+  printf("match rest else\n");
+  
     int counter=graph2.getNumberOfRows();
     for(int i=0;i<graph1.getNumberOfRows();i++){
       if(assignment[i]==-1){
-	assignment[i]=counter;
-	counter++;
+		assignment[i]=counter;
+		counter++;
       }
     }
   }
@@ -568,12 +576,13 @@ void match_rest(int* assignment, SparseMatrix<float>& graph1, SparseMatrix<float
  * returns a permutation matrix with dimensions size x size
  * @param: size of the permutation matrix
  */
-SparseMatrix<float>* getPermMatrix(int *ass, const int size){
-  SparseMatrix<float>* ret_matrix=new SparseMatrix<float>(size,size);
+SparseMatrix<float> getPermMatrix(int *ass, const int size){
+  SparseMatrix<float> ret_matrix(size,size);
   int hold;
   for(int i=0;i<size;i++){
     hold=ass[i];
-    (*ret_matrix)[i][hold]=1;
+    printf("%d %d\n",hold,size);
+   ret_matrix[i][hold]=1;
   }
   return ret_matrix;
 }

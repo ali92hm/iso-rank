@@ -19,7 +19,7 @@
  * @pram: matrix indicating the scores of nodal pairings
  */
 template <typename DT>
-int* greedy_1(SparseMatrix<DT>& matches,int* assignment){
+int* greedy_1(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2,int* assignment){
   DT total_score=0;
   int graph1_nodes=matches.getNumberOfRows();
   int graph2_nodes=matches.getNumberOfColumns();
@@ -39,6 +39,8 @@ int* greedy_1(SparseMatrix<DT>& matches,int* assignment){
     assignment[row]=col;
 
   }
+  
+  match_rest(assignment,graph1,graph2); 
 
   printf("score of matching: %f\n",total_score);
   return assignment;

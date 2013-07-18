@@ -109,7 +109,7 @@ public:
     friend std::ostream& operator<< <> (std::ostream& stream, const SparseMatrix<DT>& matrix);
     void operator= (const SparseMatrix<DT>&);
     SparseMatrix<DT> operator-(SparseMatrix<DT>& other_matrix);
-    SparseMatrix<DT>* operator*(SparseMatrix<DT>& other_matrix);
+    SparseMatrix<DT> operator*(SparseMatrix<DT>& other_matrix);
 };
 
 //==========================================================CONSTRUCTORS============================================================
@@ -640,8 +640,8 @@ DT* SparseMatrix<DT>::operator[](int index)
 }
 
 template <typename DT>
-SparseMatrix<DT>* SparseMatrix<DT>::operator*(SparseMatrix<DT>& other_matrix){
-  SparseMatrix<DT>* ret_matrix=new SparseMatrix(this->getNumberOfRows(),other_matrix.getNumberOfColumns());
+SparseMatrix<DT> SparseMatrix<DT>::operator*(SparseMatrix<DT>& other_matrix){
+  SparseMatrix<DT> ret_matrix(this->getNumberOfRows(),other_matrix.getNumberOfColumns());
   DT ret_val;
   for(int i=0;i<this->getNumberOfRows();i++){
     for(int j=0;j<other_matrix.getNumberOfColumns();j++){
@@ -649,7 +649,7 @@ SparseMatrix<DT>* SparseMatrix<DT>::operator*(SparseMatrix<DT>& other_matrix){
       for(int k=0;k<this->getNumberOfColumns();k++){
 	ret_val+=(*this)[i][k]*other_matrix[k][j];
       }
-      (*ret_matrix)[i][j]=ret_val;
+      ret_matrix[i][j]=ret_val;
     }
   }
   
