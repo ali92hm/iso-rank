@@ -210,11 +210,11 @@ struct IsoRank_Result isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matr
 			}
 		
 
- 			  printf("best assignment with frobenius norm score: %f:\n",best_frob_norm);
-  			  for(int k=0;k<matrix_A.getNumberOfRows();k++)
-  			  {
-  				printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
-  			  }
+ 		// 	  printf("best assignment with frobenius norm score: %f:\n",best_frob_norm);
+//   			  for(int k=0;k<matrix_A.getNumberOfRows();k++)
+//   			  {
+//   				printf("graph1: %d graph2 %d \n",k,best_assignment[k]);
+//   			  }
 
 			  
 			  ret_val.frob_norm=best_frob_norm;

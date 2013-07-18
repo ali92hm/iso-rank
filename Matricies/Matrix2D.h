@@ -133,7 +133,6 @@ template<typename DT>
 SparseMatrix<DT>::SparseMatrix(const std::string &file_path)
 {
     _file_reader.open(file_path.c_str());
-    std::strcpy(this->_graph_name, file_path.c_str());
     
     //Throw exception if file doesn't exists.
     if(_file_reader.bad())

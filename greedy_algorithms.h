@@ -42,7 +42,7 @@ int* greedy_1(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatr
   
   match_rest(assignment,graph1,graph2); 
 
-  printf("score of matching: %f\n",total_score);
+  //printf("score of matching: %f\n",total_score);
   return assignment;
 }
 
