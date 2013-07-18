@@ -56,6 +56,8 @@ template <typename DT>
 void MPI_Send_Matrix (SparseMatrix<DT>& matrix, int dest, int tag);
 SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat);
 //void  MPI_Recv_Matrix (int source, int tag , MPI_Status& stat);
+struct IsoRank_Result* MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat);
+void MPI_Send_IsoRank_Result (struct IsoRank_Result* result, int dest, int tag);
 
 
 
@@ -77,7 +79,6 @@ int main(int argc, char * argv[])
     
     MPI_Comm_size (MPI_COMM_WORLD, &num_procs);
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);
-    bool terminate = false;
     int tag1 = 4;
     int size_tag = 3;
     /*
@@ -85,6 +86,7 @@ int main(int argc, char * argv[])
      */
     parseCommandLineArgs(argc, argv, rank);
     std::vector<SparseMatrix<DataType> > input_graphs;
+    std::vector<struct IsoRank_Results*> isoRank_results;
     std::clock_t time_start;
     std::clock_t time_end;
     double elapsed_time;
@@ -96,7 +98,7 @@ int main(int argc, char * argv[])
     {
     	std::cout << "Reading " << G_NUMBER_OF_FILES << " graphs from: " << G_DIR_PATH << endl;
     	time_start = std::clock();
-    	ostringstream itos_converter;
+    	std::ostringstream itos_converter;
 		for(int i = 1; i <= G_NUMBER_OF_FILES; i++)
 		{
 			try
@@ -136,6 +138,7 @@ int main(int argc, char * argv[])
 				{
 					int dest;
 					MPI_Recv(&dest, 1, MPI_INT, MPI_ANY_SOURCE, tag1+10, MPI_COMM_WORLD,&stat);
+					isoRank_results.push_back(MPI_Recv_IsoRank_Result(dest, tag1+11, &stat));
 // 					std::cout <<"Master: received request for more graphs from: "<< dest<< std::endl;
 					MPI_Send_Matrix (input_graphs[i], dest, tag1*dest);
 					MPI_Send_Matrix (input_graphs[j], dest, tag1*dest+10);
@@ -184,7 +187,7 @@ int main(int argc, char * argv[])
 			
 				int* assignment = new int[mat1.getNumberOfRows()];
 				init_array(assignment,mat1.getNumberOfRows(),-1);
-
+				struct IsoRank_Result* result;
 					try
 					{
 						if (G_USE_ISORANK)
@@ -230,7 +233,9 @@ int main(int argc, char * argv[])
 						
 
 // 			  std::cout << "Process: "<< rank << ": requesting for more graphs from master" << std::endl;
+			  
 			  MPI_Send(&rank, 1, MPI_INT, 0, tag1+10, MPI_COMM_WORLD);
+			  MPI_Recv_IsoRank_Result(result,0 , tag1+11);
 			}
 	}
 	
@@ -263,14 +268,21 @@ SparseMatrix<DataType> MPI_Recv_Matrix (int source, int tag , MPI_Status& stat)
     return matrix;
 }
 
-void MPI_Send_IsoRank_Result (IsoRank_Result&, int dest, int tag)
+void MPI_Send_IsoRank_Result (struct IsoRank_Result* result, int dest, int tag)
 {
-
+	MPI_Send(&rerult->length, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+	MPI_Send(&rerult->assignments, rerult->length, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+	MPI_Send(&rerult->forb_norm, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
 }
 
-IsoRank_Result MPI_Recv (int source, int tag, MPI_Status& stat)
+struct IsoRank_Result* MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat)
 {
-
+	IsoRank_Result* result = new IsoRank_Result;
+	MPI_Recv(&result->length, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+	results->assignemts = new int[result->length];
+	MPI_Recv(results->assignemts ,result->length , MPI_INT, source, tag + 3, MPI_COMM_WORLD, &stat);
+	MPI_Recv(&result->forb_norm, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+	return results;
 }
 
 /*
