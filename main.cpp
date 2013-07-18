@@ -118,14 +118,8 @@ int main(int argc, char * argv[])
 		time_end = std::clock();
 		elapsed_time = (double) (time_end - time_start) / CLOCKS_PER_SEC * 1000.0;
 		std::cout << input_graphs.size() << " of " << G_NUMBER_OF_FILES << " graphs were successfully read in "<< elapsed_time << "(ms)." << endl;
-		
-//  		int send_size = input_graphs.size();		
-//  		MPI_Send(&send_size, 1, MPI_INT, 1, size_tag, MPI_COMM_WORLD);
-// 		for(int i = 0; i < input_graphs.size(); i++)
-// 		{	
-//  			MPI_Send_Matrix (input_graphs[i], 1, tag1);
-// 		}
-			time_start = std::clock();
+
+		time_start = std::clock();
 		int counter = 1;
 		for (int i = 0; i < input_graphs.size(); i++)
 		{
@@ -135,16 +129,18 @@ int main(int argc, char * argv[])
 				{
 					MPI_Send_Matrix (input_graphs[i], counter, tag1*counter);
 					MPI_Send_Matrix (input_graphs[j], counter, tag1*counter+10);
-					printf("sent to rank: %d\n",counter);
+					std::cout <<"Master: sending matrix to rank:" << counter << std::endl;
 					counter++;
 				}
-			// 	else
-// 				{
-// 					int dest;
-// 					MPI_Recv(&dest, 1, MPI_INT, MPI_ANY_SOURCE, tag1+10, MPI_COMM_WORLD,&stat);
-// 					MPI_Send_Matrix (input_graphs[i], dest, tag1);
-// 					MPI_Send_Matrix (input_graphs[j], dest, tag1);
-// 				}
+				else
+				{
+					int dest;
+					MPI_Recv(&dest, 1, MPI_INT, MPI_ANY_SOURCE, tag1+10, MPI_COMM_WORLD,&stat);
+					std::cout <<"Master: received request for more graphs from: "<< dest<< std::endl;
+					MPI_Send_Matrix (input_graphs[i], dest, tag1*dest);
+					MPI_Send_Matrix (input_graphs[j], dest, tag1*dest+10);
+					std::cout <<"Master: sending more graphs to: "<< dest<< std::endl;
+				}
 			}
 		}
 		
@@ -153,7 +149,7 @@ int main(int argc, char * argv[])
  			SparseMatrix<DataType> emptyMat(0,0);
  			MPI_Send_Matrix (emptyMat, i, tag1*i);
  			MPI_Send_Matrix (emptyMat, i, tag1*i+10);
- 			printf("sent to rank: %d\n",i);
+ 			std::cout <<"Master: sending terminate signal to rank:" << i << std::endl;
  			
  		} 
 
@@ -166,7 +162,7 @@ int main(int argc, char * argv[])
     		SparseMatrix<DataType> mat2 = MPI_Recv_Matrix (0, tag1*rank +10 ,stat);
 			if (mat1.getNumberOfRows()==0 && mat2.getNumberOfRows()==0)
 			{
-				printf("breaking out of while loop rank: %d\n",rank);
+				std::cout << "Process: "<< rank << "received terminate signal from master"<< std::endl;
 				break;
 			}
 			else if(mat1.getNumberOfRows()<mat2.getNumberOfRows()){
@@ -192,8 +188,8 @@ int main(int argc, char * argv[])
 							if (G_USE_GREEDY_ALG)
 							{
 								
-					  			isoRank(mat1, mat2, 0,assignment);
-					  			//std::cout << "From rank " << rank << '\n' << "done " << "matrix" << endl;
+					  			//isoRank(mat1, mat2, 0,assignment);
+					  			std::cout << "Process " << rank << ": isoRank " << endl;
 							}
 					
 							else if (G_USE_CON_ENF_1)
@@ -229,8 +225,8 @@ int main(int argc, char * argv[])
 					}
 						
 
-			 
-// 			  MPI_Send(&rank, 1, MPI_INT, 0, tag1+10, MPI_COMM_WORLD);
+			  std::cout << "Process: "<< rank << ": requesting for more graphs from master" << std::endl;
+			  MPI_Send(&rank, 1, MPI_INT, 0, tag1+10, MPI_COMM_WORLD);
 			}
 	}
 	
