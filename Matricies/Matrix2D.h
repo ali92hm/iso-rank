@@ -26,16 +26,17 @@
 #include <limits>
 #include <math.h>
 #include "../util.h"
+
+#ifdef EIGEN
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#endif
 
-#ifdef __linux__
 #ifdef ARPACK
 #include "dsmatrxa.h"
 #include "ardsmat.h"
 #include "ardssym.h"
 #include "lsymsol.h"
-#endif
 #endif
 
 
