@@ -463,6 +463,7 @@ vector<int>* SparseMatrix<DT>::getNeighbors(int vertex){
 template <typename DT>
 double* SparseMatrix<DT>::getTopEigenVector(){
 #ifdef ARPACK
+// 	std::cout<< "Using ARPACK" << std::endl;
     int arr_size= (this->_rows*(this->_rows+1))/2;
     double nzval[arr_size];
     int counter=0;
@@ -488,6 +489,7 @@ double* SparseMatrix<DT>::getTopEigenVector(){
     return eigenVec;
 #endif
 #ifdef EIGEN
+// 		std::cout<< "Using EIGEN" << std::endl;
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> A_eigen = Eigen::MatrixXd::Zero(this->_rows, this->_cols);
 		for (long i=0; i< this->_rows; i++) 
 		{
