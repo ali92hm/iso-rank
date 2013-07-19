@@ -28,7 +28,7 @@ std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/g
 #endif
 
 
-int G_NUMBER_OF_FILES = 5;
+int G_NUMBER_OF_FILES = 25;
 std::string G_FILE_EXTENSION = ".dat";
 
 bool G_USE_ISORANK = true;
@@ -156,6 +156,10 @@ int main(int argc, char * argv[])
 //  			std::cout <<"Master: sending terminate signal to rank:" << i << std::endl;
  			
  		} 
+ 		time_end = std::clock();
+		elapsed_time = (double) (time_end - time_start) / CLOCKS_PER_SEC * 1000.0;
+		std::cout << "Computed IsoRank successfully for " << G_NUMBER_OF_FILES << " graphs in "<< elapsed_time << "(ms)." << endl;
+
 
     }
 
