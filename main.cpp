@@ -258,6 +258,13 @@ int main(int argc, char * argv[])
 			}
 	}
 	
+	if (rank == 0)
+	{
+		for (int i=0; i < isoRank_results.size(); i++)
+		{
+			std::cout<< isoRank_results[i].frob_norm << ", ";
+		}
+	}
 	
 
     std::cout << "Process: "<< rank << " terminated" << std::endl; 
