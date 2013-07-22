@@ -25,6 +25,10 @@
 #include "Matrix.h"
 #include "MatrixExceptions.h"
 
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
+
 #ifdef __linux__
 #include "dsmatrxa.h"
 #include "ardsmat.h"
@@ -36,7 +40,7 @@ template <typename DT>
 class SymMatrix;
 
 template <typename DT>
-std::ostream& operator<< (std::ostream&, SymMatrix<DT>&);
+std::ostream& operator<< (std::ostream&, const SymMatrix<DT>&);
 
 template <typename DT>
 class SymMatrix
@@ -60,7 +64,14 @@ public:
     SymMatrix(int size);
     SymMatrix(const SymMatrix<DT>&);
     SymMatrix(const std::string&);
+
+    #ifdef USE_MPI
+    SymMatrix(int,MPI_Status&);
+    SymMatrix(int,int,MPI_Status&);
+    #endif
     
+
+
     /************
      *Destructor*
      ************/
@@ -69,7 +80,7 @@ public:
     /***********
      *ACCESSORS*
      ***********/
-    int getSize();
+    int getSize() const;
     int getSparseFormSize();
     std::vector<DT> getSumOfRows();
     std::vector<DT> getTopEigenVector();
@@ -79,13 +90,11 @@ public:
     /**********
      *MUTATORS*
      **********/
-    void insert(int, int, DT value);
     
     /**********
      *OPERATORS*
      **********/
-    DT operator()(int,int);
-    void operator()(int,int,DT);
+    DT& operator()(int,int) const;
     bool operator==(const SymMatrix<DT>&);
     SymMatrix<DT> kron(const SymMatrix<DT>&); /* WORKS SHOULD BE CHANGED */
     SymMatrix<DT>& operator= (const SymMatrix<DT>&);
@@ -93,6 +102,14 @@ public:
     SymMatrix<DT> matrixTimesDiagonalVector(const std::vector<DT>&);
     friend std::ostream& operator<< <> (std::ostream& stream, const Matrix<DT>& matrix);
     
+    /*************
+    *MPI Send/REC*
+    **************/
+    #ifdef USE_MPI
+    void MPI_Send_SymMatrix(int, int);
+    void MPI_Bcast_Send_SymMatrix(int);
+    #endif
+
     
     /* WILL IMPLEMENT IF I HAD TIME AND IF THE OPERATION MADE SENSE FOR SYMMATRIX
      SymMatrix<DT> operator* (const SymMatrix<DT>&);
@@ -149,7 +166,7 @@ inline SymMatrix<DT>::SymMatrix(const std::string& file_path)
     {
         file_reader >> tmp_x;
         file_reader >> tmp_y;
-        this->insert(tmp_x - 1 ,tmp_y - 1, 1);
+        (*this)(tmp_x - 1 ,tmp_y - 1) = 1;
     }
     
     file_reader.close();
@@ -161,6 +178,25 @@ inline SymMatrix<DT>::SymMatrix(int size)
     this->_size = size;
     _initilalizeMatrix();
 }
+
+#ifdef USE_MPI
+template <typename DT>
+inline SymMatrix<DT>::SymMatrix(int source, int tag, MPI_Status& stat)
+{
+    MPI_Recv(&this->_size, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+    _initilalizeMatrix();
+    MPI_Recv(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+}
+
+template <typename DT>
+inline SymMatrix<DT>::SymMatrix(int source, MPI_Status& stat)
+{
+    MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
+    _initilalizeMatrix();
+    MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, source, MPI_COMM_WORLD);
+}
+
+#endif
 
 template <typename DT>
 inline SymMatrix<DT>::SymMatrix(const SymMatrix<DT>& matrix)
@@ -180,7 +216,7 @@ inline SymMatrix<DT>::~SymMatrix()
 
 //===========================================================ACCESSORS===============================================================
 template <typename DT>
-inline int SymMatrix<DT>::getSize()
+inline int SymMatrix<DT>::getSize() const
 {
     return _size;
 }
@@ -212,9 +248,9 @@ inline SymMatrix<DT> SymMatrix<DT>::kron(const SymMatrix<DT>& matrix)
             {
                 for(int j_inner=0; j_inner < matrix._size; j_inner++)
                 {
-                    prod_matrix.insert((i_outer*matrix._size) + i_inner,
-                                        (j_outer*matrix._size)+j_inner,
-                                        (*this)(i_outer, j_outer) * matrix(i_inner, j_inner));
+                    prod_matrix((i_outer*matrix._size) + i_inner,
+                                        (j_outer*matrix._size)+j_inner) = 
+                                        (*this)(i_outer, j_outer) * matrix(i_inner, j_inner);
                 }
             }
         }
@@ -322,26 +358,22 @@ inline std::vector<DT> SymMatrix<DT>::getSumOfRows()
     return result_vec;
 }
 
+//===========================================================MPI SEND/REC================================================================
+#ifdef USE_MPI
 template <typename DT>
-inline void SymMatrix<DT>::insert(int i, int j, DT value)
+void SymMatrix<DT>::MPI_Send_SymMatrix(int dest, int tag)
 {
-    if ( (i >= _size) || (i < 0) || (j >= _size) || (j < 0) )
-    {
-        throw IndexOutOfBoundsException();
-    }
-    
-    if(i<=j)
-    {
-        this->_edges[i+size_t(j)*(j+1)/2] = value ;
-    }
-    else
-    {
-        this->_edges[j+size_t(i)*(i+1)/2] = value;
-    }
+    MPI_Send(&this->_size, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+    MPI_Send(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, dest, tag + 2, MPI_COMM_WORLD);
 }
 
-
-
+template <typename DT>
+void SymMatrix<DT>::MPI_Bcast_Send_SymMatrix(int source)
+{
+    MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
+    MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, source, MPI_COMM_WORLD);
+}
+#endif
 //==========================================================OPERATIONS================================================================
 template <typename DT>
 inline SymMatrix<DT> SymMatrix<DT>::diagonalVectorTimesMatrix(const std::vector<DT>& vec)
@@ -383,12 +415,12 @@ inline SymMatrix<DT> SymMatrix<DT>::matrixTimesDiagonalVector(const std::vector<
 
 //==========================================================OPERATORS================================================================
 template <typename DT>
-inline std::ostream& operator<<(std::ostream& stream, SymMatrix<DT>& matrix)
+inline std::ostream& operator<<(std::ostream& stream, const SymMatrix<DT>& matrix)
 {
-    stream<< "Size: " << matrix._size << "*" << matrix._size << '\n';
-    for (int i = 0; i < matrix._size; i++)
+    stream<< "Size: " << matrix.getSize() << "*" << matrix.getSize()<< '\n';
+    for (int i = 0; i < matrix.getSize(); i++)
     {
-        for( int j = 0; j< matrix._size; j++)
+        for( int j = 0; j< matrix.getSize(); j++)
         {
             stream << matrix(i, j) << ' ';
         }
@@ -399,7 +431,7 @@ inline std::ostream& operator<<(std::ostream& stream, SymMatrix<DT>& matrix)
 }
 
 template <typename DT>
-inline DT SymMatrix<DT>::operator()(int i, int j)
+inline DT& SymMatrix<DT>::operator()(int i, int j) const
 {
     if ( (i >= _size) || (i < 0) || (j >= _size) || (j < 0) )
     {
@@ -415,24 +447,6 @@ inline DT SymMatrix<DT>::operator()(int i, int j)
         return this->_edges[j+size_t(i)*(i+1)/2];
     }
 }
-    
-template <typename DT>
-inline void SymMatrix<DT>::operator()(int i, int j, DT value)
-{
-    if ( (i >= _size) || (i < 0) || (j >= _size) || (j < 0) )
-    {
-        throw IndexOutOfBoundsException();
-    }
-    
-    if(i<=j)
-    {
-        this->_edges[i+size_t(j)*(j+1)/2] = value;
-    }
-    else
-    {
-        this->_edges[j+size_t(i)*(i+1)/2] = value;
-    }
-}
 
 template <typename DT>
 inline SymMatrix<DT>& SymMatrix<DT>::operator=(const SymMatrix<DT>& matrix)
@@ -446,7 +460,7 @@ template <typename DT>
 inline void SymMatrix<DT>::_copy(const SymMatrix<DT>& matrix)
 {
     this->_size = matrix._size;
-    !_initilalizeMatrix();
+    _initilalizeMatrix();
   
     for(int i=0; i < this->_getArrSize() ; i++)
     {
@@ -457,11 +471,11 @@ inline void SymMatrix<DT>::_copy(const SymMatrix<DT>& matrix)
 template <typename DT>
 inline void SymMatrix<DT>::_initilalizeMatrix()
 {
-    this->sparse_form_size = 0;
-    this->sparse_form = NULL;
-    this->_edges = new DT[this->_getArrSize()];
-    
-    if (this->_edges == NULL)           //checking for memory issues.
+    try
+    {
+        this->_edges = new DT[this->_getArrSize()];    
+    } 
+    catch(std::bad_alloc& e) 
     {
         throw OutOfMemoryException();
     }
