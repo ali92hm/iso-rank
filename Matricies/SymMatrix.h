@@ -54,9 +54,10 @@ private:
 protected:
     int _size;
     DT* _edges;
+  
 
 public:
-    
+      
     /**************
      *Constructors*
      **************/
@@ -152,6 +153,7 @@ inline SymMatrix<DT>::SymMatrix(const std::string& file_path)
     
     file_reader >> this->_size;
     file_reader >> tmp_x;
+    
     
     if (this->_size != tmp_x)
     {
