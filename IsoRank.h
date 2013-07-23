@@ -33,6 +33,23 @@ struct IsoRank_Result
 
 };
 
+void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
+{
+    MPI_Send(&result.assignment_length, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+    MPI_Send(result.assignments, result.assignment_length, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+    MPI_Send(&result.frob_norm, 1, MPI_INT, dest, tag + 3, MPI_COMM_WORLD);
+}
+
+struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat)
+{
+    struct IsoRank_Result result;
+    MPI_Recv(&result.assignment_length, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+    result.assignments = new int[result.assignment_length];
+    MPI_Recv(result.assignments ,result.assignment_length , MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
+    MPI_Recv(&result.frob_norm, 1, MPI_INT, source, tag + 3, MPI_COMM_WORLD, &stat);
+    return result;
+}
+
 template <typename DT>
 struct IsoRank_Result isoRank(SparseMatrix<DT>& matrix_A, SparseMatrix<DT>& matrix_B, int matching_algorithm,int* assignment)
 {
