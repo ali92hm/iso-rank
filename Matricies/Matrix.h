@@ -585,7 +585,7 @@ inline void Matrix<T>::_initilalizeMatrix()
     
     for ( int i = 0; i < this->_getArrSize(); i++)
     {
-        this->_edges[i] = rand()%10 + 1;
+        this->_edges[i] = 0;
     }
 }
     

@@ -17,7 +17,6 @@
 #include <fstream>
 #include <unordered_map>
 #include "SparseElement.h"
-#include "Point.h"
 #include "MatrixExceptions.h"
 
 #ifdef __linux__
@@ -41,16 +40,12 @@ private:
     const static T _DEFAULT_MATRIX_ENTRY = 1;
     size_t _getArrSize() const;
     void _copy(const SparseMatrix<T>&);
-    bool _hasEdge(const SparseElement<T>&);
-    bool _hasEdge(const Point&);
-    void _sort();
+    bool _hasEdge(int,int);
     
 protected:
     int _rows;
     int _cols;
-    std::unordered_map<Point,T> _edge_map;
-    std::vector<SparseElement<T> > _edges;
-   
+    std::unordered_map <int, T > _edges;   
 public:
     /**************
      *Constructors*
@@ -83,12 +78,11 @@ public:
      *MUTATORS*
      **********/
     void insert(int, int, T);
-    
+
     /**********
      *OPERATORS*
      **********/
     T operator()(int,int) const;
-    void operator()(int,int,T);
     SparseMatrix<T> kron(const SparseMatrix<T>&); /* WORKS SHOULD BE CHANGED */
     bool operator==(const SparseMatrix<T>&);
     SparseMatrix<T>& operator- (SparseMatrix<T>& other_matrix);
@@ -126,8 +120,8 @@ inline SparseMatrix<T>::SparseMatrix()
 template<typename T>
 inline SparseMatrix<T>::SparseMatrix(const std::string& file_path)
 {
-    int tmp_x;
-    int tmp_y;
+    int tmp_i;
+    int tmp_j;
     std::ifstream file_reader;
     file_reader.open(file_path.c_str());
     
@@ -139,19 +133,16 @@ inline SparseMatrix<T>::SparseMatrix(const std::string& file_path)
     
     file_reader >> this->_rows;
     file_reader >> this->_cols;
-    file_reader >> tmp_x;      //skip the line number
+    file_reader >> tmp_i;       //skip the number of lines entry
     
     while (!file_reader.eof())
     {
-        file_reader >> tmp_x;
-        file_reader >> tmp_y;
-        //making the matrix 0 indexed
-        tmp_x--;
-        tmp_y--;
-        this->_edges.push_back(SparseElement<T>(tmp_x, tmp_y, _DEFAULT_MATRIX_ENTRY));
-        this->_edge_map[Point(tmp_x, tmp_y)] = _DEFAULT_MATRIX_ENTRY;
+        file_reader >> tmp_i;
+        file_reader >> tmp_j;
+        tmp_i--;                //making the matrix 0 indexed
+        tmp_j--;
+        this->_edges[ (tmp_i * this->_cols) + tmp_j ] = _DEFAULT_MATRIX_ENTRY;
     }
-    std::sort(this->_edges.begin(), this->_edges.end());
     file_reader.close();
 }
 
@@ -193,31 +184,28 @@ inline bool SparseMatrix<T>::isSquare() const
     return (this->_rows == this->_cols);
 }
 
-
-
-
 template <typename T>
-inline bool SparseMatrix<T>::isSymmetric() const
+inline bool SparseMatrix<T>::isSymmetric() const ////////////////////////////TODO
 {
-    //sym. SparseMatrix has to be square
-    if (this->_rows != this->_cols)
-    {
-        return false;
-    }
+    // //sym. SparseMatrix has to be square
+    // if (this->_rows != this->_cols)
+    // {
+    //     return false;
+    // }
     
-    //chaking for entries to be equal
-    for(int i = 0; i < this->_rows; i++)
-    {
-        for(int j = 0; j < this->_cols; j++)
-        {
-            if (this->_edges[(i * this->_cols) + j] != this->_edges[(j * this->_cols) + i])
-            {
-                return false;
-            }
-        }
-    }
+    // //chaking for entries to be equal
+    // for(int i = 0; i < this->_rows; i++)
+    // {
+    //     for(int j = 0; j < this->_cols; j++)
+    //     {
+    //         if (this->_edges[(i * this->_cols) + j] != this->_edges[(j * this->_cols) + i])
+    //         {
+    //             return false;
+    //         }
+    //     }
+    // }
     
-    return true;
+    // return true;
 }
 
 //template <typename T>
@@ -359,22 +347,21 @@ inline std::vector<T> SparseMatrix<T>::getSumOfRows()
 }
 
 //===========================================================MUTATORS================================================================
-
-
-
 template <typename T>
 inline void SparseMatrix<T>::insert(int i, int j, T value)
 {
-    if (value == 0)
-        return;
-    if ( (i >= _rows) || (i < 0) || (j >= _cols) || (j < 0) )
+    //if the edge exist =>delete the node
+    if (_hasEdge(i,j))
     {
-        throw IndexOutOfBoundsException();
+            this->_edges.erase((i*this->_cols) + j);
     }
-    
-    this->_edges.push_back(SparseElement<T>(i, j, value));        //has to change
-    std::sort (this->_edges.begin(), this->_edges.end());          //tmp fix
+    //if the evalue is not 0 =>insert it
+    if (value != 0)
+    {
+        this->_edges[(i*this->_cols) + j] = value;
+    }
 }
+
 
 //==========================================================OPERATORS================================================================
 template <typename T>
@@ -468,33 +455,13 @@ inline T SparseMatrix<T>::operator()(int i, int j) const
     {
         throw IndexOutOfBoundsException();
     }
-    
-    Point p(i,j);
-    std::unordered_map<Point,int>::const_iterator find_res = this->_edge_map.find(p);
-    
-    if ( find_res == this->_edge_map.end() )
+    typename std::unordered_map<int,T>::const_iterator find_res = this->_edges.find((i * this->_cols) + j);
+    if ( find_res == this->_edges.end() )
         return 0;
     else
         return find_res->second;
 }
 
-
-template <typename T>
-inline void SparseMatrix<T>::operator()(int i, int j, T value)
-{
-    if (value == 0)
-        return;
-    
-    if ( (i >= _rows) || (i < 0) || (j >= _cols) || (j < 0) )
-    {
-        throw IndexOutOfBoundsException();
-    }
-    
-    this->_edges_map[Point(i,j)] = value;
-    
-    this->_edges.push_back(SparseElement<T>(i, j, value));        //has to change
-    std::sort (this->_edges.begin(), this->_edges.end());
-}
 
 template <typename T>
 inline SparseMatrix<T>& SparseMatrix<T>::operator=(const SparseMatrix<T>& rhs)
@@ -530,13 +497,7 @@ inline void SparseMatrix<T>::_copy(const SparseMatrix<T>& rhs)
 {
     this->_rows = rhs._rows;
     this->_cols = rhs._cols;
-    
-    for(int i = 0; i < this->_getArrSize(); i++)
-    {
-        this->_edges[i] = rhs._edges[i];
-    }
-    
-    this->_edge_map = std::unordered_map<Point, T>(rhs._edges_map);
+    this->_edges = std::unordered_map<int, T>(rhs._edges);
 }
 
 template<typename T>
@@ -544,23 +505,11 @@ inline size_t SparseMatrix<T>::_getArrSize() const
 {
     return this->_edges.size();
 }
-    
-template <typename T>
-inline bool SparseMatrix<T>::_hasEdge(const SparseElement<T> & edge)
-{
-    return std::binary_search(this->_edges.begin(), this->_edges.end(), edge);
-}
-    
-template <typename T>
-inline bool SparseMatrix<T>::_hasEdge(const Point& point)
-{
-    return (this->_edges_map.find(point) == this->_edges_map.end());
-}
 
 template <typename T>
-inline void SparseMatrix<T>::_sort()
+inline bool SparseMatrix<T>::_hasEdge(int i, int j)
 {
-    std::sort(this->_edges.begin(), this->_edges.end());
+    return (this->_edges.find((i * this->_cols) + j) == this->_edges.end());
 }
 
 

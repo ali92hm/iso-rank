@@ -86,6 +86,12 @@ public:
     SparseMatrix(int rows, int cols);
     SparseMatrix(int rows, int cols, DT*);
     SparseMatrix(const SparseMatrix<DT>&);
+
+    #ifdef USE_MPI
+    SparseMatrix(int,MPI_Status&);
+    SparseMatrix(int,int,MPI_Status&);
+    #endif
+
     //Destructor
     virtual ~SparseMatrix();
     //Accessors
@@ -217,6 +223,25 @@ SparseMatrix<DT>::SparseMatrix(int rows, int cols)
         throw OutOfMemoryException();
     }
 }
+
+#ifdef USE_MPI
+template <typename DT>
+inline SymMatrix<DT>::SymMatrix(int source, int tag, MPI_Status& stat)
+{
+    MPI_Recv(&this->_size, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+    _initilalizeMatrix();
+    MPI_Recv(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+}
+
+template <typename DT>
+inline SymMatrix<DT>::SymMatrix(int source, MPI_Status& stat)
+{
+    MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
+    _initilalizeMatrix();
+    MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, source, MPI_COMM_WORLD);
+}
+
+#endif
 
 template <typename DT>
 SparseMatrix<DT>::SparseMatrix(int rows, int cols, DT* dataArr)

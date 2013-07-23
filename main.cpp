@@ -107,7 +107,7 @@ int main(int argc, char * argv[])
 			try
 			{
 				itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
-				input_graphs.push_back(SparseMatrix<DataType>(itos_converter.str()));
+				input_graphs.push_back(SymMatrix<DataType>(itos_converter.str()));
 				//clearing the stream
 				itos_converter.str("");
 				itos_converter.clear();
