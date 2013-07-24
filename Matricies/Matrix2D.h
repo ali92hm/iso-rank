@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <limits>
 #include <math.h>
+#include "MatrixExceptions.h"
 #include "../util.h"
 
 #ifdef EIGEN
@@ -50,14 +51,6 @@ struct sparse_matrix_element{
     DT value;
 };
 
-class SparseMatrixException : std::exception{};
-class OutOfMemoryException : SparseMatrixException {};
-class NotASymmetricMatrixException : SparseMatrixException {};
-class NotASquareMatrixException : SparseMatrixException {};
-class MatrixReaderException : SparseMatrixException {};
-class FileDoesNotExistException : MatrixReaderException {};
-class CurruptedFileException : MatrixReaderException {};
-class WrongFormatException : MatrixReaderException {};
 
 template <typename DT>
 std::ostream& operator<< (std::ostream&, const SparseMatrix<DT>&);
@@ -84,13 +77,8 @@ public:
     SparseMatrix();
     SparseMatrix(const std::string &file_path);
     SparseMatrix(int rows, int cols);
-    SparseMatrix(int rows, int cols, DT*);
     SparseMatrix(const SparseMatrix<DT>&);
 
-    #ifdef USE_MPI
-    SparseMatrix(int,MPI_Status&);
-    SparseMatrix(int,int,MPI_Status&);
-    #endif
 
     //Destructor
     virtual ~SparseMatrix();
@@ -107,7 +95,6 @@ public:
     SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
     double* getTopEigenVector();
     vector<int>* getNeighbors(int vertex);
-    DT* get1DArr();
     //Mutators
     SparseMatrix<DT> transpose();
     SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
@@ -139,77 +126,31 @@ SparseMatrix<DT>::SparseMatrix()
 template<typename DT>
 SparseMatrix<DT>::SparseMatrix(const std::string &file_path)
 {
-    _file_reader.open(file_path.c_str());
+    int tmp_x;
+    int tmp_y;
+    std::ifstream file_reader;
+    file_reader.open(file_path.c_str());
     
-    //Throw exception if file doesn't exists.
-    if(_file_reader.bad())
+    if(file_reader.fail())
     {
-        _file_reader.close();
-        throw FileDoesNotExistException();
+        file_reader.close();
+        throw FileDoesNotExistException(file_path.c_str());
     }
     
-    //Throw exception if the input file has format errors
-    if (_file_reader.fail())
+    file_reader >> this->_rows;
+    file_reader >> this->_cols;
+    file_reader >> tmp_x;      //skip the number of lines entry
+    _initilalizeMatrix();
+  
+    
+    while (!file_reader.eof())
     {
-        _file_reader.close();
-        throw CurruptedFileException();
+        file_reader >> tmp_x;
+        file_reader >> tmp_y;
+        this->_edges[tmp_x - 1 ,tmp_y - 1] = 1;
     }
     
-    std::string line;
-    int size;
-    std::vector<unsigned int> values(3);
-    
-    if (_file_reader.is_open())
-    {
-        if (_file_reader.good())
-        {
-            getline(_file_reader, line);
-            _split(line, values);
-            
-            this->_rows = values[0];
-            this->_cols = values[1];
-            size = values[2];
-        
-            
-            if (!_initilalizeMatrix())
-            {
-                _file_reader.close();
-                throw OutOfMemoryException();
-            }
-        }
-        else
-        {
-            delete this;
-            _file_reader.close();
-            throw CurruptedFileException();
-        }
-        int i = 0;
-        while( _file_reader.good())
-        {
-            getline(_file_reader, line );
-            if (line == "")
-            {
-                continue;
-            }
-            _split(line, values);
-            this->_edges[values[0]-1][values[1]-1] = 1;
-            i++;
-        }
-        if (size != i)
-        {
-            delete this;
-            _file_reader.close();
-            throw CurruptedFileException();
-        }
-    }
-    else
-    {
-        delete this;
-        _file_reader.close();
-        throw MatrixReaderException();
-    }
-    
-    _file_reader.close();
+    file_reader.close();
     
 }
 
@@ -221,46 +162,6 @@ SparseMatrix<DT>::SparseMatrix(int rows, int cols)
     if (!_initilalizeMatrix())
     {
         throw OutOfMemoryException();
-    }
-}
-
-#ifdef USE_MPI
-template <typename DT>
-inline SymMatrix<DT>::SymMatrix(int source, int tag, MPI_Status& stat)
-{
-    MPI_Recv(&this->_size, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
-    _initilalizeMatrix();
-    MPI_Recv(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
-}
-
-template <typename DT>
-inline SymMatrix<DT>::SymMatrix(int source, MPI_Status& stat)
-{
-    MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
-    _initilalizeMatrix();
-    MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, source, MPI_COMM_WORLD);
-}
-
-#endif
-
-template <typename DT>
-SparseMatrix<DT>::SparseMatrix(int rows, int cols, DT* dataArr)
-{
-    this->_rows = rows;
-    this->_cols = cols;
-    
-    this->sparse_form_size = 0;
-    this->sparse_form = NULL;
-    this->_edges = new DT*[this->_rows];
-    int counter = 0;
-    for(int i=0; i < this->_rows; i++)
-    {
-        this->_edges[i] = new DT[this->_cols];
-        for(int j=0; j< this->_cols; j++)
-        {
-            this->_edges[i][j] = dataArr[counter];
-            counter++;
-        }
     }
 }
 
@@ -454,21 +355,6 @@ SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_
         }
     }
     return res_matrix;
-}
-
-template <typename DT>
-DT* SparseMatrix<DT>::get1DArr()
-{
-	DT* dataArr = new DT[this->_rows*this->_cols];
-	int counter = 0;
-	for(int i = 0 ; i < this->_rows ; i++)
-	{
-		for(int j=0; j < this->_cols; j++)
-		{
-			dataArr[counter++] = this->_edges[i][j];
-		}
-	}
-	return dataArr;
 }
 
 

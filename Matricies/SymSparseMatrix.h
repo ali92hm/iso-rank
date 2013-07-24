@@ -40,8 +40,8 @@ template <typename T>
 class SymSparseMatrix
 {
 private:
-    const static int _DEFAULT_MATRIX_SIZE = 1;
-    const static T _DEFAULT_MATRIX_ENTRY = 1;
+    static const int _DEFAULT_MATRIX_SIZE;
+    static const  T _DEFAULT_MATRIX_ENTRY;
     size_t _getArrSize() const;
     void _copy(const SymSparseMatrix<T>&);
     bool _hasEdge(int,int);
@@ -74,9 +74,8 @@ public:
      ***********/
     bool isSquare() const;
     bool isSymmetric() const;
-    int getNumberOfRows();
+    int getSize();
     int getSparseFormSize();
-    int getNumberOfColumns();
     std::vector<T> getSumOfRows();
     std::vector<T> getTopEigenVector();
     std::vector<int> getNeighbors(int vertex);
@@ -116,7 +115,11 @@ public:
      */
     
 };
-
+//==========================================================CONSTANTS============================================================
+template <typename T>
+const int SymSparseMatrix<T>::_DEFAULT_MATRIX_SIZE = 1;
+template <typename T>
+const T SymSparseMatrix<T>::_DEFAULT_MATRIX_ENTRY = 1;
 //==========================================================CONSTRUCTORS============================================================
 
 template <typename T>
@@ -221,21 +224,9 @@ inline SymSparseMatrix<T>::~SymSparseMatrix()
 
 //===========================================================ACCESSORS===============================================================
 template <typename T>
-inline int SymSparseMatrix<T>::getNumberOfRows()
+inline int SymSparseMatrix<T>::getSize()
 {
-    return this->_rows;
-}
-
-template <typename T>
-inline int SymSparseMatrix<T>::getNumberOfColumns()
-{
-    return this->_cols;
-}
-
-template <typename T>
-inline bool SymSparseMatrix<T>::isSquare() const
-{
-    return (this->_rows == this->_cols);
+    return this->_size;
 }
 
 template <typename T>

@@ -14,6 +14,7 @@
 #include <string>
 #include <cmath>
 #include <fstream>
+#include "Matrix2D.h"
 #include "MatrixExceptions.h"
 
 #ifdef __linux__
@@ -25,14 +26,6 @@
 
 template <typename T>
 class Matrix;
-
-//////////////// NEEDS REVIEW
-template <typename T>
-struct sparse_matrix_element{
-    int row_index;
-    int col_index;
-    T value;
-};
 
 template <typename T>
 std::ostream& operator<< (std::ostream&, const Matrix<T>&);
