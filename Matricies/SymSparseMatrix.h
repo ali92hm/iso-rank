@@ -20,7 +20,7 @@
 #include "MatrixExceptions.h"
 #include "Matrix2D.h"
 
-#ifdef __linux__
+#ifdef ARPACK
 #include "dsmatrxa.h"
 #include "ardsmat.h"
 #include "ardssym.h"
