@@ -19,7 +19,7 @@
 #include "SparseElement.h"
 #include "MatrixExceptions.h"
 
-#ifdef __linux__
+#ifdef ARPACK
 #include "dsmatrxa.h"
 #include "ardsmat.h"
 #include "ardssym.h"

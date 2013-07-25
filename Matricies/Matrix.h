@@ -17,7 +17,7 @@
 #include "Matrix2D.h"
 #include "MatrixExceptions.h"
 
-#ifdef __linux__
+#ifdef ARPACK
 #include "dsmatrxa.h"
 #include "ardsmat.h"
 #include "ardssym.h"
@@ -319,7 +319,7 @@ inline std::vector<int> Matrix<T>::getNeighbors(int vertex)
 template <typename T>
 inline std::vector<T> Matrix<T>::getTopEigenVector()
 {
-#ifdef __linux__
+#ifdef ARPACK
     int arr_size = (0.5 * this->_rows * (this->_rows+1));
     T sym_edges[arr_size];
     int counter = 0;
