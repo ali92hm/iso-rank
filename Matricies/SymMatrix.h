@@ -29,7 +29,7 @@
 #include "mpi.h"
 #endif
 
-#ifdef __linux__
+#ifdef ARPACK
 #include "dsmatrxa.h"
 #include "ardsmat.h"
 #include "ardssym.h"
@@ -316,7 +316,7 @@ inline std::vector<int> SymMatrix<DT>::getNeighbors(int vertex)
 template <typename DT>
 inline std::vector<DT> SymMatrix<DT>::getTopEigenVector()
 {
-#ifdef __linux__
+#ifdef ARPACK
     ARdsSymMatrix<DT> ARMatrix(this->_size, this->_edges, 'L');
     ARluSymStdEig<DT> eigProb(1, ARMatrix, "LM", 10);
     eigProb.FindEigenvectors();
