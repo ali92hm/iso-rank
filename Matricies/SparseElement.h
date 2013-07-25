@@ -46,15 +46,15 @@ public:
     /***********
      *ACCESSORS*
      ***********/
-    int getX() const;
-    int getY() const;
+    int getI() const;
+    int getJ() const;
     T getValue() const;
     
     /**********
      *MUTATORS*
      **********/
-    void setX(int);
-    void setY(int);
+    void setI(int);
+    void setJ(int);
     void setValue(T);
     
     /**********
@@ -73,14 +73,14 @@ SparseElement<T>::SparseElement()
 {
     this->_x = -1;
     this->_y = -1;
-    this->_value = NULL;
+    this->_value =0;
 }
 
 template <typename T>
 SparseElement<T>::SparseElement(int x,int y)
 {
-    if ( x < 0 || y < 0 ) //subject to chage
-        throw IndexOutOfBoundsException();
+    // if ( x < 0 || y < 0 ) //subject to chage
+    //     throw IndexOutOfBoundsException();
     this->_x = x;
     this->_y = y;
     this->_value = 0;
@@ -89,8 +89,8 @@ SparseElement<T>::SparseElement(int x,int y)
 template <typename T>
 SparseElement<T>::SparseElement(int x, int y, T value)
 {
-    if ( x < 0 || y < 0 ) //subject to chage
-        throw IndexOutOfBoundsException();
+    // if ( x < 0 || y < 0 ) //subject to chage
+    //     throw IndexOutOfBoundsException();
     this->_x = x;
     this->_y = y;
     this->_value = value;
@@ -109,13 +109,13 @@ SparseElement<T>::~SparseElement()
 }
 //===========================================================ACCESSORS===============================================================
 template <typename T>
-int SparseElement<T>::getX() const
+int SparseElement<T>::getI() const
 {
     return this->_x;
 }
 
 template <typename T>
-int SparseElement<T>::getY() const
+int SparseElement<T>::getJ() const
 {
     return this->_y;
 }
@@ -127,18 +127,18 @@ T SparseElement<T>::getValue() const
 }
 //===========================================================MUTATORS================================================================
 template <typename T>
-void SparseElement<T>::setX(int x)
+void SparseElement<T>::setI(int x)
 {
-    if ( x < 0 )//subject to chage
-        throw IndexOutOfBoundsException();
+    // if ( x < 0 )//subject to chage
+    //     throw IndexOutOfBoundsException();
     this->_x = x;
 }
 
 template <typename T>
-void SparseElement<T>::setY(int y)
+void SparseElement<T>::setJ(int y)
 {
-    if ( y < 0 )//subject to chage
-        throw IndexOutOfBoundsException();
+    // if ( y < 0 )//subject to chage
+    //     throw IndexOutOfBoundsException();
     this->_y = y;
 }
 

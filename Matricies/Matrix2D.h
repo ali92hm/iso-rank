@@ -147,7 +147,7 @@ SparseMatrix<DT>::SparseMatrix(const std::string &file_path)
     {
         file_reader >> tmp_x;
         file_reader >> tmp_y;
-        this->_edges[tmp_x - 1 ,tmp_y - 1] = 1;
+        this->_edges[tmp_x - 1][tmp_y - 1] = 1;
     }
     
     file_reader.close();

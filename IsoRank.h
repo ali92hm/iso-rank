@@ -10,9 +10,9 @@
 #define Sparse_Matatorrix_IsoRank_h
 
 #include "Matricies/Matrix2D.h"
+#include "Matricies/SymSparseMatrix.h"
 #include "Tarjan.h"
 #include "util.h"
-#include "greedy_algorithms.h"
 #include <vector>
 
 const int GREEDY = 0;
@@ -29,25 +29,25 @@ struct IsoRank_Result
     int* assignments;
 };
 
-void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
-{
-    MPI_Send(&result.assignment_length, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-    MPI_Send(result.assignments, result.assignment_length, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
-    MPI_Send(&result.frob_norm, 1, MPI_INT, dest, tag + 3, MPI_COMM_WORLD);
-}
+// void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
+// {
+//     MPI_Send(&result.assignment_length, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+//     MPI_Send(result.assignments, result.assignment_length, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+//     MPI_Send(&result.frob_norm, 1, MPI_INT, dest, tag + 3, MPI_COMM_WORLD);
+// }
 
-struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat)
-{
-    struct IsoRank_Result result;
-    MPI_Recv(&result.assignment_length, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
-    result.assignments = new int[result.assignment_length];
-    MPI_Recv(result.assignments ,result.assignment_length , MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
-    MPI_Recv(&result.frob_norm, 1, MPI_INT, source, tag + 3, MPI_COMM_WORLD, &stat);
-    return result;
-}
+// struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat)
+// {
+//     struct IsoRank_Result result;
+//     MPI_Recv(&result.assignment_length, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+//     result.assignments = new int[result.assignment_length];
+//     MPI_Recv(result.assignments ,result.assignment_length , MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
+//     MPI_Recv(&result.frob_norm, 1, MPI_INT, source, tag + 3, MPI_COMM_WORLD, &stat);
+//     return result;
+// }
 
 template <typename DT>
-struct IsoRank_Result isoRank(SymSparseMatrix<DT>& matrix_A, SymSparseMatrix<DT>& matrix_B, int matching_algorithm,int* assignment)
+struct IsoRank_Result isoRank(SymSparseMatrix<DT>& matrix_A, SymSparseMatrix<DT>& matrix_B)
 {
 
     // Degree distribution statistics
@@ -55,21 +55,22 @@ struct IsoRank_Result isoRank(SymSparseMatrix<DT>& matrix_A, SymSparseMatrix<DT>
     SymSparseMatrix<DT> kron_prod = matrix_A.kron(matrix_B);
     
     //find componenets of the kronecker product and calculate the scores using eigenvector decomp
-//     vector<vertex*> * vertices = graph_con_com(kron_prod, kron_prod->getNumberOfColumns());
-//     double** eigenValues = new double*[kron_prod->getNumberOfColumns()];
-//     vector<vector<int>*> comp_mask_values (kron_prod->getNumberOfColumns());
-//     
-//     for(int i=0; i < kron_prod->getNumberOfColumns(); i++ )
-//     {
-//         vector<int>* comp_mask = component_mask(*vertices, i);
-//         comp_mask_values[i] = comp_mask;
-//         if (comp_mask == NULL)
-//         {
-//             eigenValues[i]=NULL;
-//             continue;
-//         }
-//         
-//         SparseMatrix<DT>* L = kron_prod->getScatteredSelection(*comp_mask,*comp_mask);
+    vector<vertex*> * vertices = graph_con_com(kron_prod);
+    double** eigenValues = new double*[kron_prod.getSize()];
+    vector<vector<int>*> comp_mask_values (kron_prod.getSize());
+    
+    for(int i=0; i < kron_prod.getSize(); i++ )
+    {
+        vector<int>* comp_mask = component_mask(*vertices, i);
+        comp_mask_values[i] = comp_mask;
+        if (comp_mask == NULL)
+        {
+            eigenValues[i]=NULL;
+            continue;
+        }
+        
+        SparseMatrix<DT> L = kron_prod.getScatteredSelection(*comp_mask,*comp_mask);
+        std::cout << L << std::endl;
 //         
 //         DT* sum = L->sum_rows();
 //         DT* D_neg1  = new DT[L->getNumberOfRows()];
@@ -128,7 +129,7 @@ struct IsoRank_Result isoRank(SymSparseMatrix<DT>& matrix_A, SymSparseMatrix<DT>
 //         
 //         //Algorithms
 //         
-//     }
+    }
 //     
 //     
 //     //reshape the eigenvector as a m by n matrix of floats and run

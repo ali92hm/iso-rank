@@ -6,8 +6,12 @@
 //  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
 //
 
-#ifndef Sparse_Matrix_Tarjan_h
-#define Sparse_Matrix_Tarjan_h
+#ifndef _Tarjan_h
+#define _Tarjan_h
+
+#include "Matricies/SymSparseMatrix.h"
+#include "Matricies/SparseElement.h"
+
 
 using namespace std;
 
@@ -19,22 +23,22 @@ using namespace std;
  */
 
 template <typename DT>
-int binary_search_index(SparseMatrix<DT> *sm, int curr_row){
+int binary_search_index(SymSparseMatrix<DT>& sm, int curr_row){
     int start=0;
-    int sparse_size=sm->getSparseFormSize();
+    int sparse_size=sm.getSparseFormSize();
     int finish=sparse_size-1;
     int mid=0;
-    sparse_matrix_element<DT>** sparse_graph=sm->getSparseForm();
+    std::vector<SparseElement<int> > sparse_graph = sm.getSparseForm();
     
     
-    
+    printf("sparse form size: %d\n",sparse_size );
     while(start<=finish && mid>=0 && mid<sparse_size){
         mid=(start+finish)/2;
         
-        if(sparse_graph[mid]->row_index==curr_row){
+        if(sparse_graph[mid].getI() == curr_row){
             break;
         }
-        else if(sparse_graph[mid]->row_index<curr_row){
+        else if(sparse_graph[mid].getI() < curr_row){
             start=mid+1;
         }
         else{
@@ -42,7 +46,7 @@ int binary_search_index(SparseMatrix<DT> *sm, int curr_row){
         }
     }
     
-    while(mid>-1&&sparse_graph[mid]->row_index==curr_row){
+    while(mid>-1&&sparse_graph[mid].getI()==curr_row){
         mid--;
     }
     mid++;
@@ -110,16 +114,17 @@ int contains(stack<vertex*>* s,vertex* w){
  */
 
 template <typename DT>
-void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_number,std::vector<vertex*>* vertices,stack<vertex*>* st){
+void strong_com(SymSparseMatrix<DT>& sm, int num_vertices,int *index,int vertex_number,std::vector<vertex*>* vertices,stack<vertex*>* st){
     //std::cout << "calling strong component on" << vertex_number << std::endl;
     
-    sparse_matrix_element<DT> **sparse_graph = sm->getSparseForm();
-    int sparse_size=sm->getSparseFormSize();
-    int sparse_edges_index = binary_search_index(sm,vertex_number);
+    std::vector<SparseElement<int> > sparse_graph = sm.getSparseForm();
     
+    int sparse_size=sm.getSparseFormSize();
+    int sparse_edges_index = binary_search_index(sm,vertex_number);
+    printf("%d\n",sparse_edges_index);
     vertex *curr_vertex=(*vertices)[vertex_number];
     vertex *other_vertex;
-    sparse_matrix_element<DT> *sparse_vertex;
+    SparseElement<DT> sparse_vertex;
     (*curr_vertex).set_index(*index);
     (*curr_vertex).set_low_link(*index);
     (*index)=(*index)+1;
@@ -134,12 +139,12 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
     
     
     (*st).push(curr_vertex);
-    while( (sparse_edges_index < sparse_size) && (sparse_vertex->row_index==vertex_number) ){
+    while( (sparse_edges_index < sparse_size) && (sparse_vertex.getI()==vertex_number) ){
 	sparse_vertex=sparse_graph[sparse_edges_index];       
-	 other_vertex=(*vertices)[sparse_vertex->col_index];
+	 other_vertex=(*vertices)[sparse_vertex.getJ()];
         
         if((*other_vertex).get_index()==-1){
-            strong_com(sm, num_vertices,index,sparse_vertex->col_index,vertices,st);
+            strong_com(sm, num_vertices,index,sparse_vertex.getJ(),vertices,st);
             (*curr_vertex).set_low_link(min((*curr_vertex).get_low_link(),(*other_vertex).get_low_link()));
         }
         else if(contains(st,other_vertex)==1){
@@ -173,36 +178,42 @@ void strong_com(SparseMatrix<DT>* sm, int num_vertices,int *index,int vertex_num
  */
 
 template <typename DT>
-std::vector<vertex*>* graph_con_com(SparseMatrix<DT> *sm, int num_vertices){
+std::vector<vertex*>* graph_con_com(SymSparseMatrix<DT>& sm){
     
     stack<vertex*>* st = new stack<vertex*>();
+    int num_vertices = sm.getSize();
     std::vector<vertex*>* vertices= new std::vector<vertex*>(num_vertices);
     int index=0;
     
     
     
-    for(int j=0;j<num_vertices;j++){
+    for(int j=0;j<num_vertices;j++)
+    {
         (*vertices)[j]= new vertex(j,-1);
     }
     
-    for(int i=0;i<num_vertices;i++){
+    for(int i=0;i<num_vertices;i++)
+    {
            // compIdx[i]=-1;
     }
     
-    for(int i=0;i<num_vertices;i++){
-        if( (*vertices)[i]->get_low_link()==-1){
+    for(int i=0;i<num_vertices;i++)
+    {
+        if( (*vertices)[i]->get_low_link()==-1)
+        {
             //printf("unset vertex %d has low link of %d\n", i, vertices[i].get_low_link());
             strong_com(sm,num_vertices,&index,i,vertices,st);
         }
-        else{
+        else
+        {
             //printf(" set vertex %d has low link of %d\n", i, vertices[i].get_low_link());
         }
     }
     
-//    for(int j=0;j<num_vertices;j++){
-//        std::cout<<"low link of: " <<  j << ": " << (*vertices)[j]->get_low_link() << std::endl;
-//        
-//    }
+   for(int j=0;j<num_vertices;j++)
+   {
+       std::cout<<"low link of: " <<  j << ": " << (*vertices)[j]->get_low_link() << std::endl;
+   }
     delete st;
     return vertices;
 }
