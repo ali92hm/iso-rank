@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include "SparseElement.h"
 #include "MatrixExceptions.h"
+#include "Matrix2D.h"
 
 #ifdef __linux__
 #include "dsmatrxa.h"
@@ -48,13 +49,15 @@ private:
     
 public:
     int _size;
-    std::unordered_map <int, T > _edges;   
+    std::unordered_map <int, T > _edges;
+    std::vector<SparseElement<T> > sparse_form;  
+    bool hasSparseForm = false; 
 public:
     /**************
      *Constructors*
      **************/
     SymSparseMatrix();
-    SymSparseMatrix(int, int);
+    SymSparseMatrix(int);
     SymSparseMatrix(const std::string&);
     SymSparseMatrix(const SymSparseMatrix<T>&);
 
@@ -63,7 +66,6 @@ public:
     SymSparseMatrix(int,int,MPI_Status&);
     #endif
 
-    
     /************
      *Destructor*
      ************/
@@ -80,7 +82,8 @@ public:
     std::vector<T> getTopEigenVector();
     std::vector<int> getNeighbors(int vertex);
     //sparse_SymSparseMatrix_element<T>** getSparseForm();
-    SymSparseMatrix<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B);
+    SparseMatrix<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B);
+    std::vector<SparseElement<T> >getSparseForm();
     
     /**********
      *MUTATORS*
@@ -125,8 +128,7 @@ const T SymSparseMatrix<T>::_DEFAULT_MATRIX_ENTRY = 1;
 template <typename T>
 inline SymSparseMatrix<T>::SymSparseMatrix()
 {
-    this->_rows = _DEFAULT_MATRIX_SIZE;
-    this->_cols = _DEFAULT_MATRIX_SIZE;
+    this->_size = _DEFAULT_MATRIX_SIZE;
 }
 
 template<typename T>
@@ -142,7 +144,7 @@ inline SymSparseMatrix<T>::SymSparseMatrix(const std::string& file_path)
         file_reader.close();
         throw FileDoesNotExistException(file_path.c_str());
     }
-    
+
     file_reader >> this->_size;
     file_reader >> tmp_i;
 
@@ -204,10 +206,9 @@ inline SymSparseMatrix<T>::SymSparseMatrix(int source, MPI_Status& stat)
 #endif
 
 template <typename T>
-inline SymSparseMatrix<T>::SymSparseMatrix(int rows, int cols)
+inline SymSparseMatrix<T>::SymSparseMatrix(int size)
 {
-    this->_rows = rows;
-    this->_cols = cols;
+    this->_size = size;
 }
 
 template <typename T>
@@ -289,7 +290,7 @@ inline bool SymSparseMatrix<T>::isSymmetric() const ////////////////////////////
 //}
 
 template <typename T>
-inline SymSparseMatrix<T> SymSparseMatrix<T>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B)
+inline SparseMatrix<T> SymSparseMatrix<T>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B)
 {
     int num_in_A = 0;
     for (int i=0; i< vec_A.size(); i++)
@@ -308,7 +309,7 @@ inline SymSparseMatrix<T> SymSparseMatrix<T>::getScatteredSelection(const std::v
         }
     }
     //Initializing and allocating the product SymSparseMatrix
-    SymSparseMatrix<T> res_SymSparseMatrix(num_in_A, num_in_B);
+    SparseMatrix<T> result_matrix(num_in_A, num_in_B);
     
     int counter = 0;
     
@@ -318,12 +319,12 @@ inline SymSparseMatrix<T> SymSparseMatrix<T>::getScatteredSelection(const std::v
         {
             if ( vec_A[i] == 1 && vec_B[j] ==1)
             {
-                res_SymSparseMatrix._edges[counter] = (*this)(i,j);
+                result_matrix[counter/num_in_B][counter%num_in_B] = (*this)(i,j);
                 counter++;
             }
         }
     }
-    return res_SymSparseMatrix;
+    return result_matrix;
 }
 
 
@@ -391,6 +392,36 @@ inline std::vector<T> SymSparseMatrix<T>::getSumOfRows()
     return sum_vector;
 }
 
+template <typename T>
+int SymSparseMatrix<T>:: getSparseFormSize()
+{
+    return this->_edges.size()*2;
+}
+
+template <typename T>
+std::vector<SparseElement<T> > SymSparseMatrix<T>::getSparseForm()
+{
+    if(!hasSparseForm)
+    {
+        // for (auto it = this->_edges.begin(); it != this->_edges.end(); ++it)
+        // {
+        //     sparse_form.push_back(SparseElement<T>(it->first%this->_size,it->first/this->_size, it->second));
+        // }
+        for (int i=0; i < _size; i++)
+        {
+            for (int j=0; j < _size; j++)
+            {
+                if (_hasEdge(i,j))
+                    sparse_form.push_back(SparseElement<T>(i,j, 1));
+            }
+        }
+        std::sort(sparse_form.begin(), sparse_form.end());
+        hasSparseForm=true;
+    }
+    return sparse_form;
+}
+
+
 //===========================================================MUTATORS================================================================
 template <typename T>
 inline void SymSparseMatrix<T>::insert(int i, int j, T value)
@@ -400,29 +431,23 @@ inline void SymSparseMatrix<T>::insert(int i, int j, T value)
         std::cout << "Out of bounds: "<< i  <<" " << j << std::endl;
         throw IndexOutOfBoundsException();
     }
+
+    //swap i and j if i > j
+    if(i > j)
+    {
+        int tmp = i;
+        i = j;
+        j = tmp;
+    }
     //if the edge exist =>delete the node
     if (_hasEdge(i,j))
     {
-        if(i<=j)
-        {
-            this->_edges.erase(i+size_t(j)*(j+1)/2);
-        }
-        else
-        {
-            this->_edges.erase(j+size_t(i)*(i+1)/2);
-        }
+        this->_edges.erase(i * this->_size + j);
     }
     //if the evalue is not 0 =>insert it
     if (value != 0)
     {
-        if(i<=j)
-        {
-            this->_edges[i+size_t(j)*(j+1)/2] = value;
-        }
-        else
-        {
-            this->_edges[j+size_t(i)*(i+1)/2] = value;
-        }
+        this->_edges[i * this->_size + j] = value;
     }
 }
 
@@ -430,31 +455,41 @@ inline void SymSparseMatrix<T>::insert(int i, int j, T value)
 //==========================================================OPERATORS================================================================
 template <typename T>
 inline SymSparseMatrix<T> SymSparseMatrix<T>::kron(const SymSparseMatrix<T>& matrix)
-{
-    // checking for matrices to be square
-    if (!this->isSquare() || !matrix.isSquare())
-    {
-       // throw NotASquareSymSparseMatrixException();
-    }
-    
-    //Initializing and allocating the product SymSparseMatrix
-    int prod_size = this->_rows * matrix._rows;
-   // SymSparseMatrix<T>* prod_matrix_right = new SymSparseMatrix<T>(prod_size, prod_size);
-    SymSparseMatrix<T> prod_matrix(prod_size, prod_size);
-    prod_matrix._edges = std::vector<SparseElement<T> >(this->_getArrSize()*matrix._getArrSize());
+{    
+    SymSparseMatrix<T> prod_matrix(this->_size * matrix._size);
+    int mat1_i;
+    int mat1_j;
+    int mat2_i;
+    int mat2_j;
 
-    int counter = 0;
-    for(int i = 0; i < this->_getArrSize(); i++)
+    for(auto i_it = this->_edges.begin(); i_it != this->_edges.end(); ++i_it)
     {
-        for(int j = 0; j < matrix._getArrSize(); j++)
+        for(auto j_it = matrix._edges.begin(); j_it != matrix._edges.end(); ++j_it)
         {
-            prod_matrix._edges[counter++] = (SparseElement<T>((this->_edges[i].getX()*matrix._rows) + matrix._edges[j].getX(),
-                                                              (this->_edges[i].getY()*matrix._cols) + matrix._edges[j].getY(),
-                                                              this->_edges[i].getValue() *  matrix._edges[j].getValue()));
+            mat1_i = i_it->first/this->_size;
+            mat1_j = i_it->first%this->_size;
+            mat2_i = j_it->first/matrix._size;
+            mat2_j = j_it->first%matrix._size;
+
+            prod_matrix.insert(mat1_i * matrix._size + mat2_i, mat1_j * matrix._size + mat2_j, (i_it->second) * (j_it->second));
+            prod_matrix.insert(mat1_i * matrix._size + mat2_j, mat1_j * matrix._size + mat2_i, (i_it->second) * (j_it->second));
         }
     }
-    
-    std::sort(prod_matrix._edges.begin(), prod_matrix._edges.end());
+
+    // int mat1_i = i_it->first/this->_size;
+    // int mat1_j = i_it->first%this->_size;
+    // int mat2_i = j_it->first/matrix._size;
+    // int mat2_j = j_it->first%matrix._size;
+
+    // i = mat1_i * matrix._size + mat2_i;
+    // j = mat1_j * matrix._size + mat2_j;
+
+    // i_2 = mat1_i * matrix._size + mat2_j;
+    // j_2 = mat1_j * matrix._size + mat2_i;
+
+    // prod_matrix.insert(i,j, (i_it->second) * (j_it->second));
+    // prod_matrix.insert(i_2,j_2, (i_it->second) * (j_it->second));
+
     return prod_matrix;
 }
 
@@ -492,6 +527,8 @@ inline SymSparseMatrix<T> SymSparseMatrix<T>::SymSparseMatrixTimesDiagonalVector
             i++;
         }
     }
+
+
     
     return ret_SymSparseMatrix;
 }
@@ -508,6 +545,7 @@ inline std::ostream& operator<<(std::ostream& stream, const SymSparseMatrix<T>& 
         }
         stream << "\n";
     }
+    stream << "Size of hash_map: " << matrix._edges.size();
     stream << "\n\n\n";
     return stream;
 }
@@ -520,16 +558,15 @@ inline T SymSparseMatrix<T>::operator()(int i, int j) const
         throw IndexOutOfBoundsException();
     }
 
-    typename std::unordered_map<int,T>::const_iterator find_res;
-    if(i<=j)
+    //swap i and j if i > j
+    if(i > j)
     {
-        find_res = this->_edges.find(i+size_t(j)*(j+1)/2);
+        int tmp = i;
+        i = j;
+        j = tmp;
     }
-    else
-    {
-        find_res = this->_edges.find(j+size_t(i)*(i+1)/2);
-    }
-
+    typename std::unordered_map<int,T>::const_iterator find_res = this->_edges.find(i * this->_size + j);
+    
     if ( find_res == this->_edges.end() )
         return 0;
     else
@@ -581,14 +618,16 @@ inline bool SymSparseMatrix<T>::_hasEdge(int i, int j)
         throw IndexOutOfBoundsException();
     }
     
-    if(i<=j)
+    //swap i and j if i > j
+    if(i > j)
     {
-        return (this->_edges.find(i+size_t(j)*(j+1)/2) == this->_edges.end());
+        int tmp = i;
+        i = j;
+        j = tmp;
     }
-    else
-    {
-        return (this->_edges.find(j+size_t(i)*(i+1)/2) == this->_edges.end());
-    }
+    
+    return (this->_edges.find(i * this->_size + j) != this->_edges.end());
+
 }
 
 
