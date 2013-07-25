@@ -1,15 +1,15 @@
 //
-//  SparseMatrix.h
+//  DenseMatrix.h
 //  Sparse_Matrix
 //
 //  Created by Ali Hajimirza on 6/11/13.
 //  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
 //
 
-#ifndef _SparseMatrix_h
-#define _SparseMatrix_h
+#ifndef _DenseMatrix_h
+#define _DenseMatrix_h
 
-#define DEFAULT_MATRIX_SIZE 20
+#define DEFAULT_MATRIX_SIZE 1
 
 #include <cstdlib>
 #include <iostream>
@@ -42,7 +42,7 @@
 
 
 template <typename DT>
-class SparseMatrix;
+class DenseMatrix;
 
 template <typename DT>
 struct sparse_matrix_element{
@@ -53,14 +53,14 @@ struct sparse_matrix_element{
 
 
 template <typename DT>
-std::ostream& operator<< (std::ostream&, const SparseMatrix<DT>&);
+std::ostream& operator<< (std::ostream&, const DenseMatrix<DT>&);
 
 template <typename DT>
-class SparseMatrix
+class DenseMatrix
 {
 private:
     std::ifstream _file_reader;
-    void _copy(const SparseMatrix<DT>&);
+    void _copy(const DenseMatrix<DT>&);
     bool _initilalizeMatrix();
     static void _split(const std::string &line, std::vector<unsigned int> &vec);
     
@@ -74,14 +74,14 @@ protected:
     
 public:
     //Constructors
-    SparseMatrix();
-    SparseMatrix(const std::string &file_path);
-    SparseMatrix(int rows, int cols);
-    SparseMatrix(const SparseMatrix<DT>&);
+    DenseMatrix();
+    DenseMatrix(const std::string &file_path);
+    DenseMatrix(int rows, int cols);
+    DenseMatrix(const DenseMatrix<DT>&);
 
 
     //Destructor
-    virtual ~SparseMatrix();
+    virtual ~DenseMatrix();
     //Accessors
     const int getNumberOfRows();
     const int getNumberOfColumns();
@@ -92,28 +92,28 @@ public:
     DT getFrobNorm();
     const char* getGraphName();
     void setGraphName(const char* name);
-    SparseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
+    DenseMatrix<DT>* getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B);
     double* getTopEigenVector();
     vector<int>* getNeighbors(int vertex);
     //Mutators
-    SparseMatrix<DT> transpose();
-    SparseMatrix<DT>* kron(SparseMatrix<DT>& matrix);
+    DenseMatrix<DT> transpose();
+    DenseMatrix<DT>* kron(DenseMatrix<DT>& matrix);
     DT* sum_rows();
-    SparseMatrix<DT>* vec_times_mat(DT*, int);
-    SparseMatrix<DT>* mat_times_vec(DT*, int);
+    DenseMatrix<DT>* vec_times_mat(DT*, int);
+    DenseMatrix<DT>* mat_times_vec(DT*, int);
     
     //operators
     DT* operator[](int);
-    friend std::ostream& operator<< <> (std::ostream& stream, const SparseMatrix<DT>& matrix);
-    void operator= (const SparseMatrix<DT>&);
-    SparseMatrix<DT> operator-(SparseMatrix<DT>& other_matrix);
-    SparseMatrix<DT> operator*(SparseMatrix<DT>& other_matrix);
+    friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix<DT>& matrix);
+    void operator= (const DenseMatrix<DT>&);
+    DenseMatrix<DT> operator-(DenseMatrix<DT>& other_matrix);
+    DenseMatrix<DT> operator*(DenseMatrix<DT>& other_matrix);
 };
 
 //==========================================================CONSTRUCTORS============================================================
 
 template <typename DT>
-SparseMatrix<DT>::SparseMatrix()
+DenseMatrix<DT>::DenseMatrix()
 {
     this->_rows = DEFAULT_MATRIX_SIZE;
     this->_cols = DEFAULT_MATRIX_SIZE;
@@ -124,7 +124,7 @@ SparseMatrix<DT>::SparseMatrix()
 }
 
 template<typename DT>
-SparseMatrix<DT>::SparseMatrix(const std::string &file_path)
+DenseMatrix<DT>::DenseMatrix(const std::string &file_path)
 {
     int tmp_x;
     int tmp_y;
@@ -155,7 +155,7 @@ SparseMatrix<DT>::SparseMatrix(const std::string &file_path)
 }
 
 template <typename DT>
-SparseMatrix<DT>::SparseMatrix(int rows, int cols)
+DenseMatrix<DT>::DenseMatrix(int rows, int cols)
 {
     this->_rows = rows;
     this->_cols = cols;
@@ -166,14 +166,14 @@ SparseMatrix<DT>::SparseMatrix(int rows, int cols)
 }
 
 template <typename DT>
-SparseMatrix<DT>::SparseMatrix(const SparseMatrix<DT>& matrix)
+DenseMatrix<DT>::DenseMatrix(const DenseMatrix<DT>& matrix)
 {
     _copy(matrix);
 }
 
 //==========================================================DESTRUCTOR==============================================================
 template <typename DT>
-SparseMatrix<DT>::~SparseMatrix()
+DenseMatrix<DT>::~DenseMatrix()
 {
     if (_edges != NULL)
     {
@@ -196,25 +196,25 @@ SparseMatrix<DT>::~SparseMatrix()
 
 //===========================================================ACCESSORS===============================================================
 template <typename DT>
-const int SparseMatrix<DT>::getNumberOfRows()
+const int DenseMatrix<DT>::getNumberOfRows()
 {
     return _rows;
 }
 
 template <typename DT>
-const int SparseMatrix<DT>::getNumberOfColumns()
+const int DenseMatrix<DT>::getNumberOfColumns()
 {
     return _cols;
 }
 
 template <typename DT>
-const bool SparseMatrix<DT>::isSquare()
+const bool DenseMatrix<DT>::isSquare()
 {
     return (this->_rows == this->_cols);
 }
 
 template <typename DT>
-const bool SparseMatrix<DT>::isSymmetric()
+const bool DenseMatrix<DT>::isSymmetric()
 {
     for(int i=0; i < this->_rows; i++)
     {
@@ -230,7 +230,7 @@ const bool SparseMatrix<DT>::isSymmetric()
     return true;
 }
 template <typename T>
-T SparseMatrix<T>::getFrobNorm(){
+T DenseMatrix<T>::getFrobNorm(){
   T ret_val=0;
 
   for(int i=0;i<this->getNumberOfRows();i++){
@@ -243,7 +243,7 @@ T SparseMatrix<T>::getFrobNorm(){
 }
 
 template <typename DT>
-sparse_matrix_element<DT>** SparseMatrix<DT>::getSparseForm(){
+sparse_matrix_element<DT>** DenseMatrix<DT>::getSparseForm(){
     
     if(sparse_form==NULL){
         //   #pragma omp parallel for
@@ -283,7 +283,7 @@ sparse_matrix_element<DT>** SparseMatrix<DT>::getSparseForm(){
 }
 
 template <typename DT>
-SparseMatrix<DT>* SparseMatrix<DT>::kron(SparseMatrix<DT>& matrix)
+DenseMatrix<DT>* DenseMatrix<DT>::kron(DenseMatrix<DT>& matrix)
 {
     // also checking for matrices to be square
     if (!this->isSquare() || !matrix.isSquare())
@@ -293,7 +293,7 @@ SparseMatrix<DT>* SparseMatrix<DT>::kron(SparseMatrix<DT>& matrix)
     
     //Initializing and allocating the product matrix
     int prod_size = this->_rows * matrix._rows;
-    SparseMatrix<DT>* prod_matrix = new SparseMatrix<DT>(prod_size, prod_size);
+    DenseMatrix<DT>* prod_matrix = new DenseMatrix<DT>(prod_size, prod_size);
     
     /*
      *  Calculating the kronecker product:
@@ -320,7 +320,7 @@ SparseMatrix<DT>* SparseMatrix<DT>::kron(SparseMatrix<DT>& matrix)
 }
 
 template <typename DT>
-SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B)
+DenseMatrix<DT>* DenseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_A, std::vector<int> vec_B)
 {
     int num_in_A = 0;
     for (int i=0; i< vec_A.size(); i++)
@@ -339,7 +339,7 @@ SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_
         }
     }
     //Initializing and allocating the product matrix
-    SparseMatrix<DT>* res_matrix = new SparseMatrix<DT>(num_in_A, num_in_B);
+    DenseMatrix<DT>* res_matrix = new DenseMatrix<DT>(num_in_A, num_in_B);
 
     int counter = 0;
     
@@ -359,7 +359,7 @@ SparseMatrix<DT>* SparseMatrix<DT>::getScatteredSelection(std::vector<int>& vec_
 
 
 template <typename DT>
-vector<int>* SparseMatrix<DT>::getNeighbors(int vertex){
+vector<int>* DenseMatrix<DT>::getNeighbors(int vertex){
   vector<int>* neighbors=new vector<int>();
   int counter=0;
   for(int i=0;i<this->getNumberOfRows();i++){
@@ -373,7 +373,7 @@ vector<int>* SparseMatrix<DT>::getNeighbors(int vertex){
 } 
 
 template <typename DT>
-double* SparseMatrix<DT>::getTopEigenVector(){
+double* DenseMatrix<DT>::getTopEigenVector(){
 #ifdef ARPACK
 // 	std::cout<< "Using ARPACK" << std::endl;
     int arr_size= (this->_rows*(this->_rows+1))/2;
@@ -433,12 +433,12 @@ double* SparseMatrix<DT>::getTopEigenVector(){
 }
 
 template <typename DT>
-int SparseMatrix<DT>:: getSparseFormSize(){
+int DenseMatrix<DT>:: getSparseFormSize(){
     return sparse_form_size;
 }
 
 template <typename DT>
-const char* SparseMatrix<DT>::getGraphName()
+const char* DenseMatrix<DT>::getGraphName()
 {
 	return this->_graph_name;
 }
@@ -446,7 +446,7 @@ const char* SparseMatrix<DT>::getGraphName()
 //===========================================================MUTATORS================================================================
 
 template <typename DT>
-void SparseMatrix<DT>::setGraphName(const char* name)
+void DenseMatrix<DT>::setGraphName(const char* name)
 {
 	std::strcpy(this->_graph_name, name);
 }
@@ -457,7 +457,7 @@ void SparseMatrix<DT>::setGraphName(const char* name)
  * @pram: number of columns in graph
  */
 template <typename DT>
-DT* SparseMatrix<DT>::sum_rows(){
+DT* DenseMatrix<DT>::sum_rows(){
     DT* ret_arr= new DT[this->_rows];
     
 #pragma omp parallel for
@@ -478,9 +478,9 @@ DT* SparseMatrix<DT>::sum_rows(){
  * @pram: the number of cols in the matrix
  */
 template <typename DT>
-SparseMatrix<DT>* SparseMatrix<DT>:: vec_times_mat(DT* vec, int vec_size){
+DenseMatrix<DT>* DenseMatrix<DT>:: vec_times_mat(DT* vec, int vec_size){
     
-    SparseMatrix<DT>* ret_matrix= new SparseMatrix<DT>(*this);
+    DenseMatrix<DT>* ret_matrix= new DenseMatrix<DT>(*this);
     if(_rows!=vec_size){
        fprintf(stderr,"dimension mismatch");
     }
@@ -506,9 +506,9 @@ SparseMatrix<DT>* SparseMatrix<DT>:: vec_times_mat(DT* vec, int vec_size){
  * @pram: the size of the array
  */
 template <typename DT>
-SparseMatrix<DT>* SparseMatrix<DT>::mat_times_vec(DT* vec, int vec_size){
+DenseMatrix<DT>* DenseMatrix<DT>::mat_times_vec(DT* vec, int vec_size){
     
-    SparseMatrix<DT>* ret_matrix=new SparseMatrix<DT>(*this);
+    DenseMatrix<DT>* ret_matrix=new DenseMatrix<DT>(*this);
     
     if(_cols!=vec_size){
         fprintf(stderr,"dimension mismatch");
@@ -528,8 +528,8 @@ SparseMatrix<DT>* SparseMatrix<DT>::mat_times_vec(DT* vec, int vec_size){
 
 
 template <typename DT>
-SparseMatrix<DT> SparseMatrix<DT>::transpose(){
-  SparseMatrix<DT> ret_matrix(this->getNumberOfColumns(),this->getNumberOfRows());
+DenseMatrix<DT> DenseMatrix<DT>::transpose(){
+  DenseMatrix<DT> ret_matrix(this->getNumberOfColumns(),this->getNumberOfRows());
 
 
   for(int i=0;i<this->getNumberOfRows();i++){
@@ -544,7 +544,7 @@ SparseMatrix<DT> SparseMatrix<DT>::transpose(){
 
 //==========================================================OPERATORS================================================================
 template <typename DT>
-std::ostream& operator<<(std::ostream& stream, const SparseMatrix<DT>& matrix)
+std::ostream& operator<<(std::ostream& stream, const DenseMatrix<DT>& matrix)
 {
     stream<< "Size: " << matrix._rows << "*" << matrix._cols << '\n';
     for (int i = 0; i < matrix._rows; i++)
@@ -560,14 +560,14 @@ std::ostream& operator<<(std::ostream& stream, const SparseMatrix<DT>& matrix)
 }
 
 template <typename DT>
-DT* SparseMatrix<DT>::operator[](int index)
+DT* DenseMatrix<DT>::operator[](int index)
 {
     return this->_edges[index];
 }
 
 template <typename DT>
-SparseMatrix<DT> SparseMatrix<DT>::operator*(SparseMatrix<DT>& other_matrix){
-  SparseMatrix<DT> ret_matrix(this->getNumberOfRows(),other_matrix.getNumberOfColumns());
+DenseMatrix<DT> DenseMatrix<DT>::operator*(DenseMatrix<DT>& other_matrix){
+  DenseMatrix<DT> ret_matrix(this->getNumberOfRows(),other_matrix.getNumberOfColumns());
   DT ret_val;
   for(int i=0;i<this->getNumberOfRows();i++){
     for(int j=0;j<other_matrix.getNumberOfColumns();j++){
@@ -585,8 +585,8 @@ SparseMatrix<DT> SparseMatrix<DT>::operator*(SparseMatrix<DT>& other_matrix){
 
 
 template <typename T>
-SparseMatrix<T> SparseMatrix<T>::operator-(SparseMatrix<T>& other_matrix){
-  SparseMatrix<T> ret_matrix(this->getNumberOfRows(),this->getNumberOfColumns());
+DenseMatrix<T> DenseMatrix<T>::operator-(DenseMatrix<T>& other_matrix){
+  DenseMatrix<T> ret_matrix(this->getNumberOfRows(),this->getNumberOfColumns());
   
 
   for(int i=0;i<this->getNumberOfRows();i++)
@@ -602,14 +602,14 @@ SparseMatrix<T> SparseMatrix<T>::operator-(SparseMatrix<T>& other_matrix){
 }
 
 template <typename DT>
-void SparseMatrix<DT>::operator=(const SparseMatrix<DT>& matrix)
+void DenseMatrix<DT>::operator=(const DenseMatrix<DT>& matrix)
 {
     _copy(matrix);
 }
 
 //===========================================================PRIVATE=================================================================
 template <typename DT>
-void SparseMatrix<DT>::_copy(const SparseMatrix<DT>& matrix)
+void DenseMatrix<DT>::_copy(const DenseMatrix<DT>& matrix)
 {
     //delete this;
     this->_rows = matrix._rows;
@@ -628,7 +628,7 @@ void SparseMatrix<DT>::_copy(const SparseMatrix<DT>& matrix)
 }
 
 template <typename DT>
-bool SparseMatrix<DT>::_initilalizeMatrix()
+bool DenseMatrix<DT>::_initilalizeMatrix()
 {
     this->sparse_form_size = 0;
     this->sparse_form = NULL;
@@ -652,7 +652,7 @@ bool SparseMatrix<DT>::_initilalizeMatrix()
 }
 
 template <typename DT>
-void SparseMatrix<DT>::_split(const std::string &line, std::vector<unsigned int> &vec)
+void DenseMatrix<DT>::_split(const std::string &line, std::vector<unsigned int> &vec)
 {
     vec.clear();
     std::istringstream iss(line);

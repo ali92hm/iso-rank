@@ -3,9 +3,13 @@
 #include <fstream>
 #include <sstream>
 #include "SymSparseMatrix.h"
+#include "SparseMatrix.h"
 #include "Matrix2D.h"
+#include "Matrix.h"
+#include "SymMatrix.h"
 #include <time.h>
 #include "../Tarjan.h"
+#include "mpi.h"
 
 // #include "SparseMatrix.h"
 // #include "SymSparseMatrix.h"
@@ -21,7 +25,7 @@ int G_NUMBER_OF_FILES = 50;
 typedef int DataType;
 
 template <typename DT>
-bool equal(SparseMatrix<DT>& mat1, SymSparseMatrix<DT>& mat2)
+bool equal(DenseMatrix<DT>& mat1, SymSparseMatrix<DT>& mat2)
 {
 	for(int i=0; i < mat2.getSize(); i++)
 	{
@@ -36,63 +40,232 @@ bool equal(SparseMatrix<DT>& mat1, SymSparseMatrix<DT>& mat2)
 	return true;
 }
 
+template <typename DT>
+bool equal(DenseMatrix<DT>& mat1, SparseMatrix<DT>& mat2)
+{
+	for(int i=0; i < mat1.getNumberOfRows(); i++)
+	{
+		for(int j = 0; j < mat1.getNumberOfColumns(); j++)
+		{
+
+			if (mat2(i,j) != mat1[i][j])
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+template <typename DT>
+bool equal(DenseMatrix<DT>& mat1, Matrix<DT>& mat2)
+{
+	for(int i = 0; i < mat1.getNumberOfRows(); i++)
+	{
+		for(int j = 0; j < mat1.getNumberOfColumns(); j++)
+		{
+
+			if (mat2(i,j) != mat1[i][j])
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+template <typename DT>
+bool equal(DenseMatrix<DT>& mat1, SymMatrix<DT>& mat2)
+{
+	for(int i = 0; i < mat1.getNumberOfRows(); i++)
+	{
+		for(int j = 0; j < mat1.getNumberOfColumns(); j++)
+		{
+
+			if (mat2(i,j) != mat1[i][j])
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 using namespace std;
 int main(int argc, char *argv[])
 {
-	srand (2);
-	std::ostringstream itos_converter;
-	std::vector<SparseMatrix<int> > input_graphs_2D;
-	std::vector<SymSparseMatrix<int> > input_graphs;
+	int rank;
+	int num_procs;
 
+	if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
+    {
+        std::cout << "Failed To Initialize MPI" << std::endl;
+        //MPI_Abort();
+    }
+    MPI_Comm_size (MPI_COMM_WORLD, &num_procs);
+    MPI_Comm_rank (MPI_COMM_WORLD, &rank);
 
-	for(int i = 1; i <= G_NUMBER_OF_FILES; i++)
+	if (rank == 0)
 	{
-		try
+		std::ostringstream itos_converter;
+		std::vector<DenseMatrix<float> > input_graphs_2D;
+		std::vector<SymSparseMatrix<float> > input_graphs;
+		for(int i = 1; i <= G_NUMBER_OF_FILES; i++)
 		{
-			itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
-			input_graphs_2D.push_back(SparseMatrix<int>(itos_converter.str()));
-			input_graphs.push_back(SymSparseMatrix<int>(itos_converter.str()));
-			//clearing the stream
-			itos_converter.str("");
-			itos_converter.clear();
-		}
-		catch (std::exception& e)
-		{
-			std::cerr <<"Exception: " << e.what() << '\n' << std::endl;
-			itos_converter.str("");
-			itos_converter.clear();
-		}
-	}
-
-
-	for (int i =0 ; i < input_graphs.size(); i++)
-	{
-		for (int j = i ; j < input_graphs.size(); j++)
-		{
-			SparseMatrix<int>* old_rep = input_graphs_2D[i].kron(input_graphs_2D[j]);
-		  	SymSparseMatrix<int> new_rep = input_graphs[i].kron(input_graphs[j]);
-		  	if (!equal(*old_rep, new_rep))
-		  	{
-				std::cout << "Kron product is DIFFERENT "<< i  <<" " << j << std::endl;
+			try
+			{
+				itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
+				input_graphs_2D.push_back(DenseMatrix<float>(itos_converter.str()));
+				input_graphs.push_back(SymSparseMatrix<float>(itos_converter.str()));
+				//clearing the stream
+				itos_converter.str("");
+				itos_converter.clear();
 			}
+			catch (std::exception& e)
+			{
+				std::cerr <<"Exception: " << e.what() << '\n' << std::endl;
+				itos_converter.str("");
+				itos_converter.clear();
+			}
+		}
 
+
+		for (int i =0 ; i < input_graphs.size(); i++)
+		{
+			for (int j = i ; j < input_graphs.size(); j++)
+			{
+				DenseMatrix<float>* old_rep = input_graphs_2D[i].kron(input_graphs_2D[j]);
+			  	SymSparseMatrix<float> new_rep = input_graphs[i].kron(input_graphs[j]);
+			  	if (!equal(*old_rep, new_rep))
+			  	{
+					std::cout << " ID = 0: Kron product is DIFFERENT "<< i+1  <<" " << j+1 << std::endl;
+				}
+
+			}
 		}
 	}
+
+	if (rank == 1)
+	{
+		
+		std::ostringstream itos_converter;
+		std::vector<DenseMatrix<float> > input_graphs_2D;
+		std::vector<SparseMatrix<float> > input_graphs;
+		for(int i = 1; i <= G_NUMBER_OF_FILES; i++)
+		{
+			try
+			{
+				itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
+				input_graphs_2D.push_back(DenseMatrix<float>(itos_converter.str()));
+				input_graphs.push_back(SparseMatrix<float>(itos_converter.str()));
+				//clearing the stream
+				itos_converter.str("");
+				itos_converter.clear();
+			}
+			catch (std::exception& e)
+			{
+				std::cerr <<"Exception: " << e.what() << '\n' << std::endl;
+				itos_converter.str("");
+				itos_converter.clear();
+			}
+		}
+
+
+		for (int i = 0 ; i < input_graphs.size(); i++)
+		{
+			for (int j = i ; j < input_graphs.size(); j++)
+			{
+				DenseMatrix<float>* old_rep = input_graphs_2D[i].kron(input_graphs_2D[j]);
+			  	SparseMatrix<float> new_rep = input_graphs[i].kron(input_graphs[j]);
+			  	if (!equal(*old_rep, new_rep))
+			  	{
+					std::cout << " ID = 1: Kron product is DIFFERENT "<< i+1  <<" " << j+1 << std::endl;
+				}
+			}
+		}
+	}
+
+	if (rank == 2)
+	{
+		
+		std::ostringstream itos_converter;
+		std::vector<DenseMatrix<float> > input_graphs_2D;
+		std::vector<Matrix<float> > input_graphs;
+		for(int i = 1; i <= G_NUMBER_OF_FILES; i++)
+		{
+			try
+			{
+				itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
+				input_graphs_2D.push_back(DenseMatrix<float>(itos_converter.str()));
+				input_graphs.push_back(Matrix<float>(itos_converter.str()));
+				//clearing the stream
+				itos_converter.str("");
+				itos_converter.clear();
+			}
+			catch (std::exception& e)
+			{
+				std::cerr <<"Exception: " << e.what() << '\n' << std::endl;
+				itos_converter.str("");
+				itos_converter.clear();
+			}
+		}
+
+
+		for (int i = 0 ; i < input_graphs.size(); i++)
+		{
+			for (int j = i ; j < input_graphs.size(); j++)
+			{
+				DenseMatrix<float>* old_rep = input_graphs_2D[i].kron(input_graphs_2D[j]);
+			  	Matrix<float> new_rep = input_graphs[i].kron(input_graphs[j]);
+			  	if (!equal(*old_rep, new_rep))
+			  	{
+					std::cout << " ID = 2: Kron product is DIFFERENT "<< i+1  <<" " << j+1 << std::endl;
+				}
+			}
+		}
+	}
+
+	if (rank == 3)
+	{
+		
+		std::ostringstream itos_converter;
+		std::vector<DenseMatrix<float> > input_graphs_2D;
+		std::vector<SymMatrix<float> > input_graphs;
+		for(int i = 1; i <= G_NUMBER_OF_FILES; i++)
+		{
+			try
+			{
+				itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
+				input_graphs_2D.push_back(DenseMatrix<float>(itos_converter.str()));
+				input_graphs.push_back(SymMatrix<float>(itos_converter.str()));
+				//clearing the stream
+				itos_converter.str("");
+				itos_converter.clear();
+			}
+			catch (std::exception& e)
+			{
+				std::cerr <<"Exception: " << e.what() << '\n' << std::endl;
+				itos_converter.str("");
+				itos_converter.clear();
+			}
+		}
+
+
+		for (int i = 0 ; i < input_graphs.size(); i++)
+		{
+			for (int j = i ; j < input_graphs.size(); j++)
+			{
+				DenseMatrix<float>* old_rep = input_graphs_2D[i].kron(input_graphs_2D[j]);
+			  	SymMatrix<float> new_rep = input_graphs[i].kron(input_graphs[j]);
+			  	if (!equal(*old_rep, new_rep))
+			  	{
+					std::cout << " ID = 3: Kron product is DIFFERENT "<< i+1  <<" " << j+1 << std::endl;
+				}
+			}
+		}
+	}
+
+	std::cout << "Process: " << rank << " terminated." << endl;
+	MPI_Finalize();
 	return 0;
 }
-
-/*
-SymSparseMatrix<int> mat1 (4);
-	mat1.insert(1,2, 4);
-	mat1.insert(3,0, 5);
-
-
-	std::cout << mat1 << std::endl;
-
-	for (auto it = mat1._edges.begin(); it != mat1._edges.end(); ++it )
-	{
-		std::cout << "First: " <<it->first << " Second" << it->second << std::endl;
-		std::cout << "		" << "i: " <<it->first/mat1.getSize() << " j: " << it->first%mat1.getSize() << std::endl;
-	}
-
-*/	

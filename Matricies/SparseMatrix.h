@@ -36,8 +36,8 @@ template <typename T>
 class SparseMatrix
 {
 private:
-    const static int _DEFAULT_MATRIX_SIZE = 1;
-    const static T _DEFAULT_MATRIX_ENTRY = 1;
+    const static int _DEFAULT_MATRIX_SIZE;
+    const static T _DEFAULT_MATRIX_ENTRY;
     size_t _getArrSize() const;
     void _copy(const SparseMatrix<T>&);
     bool _hasEdge(int,int);
@@ -107,7 +107,11 @@ public:
      */
     
 };
-
+//==========================================================CONSTANTS============================================================
+template <typename T>
+const int SparseMatrix<T>::_DEFAULT_MATRIX_SIZE = 1;
+template <typename T>
+const T SparseMatrix<T>::_DEFAULT_MATRIX_ENTRY = 1;
 //==========================================================CONSTRUCTORS============================================================
 
 template <typename T>
@@ -139,9 +143,7 @@ inline SparseMatrix<T>::SparseMatrix(const std::string& file_path)
     {
         file_reader >> tmp_i;
         file_reader >> tmp_j;
-        tmp_i--;                //making the matrix 0 indexed
-        tmp_j--;
-        this->_edges[ (tmp_i * this->_cols) + tmp_j ] = _DEFAULT_MATRIX_ENTRY;
+        this->insert(tmp_i -1, tmp_j -1 , 1);
     }
     file_reader.close();
 }
@@ -370,27 +372,30 @@ inline SparseMatrix<T> SparseMatrix<T>::kron(const SparseMatrix<T>& matrix)
     // checking for matrices to be square
     if (!this->isSquare() || !matrix.isSquare())
     {
-       // throw NotASquareSparseMatrixException();
+       throw NotASquareMatrixException();
     }
     
-    //Initializing and allocating the product SparseMatrix
+   
     int prod_size = this->_rows * matrix._rows;
-   // SparseMatrix<T>* prod_matrix_right = new SparseMatrix<T>(prod_size, prod_size);
     SparseMatrix<T> prod_matrix(prod_size, prod_size);
-    prod_matrix._edges = std::vector<SparseElement<T> >(this->_getArrSize()*matrix._getArrSize());
 
-    int counter = 0;
-    for(int i = 0; i < this->_getArrSize(); i++)
+    int mat1_i;
+    int mat1_j;
+    int mat2_i;
+    int mat2_j;
+     for(auto i_it = this->_edges.begin(); i_it != this->_edges.end(); ++i_it)
     {
-        for(int j = 0; j < matrix._getArrSize(); j++)
+        for(auto j_it = matrix._edges.begin(); j_it != matrix._edges.end(); ++j_it)
         {
-            prod_matrix._edges[counter++] = (SparseElement<T>((this->_edges[i].getX()*matrix._rows) + matrix._edges[j].getX(),
-                                                              (this->_edges[i].getY()*matrix._cols) + matrix._edges[j].getY(),
-                                                              this->_edges[i].getValue() *  matrix._edges[j].getValue()));
+            mat1_i = i_it->first/this->_cols;
+            mat1_j = i_it->first%this->_cols;
+            mat2_i = j_it->first/matrix._cols;
+            mat2_j = j_it->first%matrix._cols;
+
+            prod_matrix._edges[(mat1_i * matrix._cols + mat2_i)*prod_size+ (mat1_j * matrix._cols + mat2_j)] = (i_it->second) * (j_it->second);
         }
     }
     
-    std::sort(prod_matrix._edges.begin(), prod_matrix._edges.end());
     return prod_matrix;
 }
 
@@ -509,7 +514,7 @@ inline size_t SparseMatrix<T>::_getArrSize() const
 template <typename T>
 inline bool SparseMatrix<T>::_hasEdge(int i, int j)
 {
-    return (this->_edges.find((i * this->_cols) + j) == this->_edges.end());
+    return (this->_edges.find((i * this->_cols) + j) != this->_edges.end());
 }
 
 

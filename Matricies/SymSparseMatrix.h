@@ -19,6 +19,7 @@
 #include "SparseElement.h"
 #include "MatrixExceptions.h"
 #include "Matrix2D.h"
+#include "SparseMatrix.h"
 
 #ifdef ARPACK
 #include "dsmatrxa.h"
@@ -461,6 +462,7 @@ inline SymSparseMatrix<T> SymSparseMatrix<T>::kron(const SymSparseMatrix<T>& mat
     int mat1_j;
     int mat2_i;
     int mat2_j;
+    T prod;
 
     for(auto i_it = this->_edges.begin(); i_it != this->_edges.end(); ++i_it)
     {
@@ -470,9 +472,10 @@ inline SymSparseMatrix<T> SymSparseMatrix<T>::kron(const SymSparseMatrix<T>& mat
             mat1_j = i_it->first%this->_size;
             mat2_i = j_it->first/matrix._size;
             mat2_j = j_it->first%matrix._size;
+            prod = (i_it->second) * (j_it->second);
 
-            prod_matrix.insert(mat1_i * matrix._size + mat2_i, mat1_j * matrix._size + mat2_j, (i_it->second) * (j_it->second));
-            prod_matrix.insert(mat1_i * matrix._size + mat2_j, mat1_j * matrix._size + mat2_i, (i_it->second) * (j_it->second));
+            prod_matrix.insert(mat1_i * matrix._size + mat2_i, mat1_j * matrix._size + mat2_j, prod);
+            prod_matrix.insert(mat1_i * matrix._size + mat2_j, mat1_j * matrix._size + mat2_i, prod);
         }
     }
 
@@ -545,7 +548,6 @@ inline std::ostream& operator<<(std::ostream& stream, const SymSparseMatrix<T>& 
         }
         stream << "\n";
     }
-    stream << "Size of hash_map: " << matrix._edges.size();
     stream << "\n\n\n";
     return stream;
 }

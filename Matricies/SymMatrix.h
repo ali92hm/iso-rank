@@ -226,11 +226,7 @@ inline int SymMatrix<DT>::getSize() const
 template <typename DT> ///////Needs to be changed
 inline SymMatrix<DT> SymMatrix<DT>::kron(const SymMatrix<DT>& matrix)
 {
-    // also checking for matrices to be square
-    if (!this->isSquare() || !matrix.isSquare())
-    {
-        throw NotASquareMatrixException();
-    }
+
     
     //Initializing and allocating the product matrix
     int prod_size = this->_size * matrix._size;
@@ -244,11 +240,11 @@ inline SymMatrix<DT> SymMatrix<DT>::kron(const SymMatrix<DT>& matrix)
      */
     for (int i_outer = 0; i_outer < this->_size; i_outer++)
     {
-        for (int j_outer=0; j_outer < this->_size; j_outer++)
+        for (int j_outer = 0; j_outer < this->_size; j_outer++)
         {
-            for(int i_inner=0; i_inner < matrix._size; i_inner++)
+            for(int i_inner = 0; i_inner < matrix._size; i_inner++)
             {
-                for(int j_inner=0; j_inner < matrix._size; j_inner++)
+                for(int j_inner = 0; j_inner < matrix._size; j_inner++)
                 {
                     prod_matrix((i_outer*matrix._size) + i_inner,
                                         (j_outer*matrix._size)+j_inner) = 
