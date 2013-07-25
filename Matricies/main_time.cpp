@@ -20,7 +20,7 @@ std::string G_DIR_PATH = "/home/ali/workspace/ex/input/";
 std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
 #endif
 std::string G_FILE_EXTENSION = ".dat";
-int G_NUMBER_OF_FILES = 2;
+int G_NUMBER_OF_FILES = 50;
 
 typedef int DataType;
 double timeElapsed(std::clock_t start, std::clock_t end)
