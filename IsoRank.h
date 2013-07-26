@@ -155,19 +155,19 @@ struct IsoRank_Result isoRank(SymSparseMatrix<DT>& matrix_A, SymSparseMatrix<DT>
 //                 
 //                 switch (matching_algorithm)
 //                 {
-//                     case 0:
+//                     case GREEDY:
 //                         greedy_1(*scores,matrix_A,matrix_B,assignment);
 //                         break;
-//                     case 1:
+//                     case CON_ENF_1:
 //                         greedy_connectivity_1(*scores,matrix_A,matrix_B,assignment);
 //                         break;
-//                     case 2:
+//                     case CON_ENF_2:
 //                         greedy_connectivity_2(*scores,matrix_A,matrix_B,assignment);
 //                         break;
-//                     case 3:
+//                     case CON_ENF_3:
 //                         greedy_connectivity_3(*scores,matrix_A,matrix_B,assignment);
 //                         break;
-//                     case 4:
+//                     case CON_ENF_4:
 //                         greedy_connectivity_4(*scores,matrix_A,matrix_B,assignment);
 //                         break;
 //                     default:

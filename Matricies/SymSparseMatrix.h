@@ -232,65 +232,6 @@ inline int SymSparseMatrix<T>::getSize()
 }
 
 template <typename T>
-inline bool SymSparseMatrix<T>::isSymmetric() const ////////////////////////////TODO
-{
-    // //sym. SymSparseMatrix has to be square
-    // if (this->_rows != this->_cols)
-    // {
-    //     return false;
-    // }
-    
-    // //chaking for entries to be equal
-    // for(int i = 0; i < this->_rows; i++)
-    // {
-    //     for(int j = 0; j < this->_cols; j++)
-    //     {
-    //         if (this->_edges[(i * this->_cols) + j] != this->_edges[(j * this->_cols) + i])
-    //         {
-    //             return false;
-    //         }
-    //     }
-    // }
-    
-    // return true;
-}
-
-//template <typename T>
-//sparse_SymSparseMatrix_element<T>** SymSparseMatrix<T>::getSparseForm(){
-//    
-//    if(sparse_form != NULL)
-//    {
-//        return this->sparse_form;
-//    }
-//    
-//    for(int i = 0; i < this->_getArrSize(); i++)
-//    {
-//        if(this->_edges[i] != 0)
-//        {
-//            sparse_form_size++;
-//        }
-//    }
-//    
-//    sparse_form = new sparse_SymSparseMatrix_element<T>* [sparse_form_size];
-//    int counter=0;
-//    
-//    for(int i = 0; i < this->_getArrSize(); i++)
-//    {
-//        if(this->_edges[i] != 0)
-//        {
-//            sparse_SymSparseMatrix_element<T> *ele= new sparse_SymSparseMatrix_element<T>;
-//            ele->row_index = i / this->_rows;
-//            ele->col_index = i % this->_rows;
-//            ele->value = this->_edges[i];
-//            sparse_form[counter]=ele;
-//            counter++;
-//        }
-//    }
-//    
-//    return this->sparse_form;
-//}
-
-template <typename T>
 inline SparseMatrix<T> SymSparseMatrix<T>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B)
 {
     int num_in_A = 0;
@@ -311,7 +252,6 @@ inline SparseMatrix<T> SymSparseMatrix<T>::getScatteredSelection(const std::vect
     }
     //Initializing and allocating the product SymSparseMatrix
     SparseMatrix<T> result_matrix(num_in_A, num_in_B);
-    
     int counter = 0;
     
     for (int i=0; i < vec_A.size(); i++)
@@ -320,14 +260,13 @@ inline SparseMatrix<T> SymSparseMatrix<T>::getScatteredSelection(const std::vect
         {
             if ( vec_A[i] == 1 && vec_B[j] ==1)
             {
-                result_matrix[counter/num_in_B][counter%num_in_B] = (*this)(i,j);
+                result_matrix.insert(counter/num_in_B, counter%num_in_B , (*this)(i,j));
                 counter++;
             }
         }
     }
     return result_matrix;
 }
-
 
 
 template <typename T>
@@ -349,30 +288,32 @@ inline std::vector<int> SymSparseMatrix<T>::getNeighbors(int vertex)
 template <typename T>
 inline std::vector<T> SymSparseMatrix<T>::getTopEigenVector(){
     
-    //    int arr_size= (0.5 * this->_rows * (this->_rows+1));
-    //    double nzval[arr_size];
-    //    int counter = 0;
-    //
-    //    for(int i = 0; i < this->_rows; i++)
-    //    {
-    //        for(int j = i; j < this->_rows; j++)
-    //        {
-    //            nzval[counter] = (*this)(i,j);
-    //            counter++;
-    //        }
-    //    }
-    //
-    //    ARdsSymSymSparseMatrix<T> ARSymSparseMatrix(this->_rows,nzval,'L');
-    //    ARluSymStdEig<T> eigProb(1, ARSymSparseMatrix, "LM", 10);
-    //    eigProb.FindEigenvectors();
-    //    std::vector<T>* eigenVec = new std::vector<T>(eigProb.GetN());
-    //
-    //    for (int i=0; i < eigProb.GetN() ; i++)
-    //    {
-    //        eigenVec[i] = eigProb.Eigenvector(0,i);
-    //    }
-    //
-    //    return eigenVec;
+    #ifdef ARPACK
+   int arr_size= (0.5 * this->_rows * (this->_rows+1));
+   double nzval[arr_size];
+   int counter = 0;
+
+   for(int i = 0; i < this->_rows; i++)
+   {
+       for(int j = i; j < this->_rows; j++)
+       {
+           nzval[counter] = (*this)(i,j);
+           counter++;
+       }
+   }
+
+   ARdsSymSymSparseMatrix<T> ARSymSparseMatrix(this->_rows,nzval,'L');
+   ARluSymStdEig<T> eigProb(1, ARSymSparseMatrix, "LM", 10);
+   eigProb.FindEigenvectors();
+   std::vector<T>* eigenVec = new std::vector<T>(eigProb.GetN());
+
+   for (int i=0; i < eigProb.GetN() ; i++)
+   {
+       eigenVec[i] = eigProb.Eigenvector(0,i);
+   }
+
+   return eigenVec;
+   #endif
 }
 
 
@@ -384,10 +325,17 @@ inline std::vector<T> SymSparseMatrix<T>::getTopEigenVector(){
 template <typename T>
 inline std::vector<T> SymSparseMatrix<T>::getSumOfRows()
 {
-    std::vector<T>* sum_vector= new std::vector<T>(this->_rows);
-    for(int i = 0; i < this->_getArrSize(); i++)
+    std::vector<T> sum_vector(this->_rows);
+    for(int i = 0; i < this->_size; i++)
     {
-        (*sum_vector)[(i / this->_rows)] += this->_edges[i];
+        for (int j = j; j < this->_size; j++)
+        {
+            sum_vector[(i / this->_rows)] += (*this)(i,j);
+        }
+
+        for (auto it = this->_edges)
+        sum_vector[(i / this->_rows)] *= 2;
+        
     }
     
     return sum_vector;
