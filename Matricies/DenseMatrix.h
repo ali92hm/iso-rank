@@ -56,7 +56,7 @@ class DenseMatrix
 {
 private:
     void _copy(const DenseMatrix<T>&);
-    void _initilalizeMatrix(bool);
+    void _initializeMatrix(bool);
     
 protected:
     unsigned int _rows;
@@ -123,7 +123,7 @@ DenseMatrix<T>::DenseMatrix()
 {
     this->_rows = DEFAULT_MATRIX_SIZE;
     this->_cols = DEFAULT_MATRIX_SIZE;
-    _initilalizeMatrix(true);
+    _initializeMatrix(true);
 }
 
 template<typename T>
@@ -143,7 +143,7 @@ DenseMatrix<T>::DenseMatrix(const std::string &file_path)
     file_reader >> this->_rows;
     file_reader >> this->_cols;
     file_reader >> tmp_x;      //skip the number of lines entry
-    _initilalizeMatrix(true);
+    _initializeMatrix(true);
   
     
     while (!file_reader.eof())
@@ -162,7 +162,7 @@ DenseMatrix<T>::DenseMatrix(int rows, int cols)
 {
     this->_rows = rows;
     this->_cols = cols;
-    !_initilalizeMatrix(true);
+    !_initializeMatrix(true);
 }
 
 template <typename T>
@@ -410,7 +410,7 @@ std::vector<T> DenseMatrix<T>::getTopEigenVector() const
 template <typename T>
 std::vector<T> DenseMatrix<T>::getSumOfRows() const
 {
-    std::vector<T> sum_vec;
+    std::vector<T> sum_vec(this->_rows);
     for(int i=0; i < _rows; i++)
     {
         for (int j = 0; j < _cols; j++)
@@ -548,7 +548,7 @@ void DenseMatrix<T>::_copy(const DenseMatrix<T>& matrix)
 {
     this->_rows = matrix._rows;
     this->_cols = matrix._cols;
-    _initilalizeMatrix(false);
+    _initializeMatrix(false);
 
     for(int i=0; i < this->_rows; i++)
     {
@@ -560,7 +560,7 @@ void DenseMatrix<T>::_copy(const DenseMatrix<T>& matrix)
 }
 
 template <typename T>
-void DenseMatrix<T>::_initilalizeMatrix(bool fill)
+void DenseMatrix<T>::_initializeMatrix(bool fill)
 {
     try
     {
