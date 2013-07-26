@@ -97,7 +97,7 @@ public:
     vector<int>* getNeighbors(int vertex);
     //Mutators
     DenseMatrix<DT> transpose();
-    DenseMatrix<DT>* kron(DenseMatrix<DT>& matrix);
+    DenseMatrix<DT> kron(DenseMatrix<DT>& matrix);
     DT* sum_rows();
     DenseMatrix<DT>* vec_times_mat(DT*, int);
     DenseMatrix<DT>* mat_times_vec(DT*, int);
@@ -283,7 +283,7 @@ sparse_matrix_element<DT>** DenseMatrix<DT>::getSparseForm(){
 }
 
 template <typename DT>
-DenseMatrix<DT>* DenseMatrix<DT>::kron(DenseMatrix<DT>& matrix)
+DenseMatrix<DT> DenseMatrix<DT>::kron(DenseMatrix<DT>& matrix)
 {
     // also checking for matrices to be square
     if (!this->isSquare() || !matrix.isSquare())
@@ -293,7 +293,7 @@ DenseMatrix<DT>* DenseMatrix<DT>::kron(DenseMatrix<DT>& matrix)
     
     //Initializing and allocating the product matrix
     int prod_size = this->_rows * matrix._rows;
-    DenseMatrix<DT>* prod_matrix = new DenseMatrix<DT>(prod_size, prod_size);
+    DenseMatrix<DT> prod_matrix(prod_size, prod_size);
     
     /*
      *  Calculating the kronecker product:
@@ -309,7 +309,7 @@ DenseMatrix<DT>* DenseMatrix<DT>::kron(DenseMatrix<DT>& matrix)
             {
                 for(int j_inner=0; j_inner < matrix._cols; j_inner++)
                 {
-                    (*prod_matrix)[(i_outer*matrix._rows) + i_inner][(j_outer*matrix._cols)+j_inner] =
+                    prod_matrix._edges[(i_outer*matrix._rows) + i_inner][(j_outer*matrix._cols)+j_inner] =
                     this->_edges[i_outer][j_outer] * matrix._edges[i_inner][j_inner];
                 }
             }

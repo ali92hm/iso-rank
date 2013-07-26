@@ -20,7 +20,7 @@ std::string G_DIR_PATH = "/home/ali/workspace/ex/input/";
 std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
 #endif
 std::string G_FILE_EXTENSION = ".dat";
-int G_NUMBER_OF_FILES = 50;
+int G_NUMBER_OF_FILES = 5000;
 
 typedef int DataType;
 double timeElapsed(std::clock_t start, std::clock_t end)
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
 		{
 			for (int j = i ; j < input_graphs_2D.size(); j++)
 			{
-				DenseMatrix<float>* old_rep = input_graphs_2D[i].kron(input_graphs_2D[j]);
+				DenseMatrix<float> old_rep = input_graphs_2D[i].kron(input_graphs_2D[j]);
 			}
 		}
 		time_end = std::clock();
