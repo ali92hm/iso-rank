@@ -474,8 +474,8 @@ inline SymSparseMatrix<T> SymSparseMatrix<T>::kron(const SymSparseMatrix<T>& mat
             mat2_j = j_it->first%matrix._size;
             prod = (i_it->second) * (j_it->second);
 
-            prod_matrix.insert(mat1_i * matrix._size + mat2_i, mat1_j * matrix._size + mat2_j, prod);
-            prod_matrix.insert(mat1_i * matrix._size + mat2_j, mat1_j * matrix._size + mat2_i, prod);
+            prod_matrix._edges[(mat1_i * matrix._size + mat2_i)*prod_matrix._size + mat1_j * matrix._size + mat2_j] =  prod;
+            prod_matrix._edges[(mat1_i * matrix._size + mat2_j)*prod_matrix._size + mat1_j * matrix._size + mat2_i ] =  prod;
         }
     }
 
