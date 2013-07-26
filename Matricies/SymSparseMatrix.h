@@ -272,17 +272,17 @@ inline SparseMatrix<T> SymSparseMatrix<T>::getScatteredSelection(const std::vect
 template <typename T>
 inline std::vector<int> SymSparseMatrix<T>::getNeighbors(int vertex)
 {
-    std::vector<int> neighbors;
+    // std::vector<int> neighbors;
     
-    for(int i = 0; i < this->getNumberOfRows(); i++)
-    {
-        if(this->_edges[(i * this->_cols) + vertex] == 1)
-        {
-            neighbors.push_back(i);
-        }
-    }
+    // for(int i = 0; i < this->getNumberOfRows(); i++)
+    // {
+    //     if(this->_edges[(i * this->_cols) + vertex] == 1)
+    //     {
+    //         neighbors.push_back(i);
+    //     }
+    // }
     
-    return neighbors;
+    // return neighbors;
 }
 
 template <typename T>
@@ -325,17 +325,10 @@ inline std::vector<T> SymSparseMatrix<T>::getTopEigenVector(){
 template <typename T>
 inline std::vector<T> SymSparseMatrix<T>::getSumOfRows()
 {
-    std::vector<T> sum_vector(this->_rows);
-    for(int i = 0; i < this->_size; i++)
+    std::vector<T> sum_vector(this->_size);
+    for(auto it = this->_edges.begin(); it != this->_edges.end(); ++it)
     {
-        for (int j = j; j < this->_size; j++)
-        {
-            sum_vector[(i / this->_rows)] += (*this)(i,j);
-        }
-
-        for (auto it = this->_edges)
-        sum_vector[(i / this->_rows)] *= 2;
-        
+        sum_vector[it->first/this->_size] += 2*it->second;
     }
     
     return sum_vector;

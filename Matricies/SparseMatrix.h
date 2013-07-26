@@ -339,10 +339,10 @@ inline std::vector<T> SparseMatrix<T>::getTopEigenVector(){
 template <typename T>
 inline std::vector<T> SparseMatrix<T>::getSumOfRows()
 {
-    std::vector<T>* sum_vector= new std::vector<T>(this->_rows);
-    for(int i = 0; i < this->_getArrSize(); i++)
+   std::vector<T> sum_vector(this->_rows);
+    for(auto it = this->_edges.begin(); it != this->_edges.end(); ++it)
     {
-        (*sum_vector)[(i / this->_rows)] += this->_edges[i];
+        sum_vector[it->first/this->_rows] += it->second;
     }
     
     return sum_vector;
@@ -383,7 +383,7 @@ inline SparseMatrix<T> SparseMatrix<T>::kron(const SparseMatrix<T>& matrix)
     int mat1_j;
     int mat2_i;
     int mat2_j;
-     for(auto i_it = this->_edges.begin(); i_it != this->_edges.end(); ++i_it)
+    for(auto i_it = this->_edges.begin(); i_it != this->_edges.end(); ++i_it)
     {
         for(auto j_it = matrix._edges.begin(); j_it != matrix._edges.end(); ++j_it)
         {

@@ -278,9 +278,7 @@ inline Matrix<DT> SymMatrix<DT>::getScatteredSelection(const std::vector<int>& v
     }
     //Initializing and allocating the product matrix
     Matrix<DT> res_matrix(num_in_A, num_in_B);
-    
     int counter = 0;
-    
     for (int i=0; i< vec_A.size(); i++)
     {
         for(int j=0; j< vec_B.size(); j++)
@@ -292,7 +290,7 @@ inline Matrix<DT> SymMatrix<DT>::getScatteredSelection(const std::vector<int>& v
             }
         }
     }
-    return *res_matrix;
+    return res_matrix;
 }
 
 

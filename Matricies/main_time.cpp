@@ -31,18 +31,18 @@ double timeElapsed(std::clock_t start, std::clock_t end)
 using namespace std;
 int main(int argc, char *argv[])
 {
-	int rank;
+	int rank = atoi(argv[1]);
 	int num_procs;
 	std::clock_t time_start;
     std::clock_t time_end;
 
-	if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
-    {
-        std::cout << "Failed To Initialize MPI" << std::endl;
-        //MPI_Abort();
-    }
-    MPI_Comm_size (MPI_COMM_WORLD, &num_procs);
-    MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+	// if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
+ //    {
+ //        std::cout << "Failed To Initialize MPI" << std::endl;
+ //        //MPI_Abort();
+ //    }
+ //    MPI_Comm_size (MPI_COMM_WORLD, &num_procs);
+ //    MPI_Comm_rank (MPI_COMM_WORLD, &rank);
 
 	if (rank == 0)
 	{
@@ -246,6 +246,6 @@ int main(int argc, char *argv[])
 	}
 
 	std::cout << "Process: " << rank << " terminated." << endl;
-	MPI_Finalize();
+	// MPI_Finalize();
 	return 0;
 }
