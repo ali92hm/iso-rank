@@ -240,7 +240,7 @@ inline SymMatrix<DT> SymMatrix<DT>::kron(const SymMatrix<DT>& matrix)
      */
     for (int i_outer = 0; i_outer < this->_size; i_outer++)
     {
-        for (int j_outer = 0; j_outer < this->_size; j_outer++)
+        for (int j_outer = i_outer; j_outer < this->_size; j_outer++)
         {
             for(int i_inner = 0; i_inner < matrix._size; i_inner++)
             {
