@@ -7,7 +7,7 @@
 //
 
 #include "Matricies/SymMatrix.h"
-#include "Matricies/SymSparseMatrix.h"
+#include "Matricies/DenseMatrix.h"
 #include "IsoRank.h"
 #include <vector>
 #include <ctime>
@@ -23,7 +23,7 @@ std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/g
 #endif
 
 std::string G_FILE_EXTENSION = ".dat";
-int G_NUMBER_OF_FILES = 4;
+int G_NUMBER_OF_FILES = 2;
 
 /*
  * 
@@ -242,14 +242,15 @@ int main(int argc, char * argv[])
     	while(true)
     	{
     		//Recv graphs from the master
-    		SymSparseMatrix<DataType> mat1 (MASTER_ID, TAG_1 * ID ,stat);
-    		SymSparseMatrix<DataType> mat2 (MASTER_ID, TAG_1 * ID + TAG_2 ,stat);
+    		DenseMatrix<DataType> mat1 (MASTER_ID, TAG_1 * ID ,stat);
+    		DenseMatrix<DataType> mat2 (MASTER_ID, TAG_1 * ID + TAG_2 ,stat);
+//     		std::cout << mat1 << "\n" << mat2 << std::endl;
 
     		if (G_DEBUG)
     			std::cout << "Process "<< ID << " : received graphs from master"<< std::endl;
 
     		//Terminating the while loop if the matrices are 0*0
-			if (mat1.getSize() == 0 && mat2.getSize() == 0)
+			if (mat1.getNumberOfRows() == 0 && mat2.getNumberOfRows() == 0)
 			{
 				if (G_DEBUG)
 					std::cout << "Process "<< ID << ": received terminate signal from master"<< std::endl;
@@ -265,10 +266,10 @@ int main(int argc, char * argv[])
 				{	
 					if (G_DEBUG)
 						std::cout << "Process " << ID << ": isoRank: started." << std::endl;
-			  			//result = isoRank(mat1, mat2, 0,assignment);
-			  		result.frob_norm = 1;
-			  		result.assignments = new int[10];
-			  		result.assignment_length = 10;
+			  		result = isoRank(mat1, mat2, 0);
+			  		// result.frob_norm = 1;
+// 			  		result.assignments = new int[10];
+// 			  		result.assignment_length = 10;
 			  		if (G_DEBUG)
 						std::cout << "Process " << ID << ": isoRank: end." << std::endl;
 				}

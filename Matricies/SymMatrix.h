@@ -22,7 +22,6 @@
 #include <iomanip>
 #include <cstring>
 #include <limits>
-#include "Matrix.h"
 #include "MatrixExceptions.h"
 
 #ifdef USE_MPI
@@ -86,7 +85,7 @@ public:
     std::vector<DT> getSumOfRows();
     std::vector<DT> getTopEigenVector();
     std::vector<int> getNeighbors(int vertex);
-    Matrix<DT> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B);
+//     SymMatrix<DT> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B);
     
     /**********
      *MUTATORS*
@@ -101,7 +100,7 @@ public:
     SymMatrix<DT>& operator= (const SymMatrix<DT>&);
     SymMatrix<DT> diagonalVectorTimesMatrix(const std::vector<DT>&);
     SymMatrix<DT> matrixTimesDiagonalVector(const std::vector<DT>&);
-    friend std::ostream& operator<< <> (std::ostream& stream, const Matrix<DT>& matrix);
+    friend std::ostream& operator<< <> (std::ostream& stream, const SymMatrix<DT>& matrix);
     
     /*************
     *MPI Send/REC*
@@ -257,41 +256,41 @@ inline SymMatrix<DT> SymMatrix<DT>::kron(const SymMatrix<DT>& matrix)
     return prod_matrix;
 }
 
-template <typename DT> //NEEDS REVIEW
-inline Matrix<DT> SymMatrix<DT>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B)
-{
-    int num_in_A = 0;
-    for (int i=0; i< vec_A.size(); i++)
-    {
-        if (vec_A[i] != 0)
-        {
-            num_in_A++;
-        }
-    }
-    int num_in_B = 0;
-    for (int i=0; i < vec_B.size(); i++)
-    {
-        if( vec_B[i] != 0)
-        {
-            num_in_B++;
-        }
-    }
-    //Initializing and allocating the product matrix
-    Matrix<DT> res_matrix(num_in_A, num_in_B);
-    int counter = 0;
-    for (int i=0; i< vec_A.size(); i++)
-    {
-        for(int j=0; j< vec_B.size(); j++)
-        {
-            if ( vec_A[i] == 1 && vec_B[j] ==1)
-            {
-                res_matrix.insert(counter/num_in_B, counter%num_in_B, (*this)(i, j));
-                counter++;
-            }
-        }
-    }
-    return res_matrix;
-}
+// template <typename DT> //NEEDS REVIEW
+// inline SymMatrix<DT> SymMatrix<DT>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B)
+// {
+//     int num_in_A = 0;
+//     for (int i=0; i< vec_A.size(); i++)
+//     {
+//         if (vec_A[i] != 0)
+//         {
+//             num_in_A++;
+//         }
+//     }
+//     int num_in_B = 0;
+//     for (int i=0; i < vec_B.size(); i++)
+//     {
+//         if( vec_B[i] != 0)
+//         {
+//             num_in_B++;
+//         }
+//     }
+//     //Initializing and allocating the product matrix
+//     Matrix<DT> res_matrix(num_in_A, num_in_B);
+//     int counter = 0;
+//     for (int i=0; i< vec_A.size(); i++)
+//     {
+//         for(int j=0; j< vec_B.size(); j++)
+//         {
+//             if ( vec_A[i] == 1 && vec_B[j] ==1)
+//             {
+//                 res_matrix.insert(counter/num_in_B, counter%num_in_B, (*this)(i, j));
+//                 counter++;
+//             }
+//         }
+//     }
+//     return res_matrix;
+// }
 
 
 
@@ -379,7 +378,7 @@ inline SymMatrix<DT> SymMatrix<DT>::diagonalVectorTimesMatrix(const std::vector<
         throw DimensionMismatchException();
     }
     
-    Matrix<DT> ret_matrix(*this);
+    SymMatrix<DT> ret_matrix(*this);
     for(int i = 0; i < this->_getArrSize(); i++)
     {
         ret_matrix._edges[i] = vec[i/this->_rows] * this->_edges[i];
@@ -396,7 +395,7 @@ inline SymMatrix<DT> SymMatrix<DT>::matrixTimesDiagonalVector(const std::vector<
         throw DimensionMismatchException();
     }
     
-    Matrix<DT> ret_matrix(*this);
+    SymMatrix<DT> ret_matrix(*this);
     for(int i = 0; i < this->_getArrSize(); )
     {
         for(int j = 0; j < vec.size(); j++)

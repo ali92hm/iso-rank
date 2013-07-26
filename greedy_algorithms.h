@@ -150,9 +150,9 @@ void greedy_connectivity_2(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1,
       {
 	curr_row=assigned_G1[i];
 	curr_col=assignment[curr_row];
-	vector<int>* neigh_1= graph1.getNeighbors(curr_row);
-	vector<int>* neigh_2= graph2.getNeighbors(curr_col);
-	set_matrix_values(*active_matches,matches,*neigh_1,*neigh_2);
+	vector<int> neigh_1= graph1.getNeighbors(curr_row);
+	vector<int> neigh_2= graph2.getNeighbors(curr_col);
+	set_matrix_values(*active_matches,matches,neigh_1,neigh_2);
       }
 
       prev_score=score;
@@ -189,8 +189,8 @@ void greedy_connectivity_3(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1,
   init_array(assignment_G1,graph1_nodes,0);
   init_array(assignment_G2,graph1_nodes,0);
 
-  vector<int>* neigh_1;
-  vector<int>* neigh_2;
+  vector<int> neigh_1;
+  vector<int> neigh_2;
 
   //run while loop until all nodes are assigned 
   while(sum_array(assignment2,graph1_nodes)<min(graph1_nodes,graph2_nodes)){
@@ -220,7 +220,7 @@ void greedy_connectivity_3(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1,
       }*/
 
     set_to_min(*local_matches);
-    set_matrix_values(*local_matches,matches,*neigh_1,*neigh_2);
+    set_matrix_values(*local_matches,matches,neigh_1,neigh_2);
     int row_inside= row;
     int col_inside=col;
 
@@ -231,7 +231,7 @@ void greedy_connectivity_3(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1,
      }
 
      //run for loop until all neighbors are assigned and score matrix isn't all -inf
-    for(int i=0;i<min(neigh_1->size(),neigh_2->size())&&!all_inf(*local_matches);i++){
+    for(int i=0;i<min(neigh_1.size(),neigh_2.size())&&!all_inf(*local_matches);i++){
       
       //find best nodal pairing and peform assignment 
       return_max(*local_matches,&final_score,&row,&col);
@@ -276,8 +276,8 @@ DT max_tol=pow(10,-6);
 int row,col,size=0;
 int assigned_G1[graph1.getNumberOfRows()];
 int assigned_G2[graph2.getNumberOfRows()];
-vector<int>* neigh_1;
-vector<int>* neigh_2;
+vector<int> neigh_1;
+vector<int> neigh_2;
 int add_order_counter=2;
 
 
@@ -319,7 +319,7 @@ DT max= get_Max(&matches,random_id,score-max_tol,&row,&col);
 
  //create local score matrix and only set the values for the pairs we're considering 
  DenseMatrix<DT>* matches_local=new DenseMatrix<DT>(matches.getNumberOfRows(),matches.getNumberOfColumns());
- set_matrix_values(*matches_local, matches, *neigh_1, *neigh_2);
+ set_matrix_values(*matches_local, matches, neigh_1, neigh_2);
 
  score=0;
  size=0;
@@ -357,7 +357,7 @@ int g1c_count_counter;
     while(add_order[graph1.getNumberOfRows()-1]==-1) {
     
       //for loop that aims to match all the neighbors of the currently selected nodal pairing
-      for(int s=0; s<min(neigh_1->size(),neigh_2->size());s++) {
+      for(int s=0; s<min(neigh_1.size(),neigh_2.size());s++) {
        	score=0;
        
 	//finds all node pairings that are above a certain score and stores them in array rows_cols
@@ -499,8 +499,6 @@ int g1c_count_counter;
 
 	//choose the next set of nodes to match   
 	int c=assignment[r];
-	delete neigh_1;
-	delete neigh_2;
 
       	neigh_1=graph1.getNeighbors(r);
 	neigh_2=graph2.getNeighbors(c);
@@ -512,7 +510,7 @@ int g1c_count_counter;
 
     
  
-     set_matrix_values(*matches_local, matches, *neigh_1, *neigh_2);
+     set_matrix_values(*matches_local, matches, neigh_1, neigh_2);
      counter++;
 
 
@@ -527,8 +525,6 @@ int g1c_count_counter;
 
 
    }
-    delete neigh_1;
-    delete neigh_2;
     delete matches_local;
     delete []ass;
     delete []add_order;

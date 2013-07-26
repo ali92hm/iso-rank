@@ -18,7 +18,7 @@
 #include <unordered_map>
 #include "SparseElement.h"
 #include "MatrixExceptions.h"
-#include "Matrix2D.h"
+#include "DenseMatrix.h"
 #include "SparseMatrix.h"
 
 #ifdef ARPACK

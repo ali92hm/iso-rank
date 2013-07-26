@@ -14,10 +14,6 @@
 #include "vertex.h"
 #include "greedy_algorithms.h"
 
-
-/*
- *
- */
 #ifdef __linux__
 std::string G_DIR_PATH = "/home/ali/workspace/ex/input/";
 #elif defined __APPLE__
@@ -25,7 +21,7 @@ std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/g
 #endif
 
 
-int G_NUMBER_OF_FILES = 10;
+int G_NUMBER_OF_FILES = 2;
 std::string G_FILE_EXTENSION = ".dat";
 
 bool G_USE_ISORANK = true;
@@ -53,25 +49,18 @@ void parseCommandLineArgs(int argc, char * argv[], int rank);
 
 
 
-/*
- *
- */
 int main(int argc, char * argv[])
 {
   srand(time(NULL));
  
-    /*
-     *Configure the program to use the command line args
-     */
+
     parseCommandLineArgs(argc, argv, 0);
-    std::vector<SparseMatrix<DataType> > input_graphs;
+    std::vector<DenseMatrix<DataType> > input_graphs;
   //   std::vector<IsoRank_Result> isoRank_results;
     std::clock_t time_start;
     std::clock_t time_end;
     double elapsed_time;
-    /*
-     * Struecutes that contain the input
-     */
+
 
     	std::cout << "Reading " << G_NUMBER_OF_FILES << " graphs from: " << G_DIR_PATH << endl;
     	time_start = std::clock();
@@ -81,7 +70,7 @@ int main(int argc, char * argv[])
 			try
 			{
 				itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
-				input_graphs.push_back(SparseMatrix<DataType>(itos_converter.str()));
+				input_graphs.push_back(DenseMatrix<DataType>(itos_converter.str()));
 				//clearing the stream
 				itos_converter.str("");
 				itos_converter.clear();
@@ -103,17 +92,18 @@ int main(int argc, char * argv[])
 		{
 			for (int j = i+1; j < input_graphs.size(); j++)
 			{	
-				SparseMatrix<DataType> mat_A =  input_graphs[i];
-				SparseMatrix<DataType> mat_B = input_graphs[j];
-				if ( input_graphs[i].getNumberOfColumns() < input_graphs[j].getNumberOfColumns())
-				{
-					mat_A = input_graphs[j];
-					mat_B = input_graphs[i];
-				}
-			
+				DenseMatrix<DataType> mat_A =  input_graphs[i];
+				DenseMatrix<DataType> mat_B = input_graphs[j];
+			// 	if ( input_graphs[i].getNumberOfColumns() < input_graphs[j].getNumberOfColumns())
+// 				{
+// 					mat_A = input_graphs[j];
+// 					mat_B = input_graphs[i];
+// 				}
+// 			
 				
-				int* assignment = new int[mat_A.getNumberOfRows()];
-				init_array(assignment,mat_A.getNumberOfRows(),-1);
+			
+			
+				struct IsoRank_Result result;
 				try
 				{
 					if (G_USE_ISORANK)
@@ -121,26 +111,28 @@ int main(int argc, char * argv[])
 						if (G_USE_GREEDY_ALG)
 						{
 					
-							isoRank(mat_A,mat_B , 0,assignment);
+							result = isoRank(mat_A,mat_B , 0);
+							std::cout << result.frob_norm << std::endl;
+							delete []result.assignments;
 						}
 		
 						else if (G_USE_CON_ENF_1)
 						{
-							isoRank(mat_A, mat_B, 1,assignment);
+							isoRank(mat_A, mat_B, 1);
 						}
 		
 						else if (G_USE_CON_ENF_2)
 						{
-							isoRank(mat_A, mat_B, 2,assignment);
+							isoRank(mat_A, mat_B, 2);
 						}
 		
 						else if (G_USE_CON_ENF_3)
 						{
-							isoRank(mat_A, mat_B, 3,assignment);
+							isoRank(mat_A, mat_B, 3);
 						}
 						else if (G_USE_CON_ENF_4)
 						{
-							isoRank(mat_A, mat_B, 4,assignment);
+							isoRank(mat_A, mat_B, 4);
 						}
 					}
 	
@@ -152,7 +144,9 @@ int main(int argc, char * argv[])
 				catch (std::exception& e)
 				{
 					std::cerr << "Exception: " << e.what() << std::endl;
+					
 				}
+				//delete []assignment;
 			}
 		}
 		
@@ -163,9 +157,6 @@ int main(int argc, char * argv[])
     return 0;
 }
 
-/*
- *
- */
 void parseCommandLineArgs(int argc,char* argv[], int rank)
 {
   //  std::cout << "Reading command line arguments..." << std::endl;

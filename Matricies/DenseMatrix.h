@@ -74,8 +74,8 @@ public:
     DenseMatrix(const DenseMatrix<T>&);
 
     #ifdef USE_MPI
-    SymSparseMatrix(int,MPI_Status&, int);
-    SymSparseMatrix(int,int,MPI_Status&, int);
+    DenseMatrix(int,int,MPI_Status&);
+    //DenseMatrix(int,int,MPI_Status&, int);
     #endif
 
     /************
@@ -92,7 +92,7 @@ public:
     int getNumberOfRows() const;
     int getNumberOfColumns() const;
     // int getSparseFormSize() const;
-    std::vector<T> getTopEigenVector() const;
+    T* getTopEigenVector();
     std::vector<int> getNeighbors(int vertex) const;
     std::vector<SparseElement<T> >getSparseForm() const;
     DenseMatrix<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B) const;
@@ -157,12 +157,54 @@ DenseMatrix<T>::DenseMatrix(const std::string &file_path)
     
 }
 
+#ifdef USE_MPI
+template <typename T>
+DenseMatrix<T>::DenseMatrix(int source, int tag, MPI_Status& stat)
+{
+    MPI_Recv(&this->_rows, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+    this->_cols = _rows;
+    _initializeMatrix(false);
+    int recv_edges_size = (int)(0.5 * this->_rows * (this->_rows + 1));
+    T* recv_edges = new T[recv_edges_size];
+    MPI_Recv(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+
+    int counter = 0;
+    for (int i = 0; i < this->_rows; i++)
+    {
+        for (int j = 0; j <= i; j++)
+        {
+           this->_edges[j][i] = this->_edges[i][j] = recv_edges[counter++];  
+        }
+    }
+    delete [] recv_edges;
+}
+
+// template <typename T>
+// DenseMatrix<T>::DenseMatrix(int source, MPI_Status& stat)
+// {
+//     MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
+//     int recv_edges_size = (int)(0.5 * this->_size * (this->_size + 1));
+//     T* recv_edges = new T[recv_edges_size];
+//     MPI_Bcast(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
+// 
+//     int counter = 0;
+//     for (int i = 0; i < this->_size; i++)
+//     {
+//         for (int j = 0; j <= i; j++)
+//         {
+//             this->insert(i, j,recv_edges[counter++]);
+//         }
+//     }
+//     delete [] recv_edges;
+// }
+#endif
+
 template <typename T>
 DenseMatrix<T>::DenseMatrix(int rows, int cols)
 {
     this->_rows = rows;
     this->_cols = cols;
-    !_initializeMatrix(true);
+    _initializeMatrix(true);
 }
 
 template <typename T>
@@ -229,7 +271,7 @@ T DenseMatrix<T>::getFrobNorm() const
     {
         for(int j=0; j < this->_cols; j++)
         {
-            ret_val+= (*this)[i][j] * (*this)[i][j];
+            ret_val+= this->_edges[i][j] * this->_edges[i][j];
         }
     }
     return ret_val;
@@ -317,7 +359,7 @@ DenseMatrix<T> DenseMatrix<T>::getScatteredSelection(const std::vector<int>& vec
         {
             if ( vec_A[i] == 1 && vec_B[j] ==1)
             {
-                (*res_matrix)[counter/num_in_B][counter%num_in_B] = this->_edges[i][j];
+                res_matrix[counter/num_in_B][counter%num_in_B] = this->_edges[i][j];
                 counter++;
             }
         }
@@ -341,7 +383,7 @@ std::vector<int> DenseMatrix<T>::getNeighbors(int vertex) const
 } 
 
 template <typename T>
-std::vector<T> DenseMatrix<T>::getTopEigenVector() const
+T* DenseMatrix<T>::getTopEigenVector()
 {
 #ifdef ARPACK
     int arr_size = (this->_rows*(this->_rows+1))/2;
@@ -355,16 +397,15 @@ std::vector<T> DenseMatrix<T>::getTopEigenVector() const
         }
     }
     
-    ARdsSymMatrix<double> ARMatrix(this->_rows,nzval,'L');
-    ARluSymStdEig<double> eigProb(1, ARMatrix, "LM",10);
+    ARdsSymMatrix<T> ARMatrix(this->_rows,nzval,'L');
+    ARluSymStdEig<T> eigProb(1, ARMatrix, "LM",10);
     eigProb.FindEigenvectors();
-    std::vector<T> eigen_vector(this->_rows);
+    T* eigen_vector = new T[this->_rows];
      
-    for (int i=0; i < eigProb.GetN() ; i++)
+    for (int i=0; i < this->_rows ; i++)
     {
         eigen_vector[i] = eigProb.Eigenvector(0,i);
     }
-
     return eigen_vector;
 #endif
 
@@ -382,7 +423,7 @@ std::vector<T> DenseMatrix<T>::getTopEigenVector() const
 		
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> evals_eigen = es.eigenvalues();
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> evecs_eigen = es.eigenvectors();
-		std::vector<T> eigen_vector(this->_rows);
+		T* eigen_vector = new T[this->_rows];
 
 		for ( int i=0; i < this->_cols; i++)
 		{	
@@ -434,7 +475,7 @@ DenseMatrix<T> DenseMatrix<T>:: diagonalVectorTimesMatrix(const std::vector<T>& 
     {
         for(int j = 0; j < _cols; j++ )
         {
-            ret_matrix->_edges[i][j] = this->_edges[i][j] * vec[i];
+            ret_matrix._edges[i][j] = this->_edges[i][j] * vec[i];
         }
     }
     return ret_matrix;
@@ -454,7 +495,7 @@ DenseMatrix<T> DenseMatrix<T>::matrixTimesDiagonalVector(const std::vector<T>& v
     {
         for(int j=0; j < _rows; j++)
         {
-            ret_matrix->_edges[j][i] = this->_edges[j][i]*vec[i];
+            ret_matrix._edges[j][i] = this->_edges[j][i]*vec[i];
         }
     }
     return ret_matrix;
@@ -470,7 +511,7 @@ DenseMatrix<T> DenseMatrix<T>::transpose() const
     {
         for(int j=0;j<this->_cols;j++)
         {
-            ret_matrix[j][i]=(*this)[i][j];
+            ret_matrix[j][i] = this->_edges[i][j];
         }
     }
     return ret_matrix;
@@ -527,7 +568,7 @@ DenseMatrix<T> DenseMatrix<T>::operator-(const DenseMatrix<T>& other_matrix) con
   DenseMatrix<T> ret_matrix(this->_rows,this->_cols);
   for(int i = 0; i < this->_rows ;i++)
   {   
-      for(int j = 0; j < this->getCols(); j++)
+      for(int j = 0; j < this->_cols; j++)
       {
 	       ret_matrix[i][j] = this->_edges[i][j] - other_matrix._edges[i][j];
       }
@@ -538,7 +579,14 @@ DenseMatrix<T> DenseMatrix<T>::operator-(const DenseMatrix<T>& other_matrix) con
 template <typename T>
 void DenseMatrix<T>::operator=(const DenseMatrix<T>& matrix)
 {
-    delete this;
+	if (_edges != NULL)
+    {
+        for(int i=0; i < this->_rows; i++)
+        {
+            delete [] _edges[i];
+        }
+        delete [] _edges;
+    }	
     _copy(matrix);
 }
 
@@ -579,7 +627,8 @@ void DenseMatrix<T>::_initializeMatrix(bool fill)
     }
     catch (std::bad_alloc& e)
     {
-        throw OutOfMemoryException();
+    	std::cout << "Bad alloc" << std::endl;
+        //throw OutOfMemoryException();
     }
 }
 

@@ -14,7 +14,7 @@
 #include <string>
 #include <cmath>
 #include <fstream>
-#include "Matrix2D.h"
+#include "DenseMatrix.h"
 #include "MatrixExceptions.h"
 
 #ifdef ARPACK

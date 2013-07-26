@@ -11,9 +11,8 @@
 
 #include "Matricies/DenseMatrix.h"
 #include "Matricies/SparseElement.h"
-
-
-using namespace std;
+#include "vertex.h"
+#include <stack>
 
 /*
  * performs a binary search on the edges of sparse graph
@@ -22,16 +21,12 @@ using namespace std;
  * @pram: int signifying the vertex we wish to work with
  */
 
-template <typename DT>
-int binary_search_index(DenseMatrix<DT>& sm, int curr_row){
+template <typename T>
+int binary_search_index(std::vector<SparseElement<T> >& sparse_graph, int curr_row){
     int start=0;
-    int sparse_size=sm.getSparseFormSize();
+    int sparse_size = sparse_graph.size();
     int finish=sparse_size-1;
     int mid=0;
-    std::vector<SparseElement<int> > sparse_graph = sm.getSparseForm();
-    
-    
-    printf("sparse form size: %d\n",sparse_size );
     while(start<=finish && mid>=0 && mid<sparse_size){
         mid=(start+finish)/2;
         
@@ -78,25 +73,26 @@ int min(int a, int b){
  * @pram: stack s used to perform tarjan's
  * @pram: vertex object w
  */
-int contains(stack<vertex*>* s,vertex* w){
-    stack<vertex*> other_stack;
+int contains(std::stack<vertex*>& s,vertex& w)
+{
+    std::stack<vertex*> other_stack;
     int found=0;
-    vertex *current;
+    vertex* current;
     
-    while(!(*s).empty()){
-        current=(*s).top();
-        if(*current==*w){
+    while(!s.empty()){
+        current = s.top();
+        if((*current)==w){
             found=1;
             break;
         }
-        (*s).pop();
+        s.pop();
         other_stack.push(current);
     }
     
     while(!other_stack.empty()){
         current=other_stack.top();
         other_stack.pop();
-        (*s).push(current);
+        s.push(current);
     }
     
     return found;
@@ -113,20 +109,18 @@ int contains(stack<vertex*>* s,vertex* w){
  * @pram: stack used to perform the algorithm
  */
 
-template <typename DT>
-void strong_com(DenseMatrix<DT>& sm, int num_vertices,int *index,int vertex_number,std::vector<vertex*>* vertices,stack<vertex*>* st){
+template <typename T>
+void strong_com(std::vector<SparseElement<T> >& sparse_graph, int num_vertices,int *index,int vertex_number,std::vector<vertex*>& vertices,std::stack<vertex*>& st){
     //std::cout << "calling strong component on" << vertex_number << std::endl;
     
-    std::vector<SparseElement<int> > sparse_graph = sm.getSparseForm();
     
-    int sparse_size=sm.getSparseFormSize();
-    int sparse_edges_index = binary_search_index(sm,vertex_number);
-    printf("%d\n",sparse_edges_index);
-    vertex *curr_vertex=(*vertices)[vertex_number];
-    vertex *other_vertex;
-    SparseElement<DT> sparse_vertex;
-    (*curr_vertex).set_index(*index);
-    (*curr_vertex).set_low_link(*index);
+    int sparse_size=sparse_graph.size();
+    int sparse_edges_index = binary_search_index(sparse_graph,vertex_number);
+    vertex* curr_vertex=vertices[vertex_number];
+    vertex* other_vertex;
+    SparseElement<T> sparse_vertex;
+    curr_vertex->set_index(*index);
+    curr_vertex->set_low_link(*index);
     (*index)=(*index)+1;
     //cout << "index: " << *index << endl;
     
@@ -138,32 +132,32 @@ void strong_com(DenseMatrix<DT>& sm, int num_vertices,int *index,int vertex_numb
     }
     
     
-    (*st).push(curr_vertex);
+    st.push(curr_vertex);
     while( (sparse_edges_index < sparse_size) && (sparse_vertex.getI()==vertex_number) ){
 	sparse_vertex=sparse_graph[sparse_edges_index];       
-	 other_vertex=(*vertices)[sparse_vertex.getJ()];
+	 other_vertex=vertices[sparse_vertex.getJ()];
         
-        if((*other_vertex).get_index()==-1){
-            strong_com(sm, num_vertices,index,sparse_vertex.getJ(),vertices,st);
-            (*curr_vertex).set_low_link(min((*curr_vertex).get_low_link(),(*other_vertex).get_low_link()));
+        if(other_vertex->get_index()==-1){
+            strong_com(sparse_graph, num_vertices,index,sparse_vertex.getJ(),vertices,st);
+            curr_vertex->set_low_link(min(curr_vertex->get_low_link(),other_vertex->get_low_link()));
         }
-        else if(contains(st,other_vertex)==1){
-            (*curr_vertex).set_low_link(min((*curr_vertex).get_low_link(),(*other_vertex).get_index()));
+        else if(contains(st,(*other_vertex))==1){
+            curr_vertex->set_low_link(min(curr_vertex->get_low_link(),other_vertex->get_index()));
         }
         sparse_edges_index++;
         
     }
     
     
-    if((*curr_vertex).get_low_link()==(*curr_vertex).get_index()){
-        vertex* hold=(*st).top();
-        (*st).pop();
+    if(curr_vertex->get_low_link()==curr_vertex->get_index()){
+        vertex* hold = st.top();
+        st.pop();
         int hold_vertex_name;
-        while(*hold!=*curr_vertex&&!(*st).empty()){
-            hold_vertex_name=(*hold).get_vertex_name();
-            (*vertices)[hold_vertex_name]->set_low_link((*curr_vertex).get_low_link());
-            hold=(*st).top();
-            (*st).pop();
+        while( *hold != *curr_vertex && !st.empty()){
+            hold_vertex_name = hold->get_vertex_name();
+            vertices[hold_vertex_name]->set_low_link(curr_vertex->get_low_link());
+            hold = st.top();
+            st.pop();
         }
     }
 }
@@ -177,32 +171,33 @@ void strong_com(DenseMatrix<DT>& sm, int num_vertices,int *index,int vertex_numb
  * @pram: stack used to perform tarjan's algorithm
  */
 
-template <typename DT>
-std::vector<vertex*>* graph_con_com(DenseMatrix<DT>& sm){
+template <typename T>
+std::vector<vertex*> graph_con_com(DenseMatrix<T>& sm){
     
-    stack<vertex*>* st = new stack<vertex*>();
-    int num_vertices = sm.getSize();
-    std::vector<vertex*>* vertices= new std::vector<vertex*>(num_vertices);
+    std::stack<vertex*> st;
+    int num_vertices = sm.getNumberOfRows();
+    std::vector<SparseElement<T> > sparse_form = sm.getSparseForm();
+    std::vector<vertex*> vertices(num_vertices);
     int index=0;
     
     
     
     for(int j=0;j<num_vertices;j++)
     {
-        (*vertices)[j]= new vertex(j,-1);
+        vertices[j] = new vertex(j,-1);
     }
     
-    for(int i=0;i<num_vertices;i++)
+    for(int i=0;i < num_vertices;i++)
     {
            // compIdx[i]=-1;
     }
     
-    for(int i=0;i<num_vertices;i++)
+    for(int i=0;i < num_vertices;i++)
     {
-        if( (*vertices)[i]->get_low_link()==-1)
+        if( vertices[i]->get_low_link()==-1)
         {
             //printf("unset vertex %d has low link of %d\n", i, vertices[i].get_low_link());
-            strong_com(sm,num_vertices,&index,i,vertices,st);
+            strong_com(sparse_form,num_vertices,&index,i,vertices,st);
         }
         else
         {
@@ -210,11 +205,10 @@ std::vector<vertex*>* graph_con_com(DenseMatrix<DT>& sm){
         }
     }
     
-   for(int j=0;j<num_vertices;j++)
-   {
-       std::cout<<"low link of: " <<  j << ": " << (*vertices)[j]->get_low_link() << std::endl;
-   }
-    delete st;
+//    for(int j=0;j<num_vertices;j++)
+//    {
+//        std::cout<<"low link of: " <<  j << ": " << vertices[j].get_low_link() << std::endl;
+//    }
     return vertices;
 }
 

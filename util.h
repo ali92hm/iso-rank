@@ -10,7 +10,7 @@
 #define _util_h
 
 #include "vertex.h"
-#include "Matricies/Matrix2D.h"
+#include "Matricies/DenseMatrix.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -181,13 +181,13 @@ vector<int>* component_mask(vector<vertex*>& vertices, int component){
     for(int i=0;i< vertices.size();i++)
     {
         vertex* curr_vertex= vertices[i];
-        if((*curr_vertex).get_low_link()==component){
+        if(curr_vertex->get_low_link()==component){
             if (!hasConnectedComponeents)
             {
                 comp_mask = new vector<int>(vertices.size(),0);
                 hasConnectedComponeents = true;
             }
-            (*comp_mask)[i]= 1;
+            (*comp_mask)[i] = 1;
         }
     }
     return comp_mask;
