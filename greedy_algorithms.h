@@ -5,7 +5,7 @@
 #include <math.h>
 #include <vector>
 #include <cmath>
-#include "Matricies/Matrix2D.h"
+#include "Matricies/DenseMatrix.h"
 #include "greedy_algorithms_helper.h"
 #include <limits>
 
@@ -19,7 +19,7 @@
  * @pram: matrix indicating the scores of nodal pairings
  */
 template <typename DT>
-int* greedy_1(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2,int* assignment){
+int* greedy_1(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<float>& graph2,int* assignment){
   DT total_score=0;
   int graph1_nodes=matches.getNumberOfRows();
   int graph2_nodes=matches.getNumberOfColumns();
@@ -56,7 +56,7 @@ int* greedy_1(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatr
  * @pram: pointer to the array that indicates the best matching
  */
 template<typename DT>
-int* greedy_connectivity_1(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2,int* assignment){
+int* greedy_connectivity_1(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<float>& graph2,int* assignment){
   
   DT total_score=0;
   int graph1_nodes=matches.getNumberOfRows();
@@ -98,7 +98,7 @@ int* greedy_connectivity_1(SparseMatrix<DT>& matches, SparseMatrix<float>& graph
  * @pram: pointer to the array that indicates the best matching 
  */
 template<typename DT>
-void greedy_connectivity_2(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2,int* assignment){
+void greedy_connectivity_2(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<float>& graph2,int* assignment){
 
   DT max_tol=pow(10,-6),max;
   DT score=0,prev_score=0,final_score=0;
@@ -112,7 +112,7 @@ void greedy_connectivity_2(SparseMatrix<DT>& matches, SparseMatrix<float>& graph
   init_array(assignment,graph1_nodes,-1);
   init_array(assignment2,graph1_nodes,0);
 
-  SparseMatrix<DT>* active_matches=new SparseMatrix<DT>(matches);
+  DenseMatrix<DT>* active_matches=new DenseMatrix<DT>(matches);
   DT* idxarr;
   vector<int> assigned_G1;
   int size=0,random_id,vector_size=0,curr_row;
@@ -171,7 +171,7 @@ void greedy_connectivity_2(SparseMatrix<DT>& matches, SparseMatrix<float>& graph
  * @pram: pointer to the array that indicates the best matching 
  */
 template<typename DT>
-void greedy_connectivity_3(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2,int* assignment){
+void greedy_connectivity_3(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<float>& graph2,int* assignment){
 
   DT total_score=0;
   DT final_score=0;
@@ -181,7 +181,7 @@ void greedy_connectivity_3(SparseMatrix<DT>& matches, SparseMatrix<float>& graph
   int assignment2[graph1.getNumberOfRows()];
   int assignment_G1[graph1.getNumberOfRows()];
   int assignment_G2[graph2.getNumberOfRows()];;
-  SparseMatrix<DT>* local_matches=new SparseMatrix<DT>(matches);
+  DenseMatrix<DT>* local_matches=new DenseMatrix<DT>(matches);
   
   //intialize all arrays
   init_array(assignment,graph1_nodes,-1);
@@ -265,7 +265,7 @@ void greedy_connectivity_3(SparseMatrix<DT>& matches, SparseMatrix<float>& graph
  * @pram: pointer to the array that indicates the best matching 
  */
 template <typename DT>
-void greedy_connectivity_4(SparseMatrix<DT>& matches, SparseMatrix<float>& graph1, SparseMatrix<float>& graph2,int* assignment){
+void greedy_connectivity_4(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<float>& graph2,int* assignment){
   
 DT final_score=0;
 int* add_order=new int[graph1.getNumberOfRows()];
@@ -318,7 +318,7 @@ DT max= get_Max(&matches,random_id,score-max_tol,&row,&col);
 
 
  //create local score matrix and only set the values for the pairs we're considering 
- SparseMatrix<DT>* matches_local=new SparseMatrix<DT>(matches.getNumberOfRows(),matches.getNumberOfColumns());
+ DenseMatrix<DT>* matches_local=new DenseMatrix<DT>(matches.getNumberOfRows(),matches.getNumberOfColumns());
  set_matrix_values(*matches_local, matches, *neigh_1, *neigh_2);
 
  score=0;

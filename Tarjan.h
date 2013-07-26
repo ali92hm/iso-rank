@@ -9,7 +9,7 @@
 #ifndef _Tarjan_h
 #define _Tarjan_h
 
-#include "Matricies/SymSparseMatrix.h"
+#include "Matricies/DenseMatrix.h"
 #include "Matricies/SparseElement.h"
 
 
@@ -23,7 +23,7 @@ using namespace std;
  */
 
 template <typename DT>
-int binary_search_index(SymSparseMatrix<DT>& sm, int curr_row){
+int binary_search_index(DenseMatrix<DT>& sm, int curr_row){
     int start=0;
     int sparse_size=sm.getSparseFormSize();
     int finish=sparse_size-1;
@@ -114,7 +114,7 @@ int contains(stack<vertex*>* s,vertex* w){
  */
 
 template <typename DT>
-void strong_com(SymSparseMatrix<DT>& sm, int num_vertices,int *index,int vertex_number,std::vector<vertex*>* vertices,stack<vertex*>* st){
+void strong_com(DenseMatrix<DT>& sm, int num_vertices,int *index,int vertex_number,std::vector<vertex*>* vertices,stack<vertex*>* st){
     //std::cout << "calling strong component on" << vertex_number << std::endl;
     
     std::vector<SparseElement<int> > sparse_graph = sm.getSparseForm();
@@ -178,7 +178,7 @@ void strong_com(SymSparseMatrix<DT>& sm, int num_vertices,int *index,int vertex_
  */
 
 template <typename DT>
-std::vector<vertex*>* graph_con_com(SymSparseMatrix<DT>& sm){
+std::vector<vertex*>* graph_con_com(DenseMatrix<DT>& sm){
     
     stack<vertex*>* st = new stack<vertex*>();
     int num_vertices = sm.getSize();
