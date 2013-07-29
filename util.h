@@ -1,10 +1,7 @@
-//
-//  util.h
-//  Sparse_Matrix
-//
-//  Created by Ali Hajimirza on 6/14/13.
-//  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
-//
+/*************************************************************************************************
+ * This file contains functions that are used to perform transformations on matrices and vectors.*
+ *                                                                                               *
+ *************************************************************************************************/
 
 #ifndef _util_h
 #define _util_h
@@ -18,7 +15,6 @@
 
 
 using namespace std;
-
 
 /*
  * returns the sum of the values in array arr
@@ -35,7 +31,6 @@ DT sum_array(DT* arr,int arr_size){
     
     return sum;
 }
-
 
 /*
  * returns the minimum value in the array arr
@@ -55,10 +50,9 @@ DT min(DT* arr, int arr_size){
     return min_so_far;
 }
 
-
 /*
  * returns the maximum value in the array arr
- * @pram: pointer to array of floats
+ * @pram: pointer to array
  * @pram: size of the array
  */
 template <typename DT>
@@ -74,7 +68,10 @@ DT max(DT* arr, int arr_size){
     return max_so_far;
 }
 
-
+/*
+ * returns the maximum value in the vector vec
+ * @pram: pointer to vector
+ */
 template<typename DT>
 vector<DT>* vector_max(vector<DT>* vec){
   DT max_so_far= (*vec)[0];
@@ -127,15 +124,26 @@ DT std_dev(DT *arr, int arr_size){
     
 }
 
-
+/*
+ * returns an array of integers which indicate
+ * the indices where the value val is located in 
+ * the array
+ * @param: array we are traversing through
+ * @param: the value we are looking for
+ * @param: the size of the array
+ */
 template <typename DT>
 int* find_in_arr(DT* arr,DT val, int arr_size){
   int counter=0;
   
+  //count the number of times val shows up in arr
   for(int i=0;i<arr_size;i++){
     if(arr[i]==val)
       counter++;
   }
+
+  //create and return the array with indices of where
+  //value is located 
   int* ret_arr= new int[counter];
   counter=0;
   for(int i=0;i<arr_size;i++){
@@ -159,7 +167,7 @@ DT* scalar_multiplication(DT *old_row,int size, DT scaling_factor){
     
     DT* ret_row= new DT[size];
     
-#pragma omp for
+    //multiply each value in array old_row with value scaling_factor
     for(int i=0;i<size;i++){
         ret_row[i]=scaling_factor*old_row[i];
     }
@@ -172,6 +180,8 @@ DT* scalar_multiplication(DT *old_row,int size, DT scaling_factor){
  * signifying a component of the graph. The function returns
  * an integer array where vertices that don't belong to the
  * component are masked out.
+ * @param: vector of pointers to vertex objects
+ * @param: the component we wish to mask
  */
 vector<int>* component_mask(vector<vertex*>& vertices, int component){
     

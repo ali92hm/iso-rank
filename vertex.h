@@ -1,4 +1,7 @@
-
+/***********************************************************************************
+ * Vertex Class. Used in Tarjan's Algorithm to keep track of which vertex belongs  *
+ * to which component.                                                             *
+ ***********************************************************************************/
 
 
 #ifndef _vertex_h
@@ -6,25 +9,27 @@
 
 #include <iostream>
 
-class vertex{
+class vertex
+{
     int vertex_name;
     long index;
     long low_link;
     int tarjan_flag;
-public:
-  vertex();
-  vertex (int, int);
+
+ public:
+    vertex();
+    vertex (int, int);
     virtual ~vertex();
-  vertex* operator=(const vertex *rhs);
-  vertex& operator=(const vertex &rhs);
-  bool operator!=(const vertex &rhs);
-  bool operator==(const vertex &rhs);
-  void set_index(long);
-  void set_low_link(long);
-  long get_index();
-  long get_low_link();
-  int get_vertex_name();
-  int get_tarjan_flag();
+    vertex* operator=(const vertex *rhs);
+    vertex& operator=(const vertex &rhs);
+    bool operator!=(const vertex &rhs);
+    bool operator==(const vertex &rhs);
+    void set_index(long);
+    void set_low_link(long);
+    long get_index();
+    long get_low_link();
+    int get_vertex_name();
+    int get_tarjan_flag();
 };
 
 /*vertex class default constructor
@@ -37,7 +42,8 @@ vertex:: vertex(){
 }
 
 /*vertex class constructor
- *parameter a is vertex_name b is the index
+ *@param: a is vertex_name
+ *@param: b is the index used for Tarjan's Algorithm
  */
 vertex::vertex(int a,int b){
     this->vertex_name=a;
@@ -52,6 +58,7 @@ vertex::~vertex()
 
 /*vertex class function
  *operator == that checks if this vertex is equal to parameter
+ *@param:vertex to check for equality
  */
 bool vertex::operator==(const vertex &rhs){
     return this->vertex_name==rhs.vertex_name;
@@ -67,6 +74,7 @@ bool vertex::operator!=(const vertex &rhs){
 
 /*vertex class function
  *operator = sets this vertex to parameter
+ *@param: vertex to set this vertex to
  */
 vertex* vertex::operator=(const vertex *rhs){
     this->vertex_name=rhs->vertex_name;
@@ -87,6 +95,7 @@ vertex& vertex::operator=(const vertex &rhs){
 
 /*vertex class function
  *sets this vertex's index to a
+ *@param: integer to set index to
  */
 void vertex::set_index(long a){
     this->index=a;
@@ -94,6 +103,7 @@ void vertex::set_index(long a){
 
 /*vertex class function
  *sets this vertex's low_link to b
+ *@param: integer to set low link to
  */
 void vertex::set_low_link(long b){
     //std::cout<< "setting low link of "<<this->get_vertex_name()<<  "to:" << b << std::endl;
@@ -122,6 +132,9 @@ int vertex:: get_vertex_name(){
     return this->vertex_name;
 }
 
+/*vertex class function
+ *returns this vertex's tarjan flag
+ */
 int vertex:: get_tarjan_flag(){
     return this->tarjan_flag;
 }

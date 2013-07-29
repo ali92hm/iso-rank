@@ -20,7 +20,7 @@
  * PNAS 105 35 12763?12768                                                                                                                     *
  *                                                                                                                                             *
  *                                                                                                                                             *
- * Special thanks to Dr. Andrew Ferguson and Andrew Long for giving us great advice and guidance while creating this software.                 *
+ * Special thanks to Dr. Andrew Ferguson and Andrew Long for giving us advice and guidance while creating this software.                       *
  *                                                                                                                                             *
  ***********************************************************************************************************************************************/
 
