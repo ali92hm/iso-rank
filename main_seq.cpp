@@ -1,10 +1,27 @@
-//
-//  main.cpp
-//  Sparse_Matrix
-//
-//  Created by Ali Hajimirza on 6/11/13.
-//  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
-//
+/***********************************************************************************************************************************************
+ * This is a software that gives an approximate solution to the graph matching problem by using the                                            * 
+ * IsoRank Algorithm. Created in the summer of 2013 this software was originally written with the                                              *
+ * intention of being used by the Ferguson group at the Materials Science & Engineering Department at UIUC.                                    *                  
+ * This is a sequential implementation of the code. A parallel version can be found in main.cpp.                                               *
+ *                                                                                                                                             *
+ * For more details on the software (i.e. design decisions, potential bugs etc.) please consult the README file.                               *
+ *                                                                                                                                             *
+ * Contact for Questions:                                                                                                                      *
+ * Abhijit Pujare: abhijitpujare@gmail.com                                                                                                     *
+ * Ali Hajimirza:  ali92hm@gmail.com                                                                                                           *
+ *                                                                                                                                             *
+ *                                                                                                                                             *
+ *                                                                                                                                             *
+ * Refs: M. Leordeanu and M. Herbert, "A Spectral Technique for Correspondence Problems Using Pairwise Constraints"                            * 
+ * Proceedings of the Tenth IEEE International Conference on Computer Vision (ICCV?05) 1550                                                    *
+ *                                                                                                                                             *
+ * R. Singh, J. Xu and B. Berger "Global alignment of multiple protein interaction networks with application to functional orthology detection"*
+ * PNAS 105 35 12763?12768                                                                                                                     *
+ *                                                                                                                                             *
+ *                                                                                                                                             *
+ * Special thanks to Dr. Andrew Ferguson and Andrew Long for giving us advice and guidance while creating this software.                       *
+ *                                                                                                                                             *
+ ***********************************************************************************************************************************************/
 
 #include "Matricies/DenseMatrix.h"
 #include "IsoRank.h"
@@ -46,9 +63,11 @@ typedef float DataType;
 
 void parseCommandLineArgs(int argc, char * argv[], int rank);
 
-
-
-
+/*
+ * main method that reads in graphs and calls the IsoRank method
+ * @param: number of command line arguments
+ * @param: array of strings of command line arguments 
+ */
 int main(int argc, char * argv[])
 {
   srand(time(NULL));
@@ -56,12 +75,12 @@ int main(int argc, char * argv[])
 
     parseCommandLineArgs(argc, argv, 0);
     std::vector<DenseMatrix<DataType> > input_graphs;
-  //   std::vector<IsoRank_Result> isoRank_results;
+//   std::vector<IsoRank_Result> isoRank_results;
     std::clock_t time_start;
     std::clock_t time_end;
     double elapsed_time;
 
-
+        //read graphs from files and enter them into an array of DenseMatrix objects 
     	std::cout << "Reading " << G_NUMBER_OF_FILES << " graphs from: " << G_DIR_PATH << endl;
     	time_start = std::clock();
     	std::ostringstream itos_converter;
@@ -88,21 +107,16 @@ int main(int argc, char * argv[])
 		std::cout << input_graphs.size() << " of " << G_NUMBER_OF_FILES << " graphs were successfully read in "<< elapsed_time << "(ms)." << endl;
 
 		time_start = std::clock();
+
+		//run isorank on all pairs of graphs that are read in
 		for (int i = 0; i < input_graphs.size(); i++)
 		{
+		  	DenseMatrix<DataType> mat_A =  input_graphs[i];
 			for (int j = i+1; j < input_graphs.size(); j++)
 			{	
-				DenseMatrix<DataType> mat_A =  input_graphs[i];
+			
 				DenseMatrix<DataType> mat_B = input_graphs[j];
-			// 	if ( input_graphs[i].getNumberOfColumns() < input_graphs[j].getNumberOfColumns())
-// 				{
-// 					mat_A = input_graphs[j];
-// 					mat_B = input_graphs[i];
-// 				}
-// 			
 				
-			
-			
 				struct IsoRank_Result result;
 				try
 				{
@@ -157,6 +171,13 @@ int main(int argc, char * argv[])
     return 0;
 }
 
+
+/*
+ *function that parses command line arguments
+ *@param: number of command line arguments passed
+ *@param: command line arguments as an array of strings
+ *@param: rank of the process calling parseCommandLineArgs, only rank 0 should print to console
+ */
 void parseCommandLineArgs(int argc,char* argv[], int rank)
 {
   //  std::cout << "Reading command line arguments..." << std::endl;

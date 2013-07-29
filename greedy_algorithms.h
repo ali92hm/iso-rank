@@ -1,3 +1,13 @@
+/***********************************************************************************************
+ * This file contains 5 algorithms that can be used to find the node to node mapping between   *
+ * two graphs. All algorithms are essentially based on the greedy algorithm. The highest score *
+ * assigned by IsoRank is chosen and then all scores corresponding to already assigned nodes   *
+ * are eliminated. Some of the other algorithms make use of the connectivity of graphs as well.*  
+ * All helper functions used by these algorithms can be found in the greedy_algorithms_helper.h*
+ * file.                                                                                       *
+ ***********************************************************************************************/
+
+
 #include <stdio.h>
 #include <float.h>
 #include <stdlib.h>
@@ -14,12 +24,15 @@
 
 
 /*
- * performs greedy algorithm on matrix of nodal pairs matched and 
- * returns a matching between nodes of graph1 and graph2
+ * performs the greedy algorithm on the scores matrix for nodal pairings
+ * and returns a matching between nodes of graph1 and graph2
  * @pram: matrix indicating the scores of nodal pairings
+ * @pram: adjacency matrix of graph1
+ * @pram: adjacency matrix of graph2
+ * @pram: array that indicates the final mappings done
  */
 template <typename DT>
-int* greedy_1(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<float>& graph2,int* assignment){
+void greedy_1(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<float>& graph2,int* assignment){
   DT total_score=0;
   int graph1_nodes=matches.getNumberOfRows();
   int graph2_nodes=matches.getNumberOfColumns();
@@ -41,9 +54,6 @@ int* greedy_1(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<
   }
   
   match_rest(assignment,graph1,graph2); 
-
-  //printf("score of matching: %f\n",total_score);
-  return assignment;
 }
 
 
@@ -56,7 +66,7 @@ int* greedy_1(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<
  * @pram: pointer to the array that indicates the best matching
  */
 template<typename DT>
-int* greedy_connectivity_1(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<float>& graph2,int* assignment){
+void greedy_connectivity_1(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1, DenseMatrix<float>& graph2,int* assignment){
   
   DT total_score=0;
   int graph1_nodes=matches.getNumberOfRows();
@@ -83,9 +93,6 @@ int* greedy_connectivity_1(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1,
   }
 
     match_rest(assignment,graph1,graph2); 
-
-  printf("score of matching: %f\n",total_score);
-  return assignment;
 }
 
 
@@ -158,7 +165,6 @@ void greedy_connectivity_2(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1,
       prev_score=score;
   }
 
- printf("score of matching: %f\n", final_score);
 }
 
 
@@ -211,13 +217,6 @@ void greedy_connectivity_3(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1,
    
     invalidate_neighbors(assignment_G1,neigh_1);
     invalidate_neighbors(assignment_G2,neigh_2);
-
-    /*    for(int j=0;j<neigh_2->size();j++){
-      hold=(*neigh_2)[j];
-      if(assignment_G2[hold]==1){
-	neigh_2->erase(neigh_2->begin()+j);
-      }
-      }*/
 
     set_to_min(*local_matches);
     set_matrix_values(*local_matches,matches,neigh_1,neigh_2);
@@ -287,10 +286,11 @@ int add_order_counter=2;
  init_array(assigned_G1,graph1.getNumberOfRows(),-1);
  init_array(assigned_G2,graph2.getNumberOfRows(),-1);
 
+ //set row and col to be the nodes that have the highest score
+return_max(matches, &score,&row,&col);
 
-  
- return_max(matches, &score,&row,&col);
-
+//fill up idx_array values in scores matrix that are
+//greater than score - max_tol and choose one randomly to assign
 DT* idx_array =find_values(matches,score - max_tol,&size);
 int random_id=rand()%size+1; 
 DT max= get_Max(&matches,random_id,score-max_tol,&row,&col);
@@ -529,12 +529,5 @@ int g1c_count_counter;
     delete []ass;
     delete []add_order;
 }
-
-
-
-
-
-
-
 
 #endif

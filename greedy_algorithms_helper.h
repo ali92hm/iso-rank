@@ -1,3 +1,10 @@
+/*****************************************************************************
+ * This file contains all the helper functions that are used by the greedy   *
+ * algorithms defined in greedy_algorithms.h. Details of each function can be*
+ * found in the comments section above the function.                         *
+ *****************************************************************************/
+
+
 #include <stdio.h>
 #include <float.h>
 #include <stdlib.h>
@@ -17,6 +24,12 @@ void match_rest(int*, DenseMatrix<float>&, DenseMatrix<float>&);
 int* get_valid_entries(DenseMatrix<float>, int*,int,int*);
 vector<int>* choose_cols(struct coordinate_pair**,int,int);
 
+
+/*
+ * struct used to keep track of nodal pairs
+ * in the scores matrix that have scores above
+ * a certain value 
+ */
 struct coordinate_pair{
   int row;
   int col;
@@ -43,7 +56,6 @@ int compareFloats(float a, float b){
     return -1;
 
 }
-
 
 /*
  * returns a vector of the columns col 
@@ -286,8 +298,6 @@ struct coordinate_pair** find_all_values(DenseMatrix<DT>& local_matches,DT* val,
 
 
 
-
-
 /*
  * checks whether all entries in a matrix are negative
  * @pram: an instance of a DenseMatrix that has all negative numbers
@@ -304,6 +314,7 @@ int all_inf(DenseMatrix<DT> &mat){
   }
   return 1;
 }
+
 
 /*
  * sets all entries in a matrix to be -inf

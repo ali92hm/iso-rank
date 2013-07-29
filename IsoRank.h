@@ -1,13 +1,15 @@
-//
-//  IsoRank.h
-//  Sparse_Matrix
-//
-//  Created by Ali Hajimirza on 6/14/13.
-//  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
-//
+/************************************************************************************
+ * This is a file that is used to perform the IsoRank Algorithm.                    *
+ * The Kroencker Product and the eigenvalue decomposition are done in this          *
+ * file to get the scores matrix between nodal pairs. The ARPACK++ library          * 
+ * was used to compute the eigenvector decomposition. Greedy algorithms             *
+ * to do the matchings are called in this file. Furthermore, functions used to      *  
+ * send and receive results of IsoRank between processors are defined in this file. *
+ *                                                                                  *
+ ************************************************************************************/
 
 #ifndef Sparse_Matrix_IsoRank_h
-#define Sparse_Matatorrix_IsoRank_h
+#define Sparse_Matrix_IsoRank_h
 
 #include "Matricies/DenseMatrix.h"
 #include "Tarjan.h"
@@ -23,16 +25,28 @@ int CON_ENF_4 = 4;
 
 const int NUM_OF_ISORANK_IT = 20;
 
+
+/*
+ * struct used to store the result
+ * of each isorank comparison done between
+ * two graphs
+ */
 struct IsoRank_Result
-{
-    
+{ 
 	int frob_norm;
-    int assignment_length;
+        int assignment_length;
 	int* assignments;
     
     
 };
 
+
+/*
+ * function used to send the IsoRank_Result struct between two processors
+ * @param: result struct of isorank
+ * @param: the destination processor
+ * @param: the tag used for the MPI calls
+ */
 void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
 {
 	MPI_Send(&result.assignment_length, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
@@ -40,6 +54,12 @@ void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
 	MPI_Send(&result.frob_norm, 1, MPI_INT, dest, tag + 3, MPI_COMM_WORLD);
 }
 
+/*
+ * function used to receive the IsoRank_Result struct 
+ * @param: the source processor where this struct came from
+ * @param: the tag used by the MPI calls 
+ * @param: the MPI_Status object used by the MPI_calls
+ */
 struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat)
 {
 // 	std::cout << "CALL to MPI_Recv_IsoRank_Result "<< std::endl;
@@ -51,9 +71,16 @@ struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& s
 	return result;
 }
 
+/*
+ * function used to perform the isorank algorithm
+ * @param: adjacency matrix for graph1
+ * @param: adjacency matrix for graph2
+ * @param: the matching algorithm used to choose the best node to node mapping
+ */
 template <typename DT>
 struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix_B, int matching_algorithm)
 {
+  //check to see both adjacency matrices are square and symmetric
     if (!matrix_A.isSquare() || !matrix_B.isSquare())
     {
         throw NotASquareMatrixException();
@@ -64,14 +91,13 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
         throw NotASymmetricMatrixException();
     }
     
-    // Degree distribution statistics
-    
-    
+    // Degree distribution statistics 
     DenseMatrix<DT> kron_prod = matrix_A.kron(matrix_B);
     std::vector<vertex*> vertices = graph_con_com(kron_prod);
     DT** eigenValues = new DT*[kron_prod.getNumberOfColumns()];
     vector<vector<int>*> comp_mask_values (kron_prod.getNumberOfColumns());
     
+    //for each component find the eigenvector corresponding to the scores matrix
     for(int i=0; i < kron_prod.getNumberOfColumns(); i++ )
     {
         vector<int>* comp_mask = component_mask(vertices, i);
@@ -96,7 +122,7 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
             D_neg0pt5[j] = 1.0/D_0pt5[j];
         }
         
-		DenseMatrix<DT> lTimesD = L.diagonalVectorTimesMatrix(D_neg0pt5);
+	DenseMatrix<DT> lTimesD = L.diagonalVectorTimesMatrix(D_neg0pt5);
         DenseMatrix<DT> Ms = lTimesD.matrixTimesDiagonalVector(D_neg0pt5);
         
         if(!Ms.isSymmetric())
@@ -133,45 +159,49 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
     int counter_eig_vector=0;
     int counter_comp_mask=0;
     struct IsoRank_Result ret_val;
-    //int * best_assignment = new int[matrix_A.getNumberOfRows()];
   
+    //run matching algorithms for each component 
     for(int k=0;k<kron_prod.getNumberOfColumns();k++) {
         DT* eigenvector=eigenValues[k];
+
         if(eigenvector!=NULL) {
-      comp_mask_curr=comp_mask_values[k];
-      scores= reshape(eigenvector,matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns(),*comp_mask_curr);
-      DenseMatrix<DT> scores_copy(scores);
-      int * best_assignment/*=new int[matrix_A.getNumberOfRows()]*/;
-      float best_frob_norm=DBL_MAX;
+	  comp_mask_curr=comp_mask_values[k];
+	  scores= reshape(eigenvector,matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns(),*comp_mask_curr);
+	  DenseMatrix<DT> scores_copy(scores);
+	  int * best_assignment;
+	  float best_frob_norm=DBL_MAX;
             
-      for (int num_it = 0; num_it < NUM_OF_ISORANK_IT; num_it++){
-        //init_array(assignment,matrix_A.getNumberOfRows(),-1);
-        scores=scores_copy;
-        int* assignment= new int[matrix_A.getNumberOfRows()];
-		init_array(assignment,matrix_A.getNumberOfRows(),-1);
-        switch (matching_algorithm)
-          {
-          case 0:
-        greedy_1(scores,matrix_A,matrix_B,assignment);
-        break;
-          case 1:
-        greedy_connectivity_1(scores,matrix_A,matrix_B,assignment);
-        break;
-          case 2:
-        greedy_connectivity_2(scores,matrix_A,matrix_B,assignment);
-        break;
-          case 3:
-        greedy_connectivity_3(scores,matrix_A,matrix_B,assignment);
-        break;
-          case 4:
-        greedy_connectivity_4(scores,matrix_A,matrix_B,assignment);
-        break;
-          default:
-        break;
-          }
+	  for (int num_it = 0; num_it < NUM_OF_ISORANK_IT; num_it++){
+	    scores=scores_copy;
+	    int* assignment= new int[matrix_A.getNumberOfRows()];
+	    init_array(assignment,matrix_A.getNumberOfRows(),-1);
+        
+	    //call the approprite matching algorithm
+	    switch (matching_algorithm)
+	      {
+	      case 0:
+		greedy_1(scores,matrix_A,matrix_B,assignment);
+		break;
+	      case 1:
+		greedy_connectivity_1(scores,matrix_A,matrix_B,assignment);
+		break;
+	      case 2:
+		greedy_connectivity_2(scores,matrix_A,matrix_B,assignment);
+		break;
+	      case 3:
+		greedy_connectivity_3(scores,matrix_A,matrix_B,assignment);
+		break;
+	      case 4:
+		greedy_connectivity_4(scores,matrix_A,matrix_B,assignment);
+		break;
+	      default:
+		break;
+	      }
                 
-        //find the frobenius norm               
-       if(matrix_A.getNumberOfRows()>matrix_B.getNumberOfRows()){
+       
+	    //find the frobenius norm
+	    // two cases: matrixA is larger than matrixB and matrixA is smaller than matrixB
+	    if(matrix_A.getNumberOfRows()>matrix_B.getNumberOfRows()){
 	      DenseMatrix<float> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_A.getNumberOfRows());
 	      DenseMatrix<float> product=perm_mat*matrix_A;	
 	      DenseMatrix<float> get_transpose=perm_mat.transpose();	
@@ -230,11 +260,11 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
 	    }
       }
                   
-      ret_val.frob_norm=best_frob_norm;
-      ret_val.assignments=best_assignment;
-      ret_val.assignment_length=matrix_A.getNumberOfRows();        
+	  ret_val.frob_norm=best_frob_norm;
+	  ret_val.assignments=best_assignment;
+	  ret_val.assignment_length=matrix_A.getNumberOfRows();        
+	}
     }
-}
     
 	for(int k=0;k<kron_prod.getNumberOfColumns();k++)
 	{

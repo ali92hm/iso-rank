@@ -1,10 +1,29 @@
-//
-//  main.cpp
-//  Graph_Matching
-//
-//  Created by Ali Hajimirza on 6/11/13.
-//  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
-//
+
+/***********************************************************************************************************************************************
+ * This is a software that gives an approximate solution to the graph matching problem by using the                                            * 
+ * IsoRank Algorithm. Created in the summer of 2013 this software was originally written with the                                              *
+ * intention of being used by the Ferguson group at the Materials Science & Engineering Department at UIUC.                                    *                  
+ *                                                                                                                                             *
+ *                                                                                                                                             *
+ * For more details on the software (i.e. design decisions, potential bugs etc.) please consult the README file.                               *
+ *                                                                                                                                             *
+ * Contact for Questions:                                                                                                                      *
+ * Abhijit Pujare: abhijitpujare@gmail.com                                                                                                     *
+ * Ali Hajimirza:  ali92hm@gmail.com                                                                                                           *
+ *                                                                                                                                             *
+ *                                                                                                                                             *
+ *                                                                                                                                             *
+ * Refs: M. Leordeanu and M. Herbert, "A Spectral Technique for Correspondence Problems Using Pairwise Constraints"                            * 
+ * Proceedings of the Tenth IEEE International Conference on Computer Vision (ICCV?05) 1550                                                    *
+ *                                                                                                                                             *
+ * R. Singh, J. Xu and B. Berger "Global alignment of multiple protein interaction networks with application to functional orthology detection"*
+ * PNAS 105 35 12763?12768                                                                                                                     *
+ *                                                                                                                                             *
+ *                                                                                                                                             *
+ * Special thanks to Dr. Andrew Ferguson and Andrew Long for giving us great advice and guidance while creating this software.                 *
+ *                                                                                                                                             *
+ ***********************************************************************************************************************************************/
+
 
 #include "Matricies/SymMatrix.h"
 #include "Matricies/DenseMatrix.h"
@@ -49,7 +68,7 @@ typedef float DataType;
 #endif
 
 /*
- * Function protorypes
+ * Function prototypes
  */
 void parseCommandLineArgs(int argc, char * argv[], int ID);
 double timeElapsed(std::clock_t start, std::clock_t end);
@@ -65,17 +84,17 @@ int main(int argc, char * argv[])
 	/*
 	 * MPI Variables
 	 */  
-	int num_procs;
-    int ID;
+        int num_procs;
+        int ID;
  	MPI_Status stat;
 
  	/*
- 	 *	MPI constant Tags
+ 	 * MPI constant Tags
  	 */
  	const int MASTER_ID = 0;
-    const int TAG_1 = 4;
-    const int TAG_2 = 10;
-    const int TAG_3 = 15;
+        const int TAG_1 = 4;
+        const int TAG_2 = 10;
+        const int TAG_3 = 15;
 
     /*
      * MPI Initilalization calls 
@@ -103,7 +122,7 @@ int main(int argc, char * argv[])
 	 *	Result variables
 	 */
 	int total_comparisons; 
-    std::vector<IsoRank_Result> isoRank_results;
+        std::vector<IsoRank_Result> isoRank_results;
 
 //======================================================================*MASTER NODE*==============================================================================
     if (ID == MASTER_ID)
@@ -139,7 +158,7 @@ int main(int argc, char * argv[])
 			std::cout << input_graphs.size() << " of " << G_NUMBER_OF_FILES << " graphs were successfully read in "
 			<< timeElapsed(time_start, time_end) << "(ms)." << std::endl;
 
-		/*
+	/*
     	 * Sending the graphs to worker nodes.
     	 */
 		time_start = std::clock();
@@ -460,7 +479,6 @@ void parseCommandLineArgs(int argc,char* argv[], int ID)
             	std::cout << "Arg '" << argv [i] <<  "' is not a valid argument." << std::endl;
         }
     }
-    
     if (ID == 0)
     {
 		std::cout << "\n\n" <<"Program configuration: " << std::endl;

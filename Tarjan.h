@@ -16,7 +16,7 @@
 
 /*
  * performs a binary search on the edges of sparse graph
- * to find edge with curr_row as an endpoint
+ * to find edge with node curr_row as an endpoint
  * @pram: pointer to the 2-d array rep of a sparsegraph
  * @pram: int signifying the vertex we wish to work with
  */
@@ -27,6 +27,7 @@ int binary_search_index(std::vector<SparseElement<T> >& sparse_graph, int curr_r
     int sparse_size = sparse_graph.size();
     int finish=sparse_size-1;
     int mid=0;
+
     while(start<=finish && mid>=0 && mid<sparse_size){
         mid=(start+finish)/2;
         
@@ -41,6 +42,7 @@ int binary_search_index(std::vector<SparseElement<T> >& sparse_graph, int curr_r
         }
     }
     
+    //get the first sparse edge that has curr_row as an endpoint
     while(mid>-1&&sparse_graph[mid].getI()==curr_row){
         mid--;
     }
@@ -50,7 +52,6 @@ int binary_search_index(std::vector<SparseElement<T> >& sparse_graph, int curr_r
         return -1;
     
     return mid;
-    
 }
 
 /*
@@ -66,10 +67,9 @@ int min(int a, int b){
     
 }
 
-
 /*
- * returns an integer signifying whether the vertex w
- * exists in the stack s
+ * returns a 0 or 1 signifying whether the vertex w
+ * exists in the stack s, 0 if doesn't exist and 1 if it does
  * @pram: stack s used to perform tarjan's
  * @pram: vertex object w
  */
@@ -78,7 +78,8 @@ int contains(std::stack<vertex*>& s,vertex& w)
     std::stack<vertex*> other_stack;
     int found=0;
     vertex* current;
-    
+
+    //pop objects off the stack until vertex w is found
     while(!s.empty()){
         current = s.top();
         if((*current)==w){
@@ -86,9 +87,11 @@ int contains(std::stack<vertex*>& s,vertex& w)
             break;
         }
         s.pop();
+	//put objects popped off in another stack to keep track of them
         other_stack.push(current);
     }
     
+    //put objects that were removed back in
     while(!other_stack.empty()){
         current=other_stack.top();
         other_stack.pop();
@@ -97,8 +100,9 @@ int contains(std::stack<vertex*>& s,vertex& w)
     
     return found;
 }
+
 /*
- * Perform's tarjan's scc algorithm on the sparse graph given
+ * Perform's tarjan's strongly-connected-component algorithm on the sparse graph given
  * @pram: pointer to array of pointers of sparse_matrix_element structs
  * @pram: the number of sprase_matrix_element's in sparse_graph
  * @pram: the number of vertices in the graph
@@ -113,7 +117,7 @@ template <typename T>
 void strong_com(std::vector<SparseElement<T> >& sparse_graph, int num_vertices,int *index,int vertex_number,std::vector<vertex*>& vertices,std::stack<vertex*>& st){
     //std::cout << "calling strong component on" << vertex_number << std::endl;
     
-    
+  //find the index of edge that we're currently working on
     int sparse_size=sparse_graph.size();
     int sparse_edges_index = binary_search_index(sparse_graph,vertex_number);
     vertex* curr_vertex=vertices[vertex_number];
@@ -187,28 +191,15 @@ std::vector<vertex*> graph_con_com(DenseMatrix<T>& sm){
         vertices[j] = new vertex(j,-1);
     }
     
-    for(int i=0;i < num_vertices;i++)
-    {
-           // compIdx[i]=-1;
-    }
     
     for(int i=0;i < num_vertices;i++)
     {
         if( vertices[i]->get_low_link()==-1)
         {
-            //printf("unset vertex %d has low link of %d\n", i, vertices[i].get_low_link());
             strong_com(sparse_form,num_vertices,&index,i,vertices,st);
         }
-        else
-        {
-            //printf(" set vertex %d has low link of %d\n", i, vertices[i].get_low_link());
-        }
     }
-    
-//    for(int j=0;j<num_vertices;j++)
-//    {
-//        std::cout<<"low link of: " <<  j << ": " << vertices[j].get_low_link() << std::endl;
-//    }
+
     return vertices;
 }
 
