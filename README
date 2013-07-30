@@ -1,0 +1,56 @@
+There are two versions of the graph matching software availabe, a sequential version and a parallel version. 
+
+
+To run the sequential version: 
+
+./main [-dir directory_name] [-ext file_extension] [-num_files number_of_files] [-match_alg matching_algorithm] [-alg graph_matching_alg] [-print] [-debug]
+
+Explanation of flags:
+[-dir directory_name] -dir indicates that the files need to be read in in from directory called directory_name
+[-ext file_extension] -ext indicates that the extension of the files being read is file_extension                          (default for file_extension is .dat)
+[-num_files number_of_files] -num_files indicates that number_of_files need to be read in to be compared                   (default for number_of_files is 2)
+[-match_alg matching_algorithm] -match_alg indicates that matching_algorithm needs be used to map nodes to nodes           (default value for matching_algorithm is greedy)
+	    				   	     	  		     	      	      	  	   	           (matching_algorithm options: greedy,con-enf-1,
+															   con-enf-2,con-enf-3,con-enf-4)
+[-alg graph_matching_alg] -alg indicates that graph_matching_alg is to be used 						   (default value for graph_matching_alg is isorank)  
+      			       		      			       	      						   (graph_matching_alg options: isorank, gpgm)
+[-print] prints out results i.e. frobenius norm, time taken,  etc.
+[-debug] prints out values useful for debugging your program
+
+
+
+
+
+To run the parallel version with mpi:
+
+mpirun -np #number_of_processors ./main [-dir directory_name] [-ext file_extension] [-num_files number_of_files] [-match_alg matching_algorithm] [-alg graph_matching_alg] [-print] [-debug]
+
+
+Explanation of flags:
+-np #number_of_processors indicates that #number_of_processors need to be used to run the program in parallel.
+*the rest of the flags work the same way in the parallel version as they do in the sequential version
+
+
+
+Design Decisions: 
+
+Each graph is represented as an adjacency matrix where if matrix[i][j]==1 then there is an edge between node i and node j and if 
+matrix[i][j]==0 then there is no edge between node i and node j. All matrix classes can be found in the Matricies directory. There 
+are 5 classes that have been implemented: DenseMatrix.h, Matrix.h, SparseMatrix.h,SymMatrix.h, and SymSparseMatrix.h. DenseMatrix
+uses a 2-dimensional array to represent the adjacency matrix. Matrix.h uses a 1-d array to represent the adjacency matrix using 
+row major order. SparseMatrix.h uses a Hash Table where only the values that are non-zero are stored in the hash-table. SymMatrix.h uses
+a 1-dimensional array to represent the adjacency matrix as well but since the matrix is symmetric only half the values are stored. 
+SymSparseMatrix.h uses a hash table the way SparseMatrix.h does but only half the values are stored in SymSparseMatrix.h. 
+
+The default Matrix class we've used in the program is the DenseMatrix.h class.    
+
+
+Two parallelization methods have been used. The first is a simple master-slave architecture. Each worker node is passed a pair of graphs and once a worker node
+is done performing the computation on the pair of graphs it returns the result to the master node and requests for another pair of graphs. In the second parallelization 
+method each worker node reads in all the graphs. The master node then assigns each worker node indices indicating which subset of the graphs to run isorank on.  
+
+
+
+
+
+Potential Bugs: 

@@ -4,7 +4,7 @@
  * intention of being used by the Ferguson group at the Materials Science & Engineering Department at UIUC.                                    *                  
  * This is a sequential implementation of the code. A parallel version can be found in main.cpp.                                               *
  *                                                                                                                                             *
- * For more details on the software (i.e. design decisions, potential bugs etc.) please consult the README file.                               *
+ * For more details on the software (i.e. how to run the program,design decisions, potential bugs etc.) please consult the README file.        *
  *                                                                                                                                             *
  * Contact for Questions:                                                                                                                      *
  * Abhijit Pujare: abhijitpujare@gmail.com                                                                                                     *
@@ -231,7 +231,7 @@ void parseCommandLineArgs(int argc,char* argv[], int rank)
             }
             else
             {
-                std::cout << "Alorithm '" << argv [i] <<  "' is not a valid alorithm." << std::endl;
+                std::cout << "Algorithm '" << argv [i] <<  "' is not a valid alorithm." << std::endl;
             }
         }
         else if (std::strncmp(argv[i], "-match-alg",7) == 0)
@@ -268,7 +268,7 @@ void parseCommandLineArgs(int argc,char* argv[], int rank)
             }
             else
             {
-                std::cout << "Alorithm '" << argv [i] <<  "' is not a valid alorithm." << std::endl;
+                std::cout << "Algorithm '" << argv [i] <<  "' is not a valid alorithm." << std::endl;
             }
         }
         else

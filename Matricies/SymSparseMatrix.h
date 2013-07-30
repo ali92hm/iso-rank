@@ -1,10 +1,11 @@
-//
-//  SparseSymSparseMatrix.h
-//  Graph Matching
-//
-//  Created by Ali Hajimirza on 7/9/13.
-//  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
-//
+/*
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
 #ifndef _SymSparseMatrix_h
 #define _SymSparseMatrix_h
