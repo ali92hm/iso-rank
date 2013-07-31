@@ -32,7 +32,7 @@
 #include "greedy_algorithms.h"
 
 #ifdef __linux__
-std::string G_DIR_PATH = "/home/ali/workspace/ex/input/";
+std::string G_DIR_PATH = "/home/ali/lib/input/";
 #elif defined __APPLE__
 std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
 #endif
