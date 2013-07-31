@@ -251,6 +251,8 @@ void greedy_connectivity_3(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1,
 
     }
   }
+
+  match_rest(assignment,graph1,graph2);
   return;
 }
 
@@ -520,10 +522,8 @@ int g1c_count_counter;
     for(int i=0;i<graph1.getNumberOfRows();i++){
       if(assignment[i]==-1){
 	  match_rest(assignment,graph1,graph2);
-      break;
-    }
-
-
+	  break;
+      }
    }
     delete matches_local;
     delete []ass;

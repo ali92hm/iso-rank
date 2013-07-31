@@ -243,17 +243,17 @@ int main(int argc, char * argv[])
 			std::cout<<std::endl;
 		}
 		
-		typename std::vector<IsoRank_Result>::iterator res_it;
+		/* typename std::vector<IsoRank_Result>::iterator res_it;
 		for ( res_it = isoRank_results.begin() ; res_it < isoRank_results.end(); ++res_it )
 		{
 			delete [] res_it->assignments;
 		}
 		
-		typename std::vector<SymMatrix<DataType>* >::iterator graph_it;
+	        typename std::vector<SymMatrix<DataType>* >::iterator graph_it;
 		for ( graph_it = input_graphs.begin() ; graph_it < input_graphs.end(); ++graph_it )
 		{
 			delete  *graph_it;
-		}
+			}*/
     }
 //======================================================================*WORKER NODES*==============================================================================
     else
