@@ -74,22 +74,22 @@ DT max(DT* arr, int arr_size){
  */
 template<typename DT>
 vector<DT>* vector_max(vector<DT>* vec){
-  DT max_so_far= (*vec)[0];
-  vector<int>* ret_vec= new vector<int>();
-  int vec_counter=0;
-
-  for(int i=0;i<vec->size();i++){
-    if((*vec)[i]>max_so_far)
-      max_so_far=(*vec)[i];
-  }
-
-  for(int i=0;i<vec->size();i++){
-    if((*vec)[i]==max_so_far){
-      ret_vec->insert(ret_vec->begin()+vec_counter,i);
-      vec_counter++;
+    DT max_so_far= (*vec)[0];
+    vector<int>* ret_vec= new vector<int>();
+    int vec_counter=0;
+    
+    for(int i=0;i<vec->size();i++){
+        if((*vec)[i]>max_so_far)
+            max_so_far=(*vec)[i];
     }
-  }
-  return ret_vec;
+    
+    for(int i=0;i<vec->size();i++){
+        if((*vec)[i]==max_so_far){
+            ret_vec->insert(ret_vec->begin()+vec_counter,i);
+            vec_counter++;
+        }
+    }
+    return ret_vec;
 }
 
 
@@ -126,7 +126,7 @@ DT std_dev(DT *arr, int arr_size){
 
 /*
  * returns an array of integers which indicate
- * the indices where the value val is located in 
+ * the indices where the value val is located in
  * the array
  * @param: array we are traversing through
  * @param: the value we are looking for
@@ -134,26 +134,26 @@ DT std_dev(DT *arr, int arr_size){
  */
 template <typename DT>
 int* find_in_arr(DT* arr,DT val, int arr_size){
-  int counter=0;
-  
-  //count the number of times val shows up in arr
-  for(int i=0;i<arr_size;i++){
-    if(arr[i]==val)
-      counter++;
-  }
-
-  //create and return the array with indices of where
-  //value is located 
-  int* ret_arr= new int[counter];
-  counter=0;
-  for(int i=0;i<arr_size;i++){
-    if(arr[i]==val){
-      ret_arr[counter]=i;
-      counter++;
+    int counter=0;
+    
+    //count the number of times val shows up in arr
+    for(int i=0;i<arr_size;i++){
+        if(arr[i]==val)
+            counter++;
     }
-  }
-
-  return ret_arr;
+    
+    //create and return the array with indices of where
+    //value is located
+    int* ret_arr= new int[counter];
+    counter=0;
+    for(int i=0;i<arr_size;i++){
+        if(arr[i]==val){
+            ret_arr[counter]=i;
+            counter++;
+        }
+    }
+    
+    return ret_arr;
 }
 
 /*

@@ -1,9 +1,9 @@
 /************************************************************************************
  * This is a file that is used to perform the IsoRank Algorithm.                    *
  * The Kroencker Product and the eigenvalue decomposition are done in this          *
- * file to get the scores matrix between nodal pairs. The ARPACK++ library          * 
+ * file to get the scores matrix between nodal pairs. The ARPACK++ library          *
  * was used to compute the eigenvector decomposition. Greedy algorithms             *
- * to do the matchings are called in this file. Furthermore, functions used to      *  
+ * to do the matchings are called in this file. Furthermore, functions used to      *
  * send and receive results of IsoRank between processors are defined in this file. *
  *                                                                                  *
  ************************************************************************************/
@@ -32,9 +32,9 @@ const int NUM_OF_ISORANK_IT = 20;
  * two graphs
  */
 struct IsoRank_Result
-{ 
+{
 	int frob_norm;
-        int assignment_length;
+    int assignment_length;
 	int* assignments;
     
     
@@ -55,14 +55,14 @@ void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
 }
 
 /*
- * function used to receive the IsoRank_Result struct 
+ * function used to receive the IsoRank_Result struct
  * @param: the source processor where this struct came from
- * @param: the tag used by the MPI calls 
+ * @param: the tag used by the MPI calls
  * @param: the MPI_Status object used by the MPI_calls
  */
 struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat)
 {
-// 	std::cout << "CALL to MPI_Recv_IsoRank_Result "<< std::endl;
+    // 	std::cout << "CALL to MPI_Recv_IsoRank_Result "<< std::endl;
 	struct IsoRank_Result result;
 	MPI_Recv(&result.assignment_length, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
 	result.assignments = new int[result.assignment_length];
@@ -80,7 +80,7 @@ struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& s
 template <typename DT>
 struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix_B, int matching_algorithm)
 {
-  //check to see both adjacency matrices are square and symmetric
+    //check to see both adjacency matrices are square and symmetric
     if (!matrix_A.isSquare() || !matrix_B.isSquare())
     {
         throw NotASquareMatrixException();
@@ -91,7 +91,7 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
         throw NotASymmetricMatrixException();
     }
     
-    // Degree distribution statistics 
+    // Degree distribution statistics
     DenseMatrix<DT> kron_prod = matrix_A.kron(matrix_B);
     std::vector<vertex*> vertices = graph_con_com(kron_prod);
     DT** eigenValues = new DT*[kron_prod.getNumberOfColumns()];
@@ -122,7 +122,7 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
             D_neg0pt5[j] = 1.0/D_0pt5[j];
         }
         
-	DenseMatrix<DT> lTimesD = L.diagonalVectorTimesMatrix(D_neg0pt5);
+        DenseMatrix<DT> lTimesD = L.diagonalVectorTimesMatrix(D_neg0pt5);
         DenseMatrix<DT> Ms = lTimesD.matrixTimesDiagonalVector(D_neg0pt5);
         
         if(!Ms.isSymmetric())
@@ -159,111 +159,111 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
     int counter_eig_vector=0;
     int counter_comp_mask=0;
     struct IsoRank_Result ret_val;
-  
-    //run matching algorithms for each component 
+    
+    //run matching algorithms for each component
     for(int k=0;k<kron_prod.getNumberOfColumns();k++) {
         DT* eigenvector=eigenValues[k];
-
-        if(eigenvector!=NULL) {
-	  comp_mask_curr=comp_mask_values[k];
-	  scores= reshape(eigenvector,matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns(),*comp_mask_curr);
-	  DenseMatrix<DT> scores_copy(scores);
-	  int * best_assignment;
-	  float best_frob_norm=DBL_MAX;
-            
-	  for (int num_it = 0; num_it < NUM_OF_ISORANK_IT; num_it++){
-	    scores=scores_copy;
-	    int* assignment= new int[matrix_A.getNumberOfRows()];
-	    init_array(assignment,matrix_A.getNumberOfRows(),-1);
         
-	    //call the approprite matching algorithm
-	    switch (matching_algorithm)
-	      {
-	      case 0:
-		greedy_1(scores,matrix_A,matrix_B,assignment);
-		break;
-	      case 1:
-		greedy_connectivity_1(scores,matrix_A,matrix_B,assignment);
-		break;
-	      case 2:
-		greedy_connectivity_2(scores,matrix_A,matrix_B,assignment);
-		break;
-	      case 3:
-		greedy_connectivity_3(scores,matrix_A,matrix_B,assignment);
-		break;
-	      case 4:
-		greedy_connectivity_4(scores,matrix_A,matrix_B,assignment);
-		break;
-	      default:
-		break;
-	      }
+        if(eigenvector!=NULL) {
+            comp_mask_curr=comp_mask_values[k];
+            scores= reshape(eigenvector,matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns(),*comp_mask_curr);
+            DenseMatrix<DT> scores_copy(scores);
+            int * best_assignment;
+            float best_frob_norm=DBL_MAX;
+            
+            for (int num_it = 0; num_it < NUM_OF_ISORANK_IT; num_it++){
+                scores=scores_copy;
+                int* assignment= new int[matrix_A.getNumberOfRows()];
+                init_array(assignment,matrix_A.getNumberOfRows(),-1);
                 
-       
-	    //find the frobenius norm
-	    // two cases: matrixA is larger than matrixB and matrixA is smaller than matrixB
-	    if(matrix_A.getNumberOfRows()>matrix_B.getNumberOfRows()){
-	      DenseMatrix<float> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_A.getNumberOfRows());
-	      DenseMatrix<float> product=perm_mat*matrix_A;	
-	      DenseMatrix<float> get_transpose=perm_mat.transpose();	
-	      DenseMatrix<float> final_mat=product*get_transpose;
-	      DenseMatrix<float> ret_matrix= matrix_A-final_mat;
+                //call the approprite matching algorithm
+                switch (matching_algorithm)
+                {
+                    case 0:
+                        greedy_1(scores,matrix_A,matrix_B,assignment);
+                        break;
+                    case 1:
+                        greedy_connectivity_1(scores,matrix_A,matrix_B,assignment);
+                        break;
+                    case 2:
+                        greedy_connectivity_2(scores,matrix_A,matrix_B,assignment);
+                        break;
+                    case 3:
+                        greedy_connectivity_3(scores,matrix_A,matrix_B,assignment);
+                        break;
+                    case 4:
+                        greedy_connectivity_4(scores,matrix_A,matrix_B,assignment);
+                        break;
+                    default:
+                        break;
+                }
+                
+                
+                //find the frobenius norm
+                // two cases: matrixA is larger than matrixB and matrixA is smaller than matrixB
+                if(matrix_A.getNumberOfRows()>matrix_B.getNumberOfRows()){
+                    DenseMatrix<float> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_A.getNumberOfRows());
+                    DenseMatrix<float> product=perm_mat*matrix_A;
+                    DenseMatrix<float> get_transpose=perm_mat.transpose();
+                    DenseMatrix<float> final_mat=product*get_transpose;
+                    DenseMatrix<float> ret_matrix= matrix_A-final_mat;
 					
-	      float frob_norm_hold=ret_matrix.getFrobNorm(); 
- 
-	      if(frob_norm_hold<best_frob_norm){
-			best_frob_norm=frob_norm_hold;
-			if(num_it>0)
-				delete []best_assignment;
-			best_assignment=assignment;
-			
-	      } 
-	      else{
-	      	delete []assignment;
-	      }
-	    }
-	    else{
-	      int b_size=matrix_B.getNumberOfRows();
-	      int a_size=matrix_A.getNumberOfRows();
-	      DenseMatrix<float> matrix_A2(b_size,b_size);
-				  
-	      for(int r=0;r<b_size;r++){
-			for(int s=0;s<b_size;s++){
-			if(r<a_size&&s<a_size){
-		 	   matrix_A2[r][s]=matrix_A[r][s];
-		 	 }
-		 	 else if(r==s){
-		 	   matrix_A2[r][s]=1;
-			  }
-		 	 else{
-		 	   matrix_A2[r][s]=0;
-		 	 }	      
-			}
-	      }
-
-	      DenseMatrix<float> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_B.getNumberOfRows());
-	      DenseMatrix<float> product=perm_mat*matrix_A2;	
-	      DenseMatrix<float> get_transpose=perm_mat.transpose();
-	      DenseMatrix<float> final_mat=product*get_transpose;
-	      DenseMatrix<float> ret_matrix= matrix_A-final_mat;
-
-	      float frob_norm_hold=ret_matrix.getFrobNorm(); 
- 
-	      if(frob_norm_hold<best_frob_norm){
-			best_frob_norm=frob_norm_hold;
-			if(num_it>0)
-				delete []best_assignment;
-			best_assignment=assignment;
-	      }
-	      else{
-	      	delete []assignment;
-	      }
-	    }
-      }
-                  
-	  ret_val.frob_norm=best_frob_norm;
-	  ret_val.assignments=best_assignment;
-	  ret_val.assignment_length=matrix_A.getNumberOfRows();        
-	}
+                    float frob_norm_hold=ret_matrix.getFrobNorm();
+                    
+                    if(frob_norm_hold<best_frob_norm){
+                        best_frob_norm=frob_norm_hold;
+                        if(num_it>0)
+                            delete []best_assignment;
+                        best_assignment=assignment;
+                        
+                    }
+                    else{
+                        delete []assignment;
+                    }
+                }
+                else{
+                    int b_size=matrix_B.getNumberOfRows();
+                    int a_size=matrix_A.getNumberOfRows();
+                    DenseMatrix<float> matrix_A2(b_size,b_size);
+                    
+                    for(int r=0;r<b_size;r++){
+                        for(int s=0;s<b_size;s++){
+                            if(r<a_size&&s<a_size){
+                                matrix_A2[r][s]=matrix_A[r][s];
+                            }
+                            else if(r==s){
+                                matrix_A2[r][s]=1;
+                            }
+                            else{
+                                matrix_A2[r][s]=0;
+                            }
+                        }
+                    }
+                    
+                    DenseMatrix<float> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_B.getNumberOfRows());
+                    DenseMatrix<float> product=perm_mat*matrix_A2;	
+                    DenseMatrix<float> get_transpose=perm_mat.transpose();
+                    DenseMatrix<float> final_mat=product*get_transpose;
+                    DenseMatrix<float> ret_matrix= matrix_A-final_mat;
+                    
+                    float frob_norm_hold=ret_matrix.getFrobNorm(); 
+                    
+                    if(frob_norm_hold<best_frob_norm){
+                        best_frob_norm=frob_norm_hold;
+                        if(num_it>0)
+                            delete []best_assignment;
+                        best_assignment=assignment;
+                    }
+                    else{
+                        delete []assignment;
+                    }
+                }
+            }
+            
+            ret_val.frob_norm=best_frob_norm;
+            ret_val.assignments=best_assignment;
+            ret_val.assignment_length=matrix_A.getNumberOfRows();        
+        }
     }
     
 	for(int k=0;k<kron_prod.getNumberOfColumns();k++)

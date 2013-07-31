@@ -5,11 +5,10 @@ each node to node mapping and then scores are chosen to create an appropriate ma
 the IsoRank Algorithm and for the second step there are 5 possible algorithms one can choose to run: simple greedy,
 greedy connectivity 1, greedy connectivity 2, greedy connectivity 3 and greedy connectivity 4. The program takes as input
 a directory where each file represents a graph. Each graph in the directory is compared to every other graph and for each pair of
-graphs three values are computed: a node to node mapping,a score indicating how appropriate the mapping is, and another value the
+graphs three values are computed: a node to node mapping, a score indicating how appropriate the mapping is, and another value the
 frobenius norm to indicate the quality of mapping (the higher the score the better, the lower the frobenius norm the better).
 Created in the summer of 2013 this software was originally written with the intention of being used by the Ferguson group at the
-Materials Science & Engineering Department at UIUC. This software however, can be used for any purpose that requires an approximate
-solution to the graph matching problem.     
+Materials Science & Engineering Department at University of Illinois at Urbana-Champaign. This software however, can be used for any purpose that requires an approximate solution to the graph matching problem.     
 
 
 
@@ -36,20 +35,20 @@ Should look like
 
 
 
-There are two versions of the graph matching software availabe, a sequential version and a parallel version. 
+There are two versions of the graph matching software available, a sequential version and a parallel version. 
 
 To run the sequential version: 
 
-./main [-dir directory_name] [-ext file_extension] [-num_files number_of_files] [-match_alg matching_algorithm] [-alg graph_matching_alg] [-print] [-debug]
+./main [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
 
 Explanation of flags:
-[-dir directory_name] -dir indicates that the files where the graphs are stored are in the directory called directory_name
-[-ext file_extension] -ext indicates that the extension of the files being read is file_extension                                     (default for file_extension is .dat)
-[-num_files number_of_files] -num_files indicates that number_of_files need to be read in to be compared                  	      (default for number_of_files is 2)
-[-match_alg matching_algorithm] -match_alg indicates that matching_algorithm needs be used to map nodes to nodes           	      (default value for matching_algorithm is greedy)
-	    				   	     	  		     	      	      	  	   	                      (matching_algorithm options: greedy,con-enf-1,
-																       con-enf-2,con-enf-3,con-enf-4)
-[-alg graph_matching_alg] -alg indicates that graph_matching_alg is to be used  						      (default value for graph_matching_alg is isorank)			                                                                                                                            (graph_matching_alg options: isorank, gpgm)
+[-dir <directory_name>] -dir indicates that the files where the graphs are stored are in the directory called directory_name
+[-ext <file_extension>] -ext indicates that the extension of the files being read is file_extension                                 (default for file_extension is .dat)
+[-num_files <number_of_files>] -num_files indicates that number_of_files need to be read in to be compared                  	      (default for number_of_files is 2)
+[-match_alg <matching_algorithm>] -match_alg indicates that matching_algorithm needs be used to map nodes to nodes           	      (default value for matching_algorithm is greedy)
+(matching_algorithm options: greedy,con-enf-1,
+con-enf-2,con-enf-3,con-enf-4)
+[-alg <graph_matching_alg>] -alg indicates that graph_matching_alg is to be used  						      (default value for graph_matching_alg is isorank)			                                                                                                                            (graph_matching_alg options: isorank, gpgm)
 [-print] prints out results i.e. frobenius norm, time taken,  etc.
 [-debug] prints out values useful for debugging your program
 
@@ -57,7 +56,7 @@ Explanation of flags:
 
 To run the parallel version with mpi:
 
-mpirun -np #number_of_processors ./main [-dir directory_name] [-ext file_extension] [-num_files number_of_files] [-match_alg matching_algorithm] [-alg graph_matching_alg] [-print] [-debug]
+mpirun -np #number_of_processors ./main [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
 
 
 Explanation of flags:

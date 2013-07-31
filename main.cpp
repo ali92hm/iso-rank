@@ -1,8 +1,8 @@
 
 /***********************************************************************************************************************************************
- * This is a software that gives an approximate solution to the graph matching problem by using the                                            * 
+ * This is a software that gives an approximate solution to the graph matching problem by using the                                            *
  * IsoRank Algorithm. Created in the summer of 2013 this software was originally written with the                                              *
- * intention of being used by the Ferguson group at the Materials Science & Engineering Department at UIUC.                                    *                  
+ * intention of being used by the Ferguson group at the Materials Science & Engineering Department at UIUC.                                    *
  *                                                                                                                                             *
  *                                                                                                                                             *
  * For more details on the software (i.e. design decisions, potential bugs etc.) please consult the README file.                               *
@@ -13,7 +13,7 @@
  *                                                                                                                                             *
  *                                                                                                                                             *
  *                                                                                                                                             *
- * Refs: M. Leordeanu and M. Herbert, "A Spectral Technique for Correspondence Problems Using Pairwise Constraints"                            * 
+ * Refs: M. Leordeanu and M. Herbert, "A Spectral Technique for Correspondence Problems Using Pairwise Constraints"                            *
  * Proceedings of the Tenth IEEE International Conference on Computer Vision (ICCV?05) 1550                                                    *
  *                                                                                                                                             *
  * R. Singh, J. Xu and B. Berger "Global alignment of multiple protein interaction networks with application to functional orthology detection"*
@@ -45,7 +45,7 @@ std::string G_FILE_EXTENSION = ".dat";
 int G_NUMBER_OF_FILES = 2;
 
 /*
- * 
+ *
  */
 bool G_USE_ISORANK = true;
 bool G_USE_GPGM = false;
@@ -83,21 +83,21 @@ int main(int argc, char * argv[])
 {
 	/*
 	 * MPI Variables
-	 */  
-        int num_procs;
-        int ID;
+	 */
+    int num_procs;
+    int ID;
  	MPI_Status stat;
-
+    
  	/*
  	 * MPI constant Tags
  	 */
  	const int MASTER_ID = 0;
-        const int TAG_1 = 4;
-        const int TAG_2 = 10;
-        const int TAG_3 = 15;
-
+    const int TAG_1 = 4;
+    const int TAG_2 = 10;
+    const int TAG_3 = 15;
+    
     /*
-     * MPI Initilalization calls 
+     * MPI Initilalization calls
      */
     if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
     {
@@ -106,7 +106,7 @@ int main(int argc, char * argv[])
     }
     MPI_Comm_size (MPI_COMM_WORLD, &num_procs);
     MPI_Comm_rank (MPI_COMM_WORLD, &ID);
-        
+    
     /*
      *Configure the program to use the command line args
      */
@@ -121,10 +121,10 @@ int main(int argc, char * argv[])
 	/*
 	 *	Result variables
 	 */
-	int total_comparisons; 
-        std::vector<IsoRank_Result> isoRank_results;
-
-//======================================================================*MASTER NODE*==============================================================================
+	int total_comparisons;
+    std::vector<IsoRank_Result> isoRank_results;
+    
+    //======================================================================*MASTER NODE*==============================================================================
     if (ID == MASTER_ID)
     {
     	if(G_PRINT)
@@ -132,7 +132,7 @@ int main(int argc, char * argv[])
     	time_start = std::clock();
     	std::ostringstream itos_converter;
     	std::vector<SymMatrix<DataType>* >input_graphs;
-
+        
     	/*
     	 * Reading the grphs and storing them
     	 */
@@ -157,8 +157,8 @@ int main(int argc, char * argv[])
 		if(G_PRINT)
 			std::cout << input_graphs.size() << " of " << G_NUMBER_OF_FILES << " graphs were successfully read in "
 			<< timeElapsed(time_start, time_end) << "(ms)." << std::endl;
-
-	/*
+        
+        /*
     	 * Sending the graphs to worker nodes.
     	 */
 		time_start = std::clock();
@@ -176,7 +176,7 @@ int main(int argc, char * argv[])
 					
 					if(G_DEBUG)
 						std::cout <<"Master: sending matrix to ID: " << dest_ID << std::endl;
-						
+                    
 					dest_ID++;
 				}
 				// Send additional pais upon worker node's request
@@ -184,16 +184,16 @@ int main(int argc, char * argv[])
 				{
 					int dest;
 					//Recv workers ID
-					MPI_Recv(&dest, 1, MPI_INT, MPI_ANY_SOURCE, TAG_1 + TAG_2, MPI_COMM_WORLD,&stat);						
+					MPI_Recv(&dest, 1, MPI_INT, MPI_ANY_SOURCE, TAG_1 + TAG_2, MPI_COMM_WORLD,&stat);
 					if(G_DEBUG)
 						std::cout <<"Master: received request for more graphs from: "<< dest<< std::endl;
-
+                    
 					//Collect the result from worker
-					isoRank_results.push_back(MPI_Recv_IsoRank_Result(dest, TAG_1 * dest + TAG_3, stat));						
+					isoRank_results.push_back(MPI_Recv_IsoRank_Result(dest, TAG_1 * dest + TAG_3, stat));
 					recv_counter++;
 					if(G_DEBUG)
 						std::cout <<"Master: results were received "<< dest<< std::endl;
-
+                    
 					//Send more graphs to worker node
 					input_graphs[i]->MPI_Send_SymMatrix(dest, TAG_1 * dest);
 					input_graphs[j]->MPI_Send_SymMatrix(dest, TAG_1 * dest + TAG_2);
@@ -210,7 +210,7 @@ int main(int argc, char * argv[])
 			MPI_Recv(&dest, 1, MPI_INT, MPI_ANY_SOURCE, TAG_1 + TAG_2, MPI_COMM_WORLD,&stat);
 			if(G_DEBUG)
 				std::cout <<"Master: received request for more graphs from: "<< dest<< std::endl;
-
+            
 			//Collect the result from worker
 			isoRank_results.push_back(MPI_Recv_IsoRank_Result(dest, TAG_1 * dest + TAG_3, stat));
 			recv_counter++;
@@ -225,16 +225,16 @@ int main(int argc, char * argv[])
  			emptyMat.MPI_Send_SymMatrix (i, TAG_1*i);
  			emptyMat.MPI_Send_SymMatrix (i, TAG_1*i+ TAG_2);
  			if (G_DEBUG)
- 				std::cout <<"Master: sending terminate signal to ID: " << i << std::endl;	
- 		} 
+ 				std::cout <<"Master: sending terminate signal to ID: " << i << std::endl;
+ 		}
  		time_end = std::clock();
-
-		//printing the results 
+        
+		//printing the results
 		if (G_PRINT)
 		{
 			std::cout << "Master: Computed IsoRank successfully for " << G_NUMBER_OF_FILES << " graphs in "
-												<< timeElapsed(time_start, time_end) << "(ms)." << std::endl;
-												
+            << timeElapsed(time_start, time_end) << "(ms)." << std::endl;
+            
 			std::cout<< "Master: " <<isoRank_results.size() << " results were received.\n frob_norms: ";
 			for (int i=0; i < isoRank_results.size(); i++)
 			{
@@ -244,18 +244,18 @@ int main(int argc, char * argv[])
 		}
 		
 		/* typename std::vector<IsoRank_Result>::iterator res_it;
-		for ( res_it = isoRank_results.begin() ; res_it < isoRank_results.end(); ++res_it )
-		{
-			delete [] res_it->assignments;
-		}
-		
-	        typename std::vector<SymMatrix<DataType>* >::iterator graph_it;
-		for ( graph_it = input_graphs.begin() ; graph_it < input_graphs.end(); ++graph_it )
-		{
-			delete  *graph_it;
-			}*/
+         for ( res_it = isoRank_results.begin() ; res_it < isoRank_results.end(); ++res_it )
+         {
+         delete [] res_it->assignments;
+         }
+         
+         typename std::vector<SymMatrix<DataType>* >::iterator graph_it;
+         for ( graph_it = input_graphs.begin() ; graph_it < input_graphs.end(); ++graph_it )
+         {
+         delete  *graph_it;
+         }*/
     }
-//======================================================================*WORKER NODES*==============================================================================
+    //======================================================================*WORKER NODES*==============================================================================
     else
     {
     	while(true)
@@ -263,32 +263,32 @@ int main(int argc, char * argv[])
     		//Recv graphs from the master
     		DenseMatrix<DataType> mat1 (MASTER_ID, TAG_1 * ID ,stat);
     		DenseMatrix<DataType> mat2 (MASTER_ID, TAG_1 * ID + TAG_2 ,stat);
-//     		std::cout << mat1 << "\n" << mat2 << std::endl;
-
+            //     		std::cout << mat1 << "\n" << mat2 << std::endl;
+            
     		if (G_DEBUG)
     			std::cout << "Process "<< ID << " : received graphs from master"<< std::endl;
-
+            
     		//Terminating the while loop if the matrices are 0*0
 			if (mat1.getNumberOfRows() == 0 && mat2.getNumberOfRows() == 0)
 			{
 				if (G_DEBUG)
 					std::cout << "Process "<< ID << ": received terminate signal from master"<< std::endl;
 				break;
-			}	
-
-// 			int* assignment = new int[mat1.getNumberOfRows()];
-// 			init_array(assignment,mat1.getNumberOfRows(),-1);
+			}
+            
+            // 			int* assignment = new int[mat1.getNumberOfRows()];
+            // 			init_array(assignment,mat1.getNumberOfRows(),-1);
 			struct IsoRank_Result result;
 			try
 			{
 				if (G_USE_ISORANK)
-				{	
+				{
 					if (G_DEBUG)
 						std::cout << "Process " << ID << ": isoRank: started." << std::endl;
 			  		result = isoRank(mat1, mat2, 0);
 			  		// result.frob_norm = 1;
-// 			  		result.assignments = new int[10];
-// 			  		result.assignment_length = 10;
+                    // 			  		result.assignments = new int[10];
+                    // 			  		result.assignment_length = 10;
 			  		if (G_DEBUG)
 						std::cout << "Process " << ID << ": isoRank: end." << std::endl;
 				}
@@ -296,14 +296,14 @@ int main(int argc, char * argv[])
 				{
 					//GPGM(mat1,mat2);
 				}
-
+                
 				if (G_DEBUG)
 					std::cout << "Process "<< ID << " :requesting for more graphs from master" << std::endl;
 				//Sending the ID to master for more graphs
 				MPI_Send(&ID, 1, MPI_INT, MASTER_ID, TAG_1 + TAG_2, MPI_COMM_WORLD);
-
+                
 				if (G_DEBUG)
-				  std::cout << "Process "<< ID << ": :sending result to master" << std::endl;
+                    std::cout << "Process "<< ID << ": :sending result to master" << std::endl;
 				//Sending results to master
 				MPI_Send_IsoRank_Result(result, MASTER_ID , TAG_1 * ID + TAG_3);
 				
@@ -312,13 +312,13 @@ int main(int argc, char * argv[])
 			{
 				std::cerr << "Process "<< ID << " Exception: " << e.what() << std::endl;
 			}
-		}			
+		}
 		
 	}
 	
 	if(G_PRINT)
-    	std::cout << "Process: "<< ID << " terminated." << std::endl; 
-
+    	std::cout << "Process: "<< ID << " terminated." << std::endl;
+    
     MPI_Finalize();
     return 0;
 }
@@ -341,13 +341,13 @@ double timeElapsed(std::clock_t start, std::clock_t end)
  */
 void parseCommandLineArgs(int argc,char* argv[], int ID)
 {
-   if (ID == 0)
-   {
-	   std::cout << "\n\nReading command line arguments..." << std::endl; 
-	   if ( argc < 2)
-	   {
-	      std::cout <<"No arguments were passed." << std::endl;
-	   }
+    if (ID == 0)
+    {
+        std::cout << "\n\nReading command line arguments..." << std::endl;
+        if ( argc < 2)
+        {
+            std::cout <<"No arguments were passed." << std::endl;
+        }
 	}
     
     for (int i = 1; i < argc; i++)
@@ -444,7 +444,7 @@ void parseCommandLineArgs(int argc,char* argv[], int ID)
                 if (ID == 0)
                 	std::cout << "Matching algorithm was set to connectivity enforcement 3." << std::endl;
             }
-             //choosing connectivity enforcement 4
+            //choosing connectivity enforcement 4
             else if (std::strncmp(argv[i], "con_enf_4", 9) == 0)
             {
             	G_GRAPH_MATCHING_ALGORITHM = 4;
@@ -491,7 +491,7 @@ void parseCommandLineArgs(int argc,char* argv[], int ID)
 			std::string assignment_app;
 			switch (G_GRAPH_MATCHING_ALGORITHM)
 			{
-				case 0: 
+				case 0:
 					assignment_app = "Greedy.";
 					break;
 				case 1:

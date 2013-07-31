@@ -15,8 +15,8 @@ class vertex
     long index;
     long low_link;
     int tarjan_flag;
-
- public:
+    
+public:
     vertex();
     vertex (int, int);
     virtual ~vertex();
