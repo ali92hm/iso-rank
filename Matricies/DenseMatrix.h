@@ -98,7 +98,7 @@ public:
     T getFrobNorm() const;
     int getNumberOfRows() const;
     int getNumberOfColumns() const;
-    std::vector<T> getTopEigenVector();
+    T* getTopEigenVector();
     std::vector<int> getNeighbors(int vertex) const;
     std::vector<SparseElement<T> >getSparseForm() const;
     DenseMatrix<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B) const;
@@ -466,7 +466,7 @@ std::vector<int> DenseMatrix<T>::getNeighbors(int vertex) const
  * Returns a std::vector<T> that contains the values of the eigenvector associated to the largest eigenvalue
  */
 template <typename T>
-std::vector<T> DenseMatrix<T>::getTopEigenVector()
+T* DenseMatrix<T>::getTopEigenVector()
 {
 #ifdef ARPACK
     int arr_size = (this->_rows*(this->_rows+1))/2;
@@ -483,7 +483,7 @@ std::vector<T> DenseMatrix<T>::getTopEigenVector()
     ARdsSymMatrix<T> ARMatrix(this->_rows,nzval,'L');
     ARluSymStdEig<T> eigProb(1, ARMatrix, "LM",10);
     eigProb.FindEigenvectors();
-    std::vector<T> eigen_vector(this->_rows);
+    T* eigen_vector = new T[this->_rows];
      
     for (int i=0; i < this->_rows ; i++)
     {
@@ -506,7 +506,7 @@ std::vector<T> DenseMatrix<T>::getTopEigenVector()
         
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> evals_eigen = es.eigenvalues();
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> evecs_eigen = es.eigenvectors();
-        std::vector<T> eigen_vector(this->_rows);
+        T* eigen_vector = new T[this->_rows];
 
         for ( int i=0; i < this->_cols; i++)
         {   
@@ -521,6 +521,9 @@ std::vector<T> DenseMatrix<T>::getTopEigenVector()
         }
     return eigen_vector;
 #endif
+}
+
+
 
 /*
  * Returns a std::vector<T> that contains sum of the values in each row
