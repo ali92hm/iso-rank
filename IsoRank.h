@@ -252,6 +252,7 @@ struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B
     return ret_val;
 }
 
+#ifdef USE_MPI
 /*
  * function used to send the IsoRank_Result struct between two processors
  * @param: result struct of isorank
@@ -280,5 +281,6 @@ struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& s
 	MPI_Recv(&result.frob_norm, 1, MPI_INT, source, tag + 3, MPI_COMM_WORLD, &stat);
 	return result;
 }
+#endif
 
 #endif

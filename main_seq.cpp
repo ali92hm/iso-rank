@@ -28,7 +28,6 @@
 #include "IsoRank.h"
 #include <vector>
 #include <ctime>
-#include "mpi.h"
 
 /*
  * Path to the graph folders.
@@ -94,7 +93,7 @@ int main(int argc, char * argv[])
 	 */
 	int total_comparisons;
     std::vector<IsoRank_Result> isoRank_results;
-    std::vector<Matrix<DataType>* >input_graphs;
+    std::vector<DenseMatrix<DataType>* >input_graphs;
     
     if(G_PRINT)
         std::cout << "Reading " << G_NUMBER_OF_FILES << " graphs from: " << G_DIR_PATH << std::endl;
@@ -108,7 +107,7 @@ int main(int argc, char * argv[])
         try
         {
             itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
-            input_graphs.push_back(new Matrix<DataType>(itos_converter.str()));
+            input_graphs.push_back(new DenseMatrix<DataType>(itos_converter.str()));
             itos_converter.str(""); //clearing the stream
             itos_converter.clear();
         }
@@ -128,13 +127,13 @@ int main(int argc, char * argv[])
     time_start = std::clock();
     for (int i = 0; i < input_graphs.size(); i++)
     {
-        for (int j = 0; j < input_graphs.size(); j++)
+        for (int j = i + 1; j < input_graphs.size(); j++)
         {
             try
             {
                 if (G_USE_ISORANK)
                 {
-                    result = isoRank(input_graphs[i], input_graphs[j], G_GRAPH_MATCHING_ALGORITHM);
+                    isoRank_results.push_back(isoRank(*input_graphs[i], *input_graphs[j], G_GRAPH_MATCHING_ALGORITHM));
                 }
                 if (G_USE_GPGM)
                 {
@@ -154,10 +153,10 @@ int main(int argc, char * argv[])
     //printing the results
     if (G_PRINT)
     {
-        std::cout << "Master: Computed IsoRank successfully for " << G_NUMBER_OF_FILES << " graphs in "
+        std::cout << "Computed IsoRank successfully for " << G_NUMBER_OF_FILES << " graphs in "
         << timeElapsed(time_start, time_end) << "(ms)." << std::endl;
         
-        std::cout<< "Master: " <<isoRank_results.size() << " results were received.\n frob_norms: ";
+        std::cout << "Frob_norms: ";
         for (int i=0; i < isoRank_results.size(); i++)
         {
             std::cout<< isoRank_results[i].frob_norm << ", ";
@@ -171,7 +170,7 @@ int main(int argc, char * argv[])
         delete [] res_it->assignments;
     }
     
-    typename std::vector<Matrix<DataType>* >::iterator graph_it;
+    typename std::vector<DenseMatrix<DataType>* >::iterator graph_it;
     for ( graph_it = input_graphs.begin() ; graph_it < input_graphs.end(); ++graph_it )
     {
         delete  *graph_it;
