@@ -12,7 +12,7 @@
 #include <math.h>
 #include <vector>
 #include <cmath>
-#include "Matricies/DenseMatrix.h"
+#include "Matricies/DenseMatrix2D.h"
 #include <limits>
 
 #ifndef greedy_algorithm_helper_h
@@ -20,8 +20,8 @@
 
 
 vector<int>* intersect(int*, int, struct coordinate_pair**,int);
-void match_rest(int*, DenseMatrix<float>&, DenseMatrix<float>&);
-int* get_valid_entries(DenseMatrix<float>, int*,int,int*);
+void match_rest(int*, DenseMatrix2D<float>&, DenseMatrix2D<float>&);
+int* get_valid_entries(DenseMatrix2D<float>, int*,int,int*);
 vector<int>* choose_cols(struct coordinate_pair**,int,int);
 
 
@@ -80,16 +80,16 @@ vector<int>* choose_cols(struct coordinate_pair** rc,int rc_size,int row){
 
 
 /*
- * returns a DenseMatrix Object which is a reshaped eigenvector
+ * returns a DenseMatrix2D Object which is a reshaped eigenvector
  * @pram: a pointer to an array of doubles which represents the eigenvector
  * @pram: number of rows in the matrix returned
  * @pram: number of columns in the matrix returned
  * @pram: component mask vector indicating which nodes are present in current component
  */
 template <typename DT>
-DenseMatrix<DT> reshape(DT* eigenvector,const int rows,const int cols, vector<int> &comp_mask){
+DenseMatrix2D<DT> reshape(DT* eigenvector,const int rows,const int cols, vector<int> &comp_mask){
     
-    DenseMatrix<DT> matrix(rows,cols);
+    DenseMatrix2D<DT> matrix(rows,cols);
     int counter_eig_vector=0;
     int counter_comp_mask=0;
     
@@ -121,7 +121,7 @@ DenseMatrix<DT> reshape(DT* eigenvector,const int rows,const int cols, vector<in
  * @pram: matrix indicating scores for nodal pairs
  */
 template<typename DT>
-void neighbor_enforcement(int* row_index,int* col_index, DenseMatrix<float>& graph1,DenseMatrix<float>& graph2, DenseMatrix<DT>& matches){
+void neighbor_enforcement(int* row_index,int* col_index, DenseMatrix2D<float>& graph1,DenseMatrix2D<float>& graph2, DenseMatrix2D<DT>& matches){
     
     
     for(int i=0;i<graph1.getNumberOfColumns();i++){
@@ -177,15 +177,15 @@ vector<int>* intersect(int* cols, int cols_size, struct coordinate_pair** row_co
 
 /*
  * returns array of nodes from graph2 that can be made availabe for matching
- * @param: DenseMatrix representing graph1
+ * @param: DenseMatrix2D representing graph1
  * @param: array of assignments
  * @param: size of assignments array
  * @param: size of returned array
  */
-int* get_valid_entries(DenseMatrix<float> graph1, int* ass,int size,int* ret_size){
+int* get_valid_entries(DenseMatrix2D<float> graph1, int* ass,int size,int* ret_size){
     
     vector<int> assigned;
-    DenseMatrix<float>* graph_copy=new DenseMatrix<float>(graph1);
+    DenseMatrix2D<float>* graph_copy=new DenseMatrix2D<float>(graph1);
     
     for(int i=0;i<size;i++){
         if(ass[i]!=-1){
@@ -242,19 +242,19 @@ int* get_valid_entries(DenseMatrix<float> graph1, int* ass,int size,int* ret_siz
 /*
  * returns an array of coordinate_pair structs (r,c)
  * such that r,c in scores_matrix has a high score
- * @param: DenseMatrix that represents the nodal pairings scores
+ * @param: DenseMatrix2D that represents the nodal pairings scores
  * @param: array of values that are high enough and in local_matches
  * @param: size of array val
  * @param: size of the array returned
  */
 template <typename DT>
-struct coordinate_pair** find_all_values(DenseMatrix<DT>& local_matches,DT* val,int val_size,int* row_cols_size){
+struct coordinate_pair** find_all_values(DenseMatrix2D<DT>& local_matches,DT* val,int val_size,int* row_cols_size){
     
     int rows=local_matches.getNumberOfRows();
     int cols=local_matches.getNumberOfColumns();
     
     int size=0;
-    DenseMatrix<DT>* local_matches_copy=new DenseMatrix<DT>(local_matches);
+    DenseMatrix2D<DT>* local_matches_copy=new DenseMatrix2D<DT>(local_matches);
     
     //count the number of values that we wish to consider
     for(int i=0;i<local_matches_copy->getNumberOfRows();i++){
@@ -270,7 +270,7 @@ struct coordinate_pair** find_all_values(DenseMatrix<DT>& local_matches,DT* val,
     
     delete local_matches_copy;
     
-    local_matches_copy=new DenseMatrix<DT>(local_matches);
+    local_matches_copy=new DenseMatrix2D<DT>(local_matches);
     
     *row_cols_size=val_size;
     struct coordinate_pair **ret_value= new struct coordinate_pair*[val_size];
@@ -300,11 +300,11 @@ struct coordinate_pair** find_all_values(DenseMatrix<DT>& local_matches,DT* val,
 
 /*
  * checks whether all entries in a matrix are negative
- * @pram: an instance of a DenseMatrix that has all negative numbers
+ * @pram: an instance of a DenseMatrix2D that has all negative numbers
  */
 
 template <typename DT>
-int all_inf(DenseMatrix<DT> &mat){
+int all_inf(DenseMatrix2D<DT> &mat){
     for(int i=0;i<mat.getNumberOfRows();i++){
         for(int j=0;j<mat.getNumberOfColumns();j++){
             if(mat(i,j)>0){
@@ -321,7 +321,7 @@ int all_inf(DenseMatrix<DT> &mat){
  * @pram: matrix that gets set to -inf
  */
 template <typename DT>
-void set_to_min(DenseMatrix<DT>& matrix){
+void set_to_min(DenseMatrix2D<DT>& matrix){
     
     for(int i=0;i<matrix.getNumberOfRows();i++){
         for(int j=0;j<matrix.getNumberOfColumns();j++){
@@ -333,13 +333,13 @@ void set_to_min(DenseMatrix<DT>& matrix){
 
 /*
  * sets certain values of matrix1 to be certain values of matrix2
- * @pram: DenseMatrix which gets changed
- * @pram: DenseMatrix whose values are used to change matrix1
+ * @pram: DenseMatrix2D which gets changed
+ * @pram: DenseMatrix2D whose values are used to change matrix1
  * @pram: vector representing the rows that need to be changed
  * @pram: vector representing the columns that need to be changed
  */
 template<typename DT>
-void set_matrix_values(DenseMatrix<DT>& matrix1,DenseMatrix<DT>& matrix2,  vector<int>& rows, vector<int>& cols){
+void set_matrix_values(DenseMatrix2D<DT>& matrix1,DenseMatrix2D<DT>& matrix2,  vector<int>& rows, vector<int>& cols){
     int r;
     int c;
     
@@ -367,7 +367,7 @@ void set_matrix_values(DenseMatrix<DT>& matrix1,DenseMatrix<DT>& matrix2,  vecto
  * @pram: the number of times the value shows up
  */
 template <typename DT>
-DT* find_values(DenseMatrix<DT>& matches2,DT value,int *size){
+DT* find_values(DenseMatrix2D<DT>& matches2,DT value,int *size){
     *size=0;
     
     //increments a counter to count the number of values in the matrix
@@ -410,7 +410,7 @@ DT* find_values(DenseMatrix<DT>& matches2,DT value,int *size){
  * @pram: pointer to column integer which gets set to the value we return
  */
 template <typename DT>
-DT get_Max(DenseMatrix<DT> *matches, int id, DT val,int *row, int *col){
+DT get_Max(DenseMatrix2D<DT> *matches, int id, DT val,int *row, int *col){
     int count=0;
     if(val<0){
         return -1;
@@ -441,7 +441,7 @@ DT get_Max(DenseMatrix<DT> *matches, int id, DT val,int *row, int *col){
  */
 
 template <typename DT>
-int return_max(DenseMatrix<DT>& matches, DT* total_score,int* max_row,int* max_col){
+int return_max(DenseMatrix2D<DT>& matches, DT* total_score,int* max_row,int* max_col){
     
     DT max_so_far=-DBL_MAX;
     int max_so_far_count=1;
@@ -507,7 +507,7 @@ int return_max(DenseMatrix<DT>& matches, DT* total_score,int* max_row,int* max_c
  * @pram: matrix on which we perform operation
  */
 template <typename DT>
-void invalidate(int row, int col, DenseMatrix<DT>& matches){
+void invalidate(int row, int col, DenseMatrix2D<DT>& matches){
     //set every entry in row and col to be -inf
     for(int j=0;j<matches.getNumberOfColumns();j++){
         matches(row,j)=-DBL_MAX;
@@ -521,10 +521,10 @@ void invalidate(int row, int col, DenseMatrix<DT>& matches){
  * function called if matching is not complete (some nodes in graph1
  * don't get matched to any nodes in graph2)
  * @pram: an array which signifies the matching between graph1 and graph2
- * @pram: DenseMatrix representing graph1
- * @pram: DenseMatrix representing graph2
+ * @pram: DenseMatrix2D representing graph1
+ * @pram: DenseMatrix2D representing graph2
  */
-void match_rest(int* assignment, DenseMatrix<float>& graph1, DenseMatrix<float>& graph2){
+void match_rest(int* assignment, DenseMatrix2D<float>& graph1, DenseMatrix2D<float>& graph2){
     
     if(graph1.getNumberOfRows()<=graph2.getNumberOfRows()){
         int unassigned_graph1[graph1.getNumberOfRows()];
@@ -619,8 +619,8 @@ void match_rest(int* assignment, DenseMatrix<float>& graph1, DenseMatrix<float>&
  * returns a permutation matrix with dimensions size x size
  * @param: size of the permutation matrix
  */
-DenseMatrix<float> getPermMatrix(int *ass, int ass_size,const int bigger_matrix_size){
-    DenseMatrix<float> ret_matrix(bigger_matrix_size,bigger_matrix_size);
+DenseMatrix2D<float> getPermMatrix(int *ass, int ass_size,const int bigger_matrix_size){
+    DenseMatrix2D<float> ret_matrix(bigger_matrix_size,bigger_matrix_size);
     int hold;
     for(int i=0;i<bigger_matrix_size;i++){
         if(i<ass_size){

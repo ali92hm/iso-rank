@@ -7,7 +7,7 @@
 #define _util_h
 
 #include "vertex.h"
-#include "Matricies/DenseMatrix.h"
+#include "Matricies/DenseMatrix2D.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

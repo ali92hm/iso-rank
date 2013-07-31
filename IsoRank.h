@@ -11,7 +11,7 @@
 #ifndef Sparse_Matrix_IsoRank_h
 #define Sparse_Matrix_IsoRank_h
 
-#include "Matricies/DenseMatrix.h"
+#include "Matricies/DenseMatrix2D.h"
 #include "Tarjan.h"
 #include "util.h"
 #include "greedy_algorithms.h"
@@ -45,7 +45,7 @@ struct IsoRank_Result
  * @param: the matching algorithm used to choose the best node to node mapping
  */
 template <typename T>
-struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B, int matching_algorithm)
+struct IsoRank_Result isoRank(DenseMatrix2D<T>& matrix_A, DenseMatrix2D<T>& matrix_B, int matching_algorithm)
 {
     //check to see both adjacency matrices are square and symmetric
     if (!matrix_A.isSquare() || !matrix_B.isSquare())
@@ -59,7 +59,7 @@ struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B
     }
     
     // Degree distribution statistics
-    DenseMatrix<T> kron_prod = matrix_A.kron(matrix_B);
+    DenseMatrix2D<T> kron_prod = matrix_A.kron(matrix_B);
     std::vector<vertex*> vertices = graph_con_com(kron_prod);
     T** eigenValues = new T*[kron_prod.getNumberOfColumns()];
     vector<vector<int>*> comp_mask_values (kron_prod.getNumberOfColumns());
@@ -75,7 +75,7 @@ struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B
             continue;
         }
         
-        DenseMatrix<T> L = kron_prod.getScatteredSelection(*comp_mask,*comp_mask);
+        DenseMatrix2D<T> L = kron_prod.getScatteredSelection(*comp_mask,*comp_mask);
         
         std::vector<T> sum = L.getSumOfRows();
         std::vector<T> D_neg1(sum.size());
@@ -89,8 +89,8 @@ struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B
             D_neg0pt5[j] = 1.0/D_0pt5[j];
         }
         
-        DenseMatrix<T> lTimesD = L.diagonalVectorTimesMatrix(D_neg0pt5);
-        DenseMatrix<T> Ms = lTimesD.matrixTimesDiagonalVector(D_neg0pt5);
+        DenseMatrix2D<T> lTimesD = L.diagonalVectorTimesMatrix(D_neg0pt5);
+        DenseMatrix2D<T> Ms = lTimesD.matrixTimesDiagonalVector(D_neg0pt5);
         
         if(!Ms.isSymmetric())
         {
@@ -121,7 +121,7 @@ struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B
     }
     
     
-    DenseMatrix<T> scores;
+    DenseMatrix2D<T> scores;
     vector<int>* comp_mask_curr=comp_mask_values[0];
     int counter_eig_vector=0;
     int counter_comp_mask=0;
@@ -134,7 +134,7 @@ struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B
         if(eigenvector!=NULL) {
             comp_mask_curr=comp_mask_values[k];
             scores= reshape(eigenvector,matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns(),*comp_mask_curr);
-            DenseMatrix<T> scores_copy(scores);
+            DenseMatrix2D<T> scores_copy(scores);
             int * best_assignment;
             float best_frob_norm=DBL_MAX;
             
@@ -169,11 +169,11 @@ struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B
                 //find the frobenius norm
                 // two cases: matrixA is larger than matrixB and matrixA is smaller than matrixB
                 if(matrix_A.getNumberOfRows()>matrix_B.getNumberOfRows()){
-                    DenseMatrix<T> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_A.getNumberOfRows());
-                    DenseMatrix<T> product=perm_mat*matrix_A;
-                    DenseMatrix<T> get_transpose=perm_mat.transpose();
-                    DenseMatrix<T> final_mat=product*get_transpose;
-                    DenseMatrix<T> ret_matrix= matrix_A-final_mat;
+                    DenseMatrix2D<T> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_A.getNumberOfRows());
+                    DenseMatrix2D<T> product=perm_mat*matrix_A;
+                    DenseMatrix2D<T> get_transpose=perm_mat.transpose();
+                    DenseMatrix2D<T> final_mat=product*get_transpose;
+                    DenseMatrix2D<T> ret_matrix= matrix_A-final_mat;
 					
                     T frob_norm_hold=ret_matrix.getFrobNorm();
                     
@@ -191,7 +191,7 @@ struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B
                 else{
                     int b_size=matrix_B.getNumberOfRows();
                     int a_size=matrix_A.getNumberOfRows();
-                    DenseMatrix<float> matrix_A2(b_size,b_size);
+                    DenseMatrix2D<float> matrix_A2(b_size,b_size);
                     
                     for(int r=0;r<b_size;r++){
                         for(int s=0;s<b_size;s++){
@@ -207,11 +207,11 @@ struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B
                         }
                     }
                     
-                    DenseMatrix<T> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_B.getNumberOfRows());
-                    DenseMatrix<T> product=perm_mat*matrix_A2;	
-                    DenseMatrix<T> get_transpose=perm_mat.transpose();
-                    DenseMatrix<T> final_mat=product*get_transpose;
-                    DenseMatrix<T> ret_matrix= matrix_A-final_mat;
+                    DenseMatrix2D<T> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_B.getNumberOfRows());
+                    DenseMatrix2D<T> product=perm_mat*matrix_A2;	
+                    DenseMatrix2D<T> get_transpose=perm_mat.transpose();
+                    DenseMatrix2D<T> final_mat=product*get_transpose;
+                    DenseMatrix2D<T> ret_matrix= matrix_A-final_mat;
                     
                     float frob_norm_hold=ret_matrix.getFrobNorm(); 
                     
