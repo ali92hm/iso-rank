@@ -471,7 +471,7 @@ void greedy_connectivity_4(DenseMatrix<DT>& matches, DenseMatrix<float>& graph1,
             assigned_G1[best_row]=1;
             assigned_G2[best_col]=1;
             
-            DT max_matches=matches[best_row][best_col];
+            DT max_matches=matches(best_row, best_col);
             add_order[add_order_counter]=best_row;
             add_order_counter++;
             invalidate(best_row,best_col,*matches_local);

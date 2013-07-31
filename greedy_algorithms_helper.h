@@ -97,11 +97,11 @@ DenseMatrix<DT> reshape(DT* eigenvector,const int rows,const int cols, vector<in
     for(int i=0;i<matrix.getNumberOfRows();i++){
         for(int j=0;j<matrix.getNumberOfColumns();j++){
             if(comp_mask[counter_comp_mask]==1){
-                matrix[i][j]=eigenvector[counter_eig_vector];
+                matrix(i,j)=eigenvector[counter_eig_vector];
                 counter_eig_vector++;
             }
             else{
-                matrix[i][j]=0;
+                matrix(i,j)=0;
             }
             counter_comp_mask++;
         }
@@ -125,24 +125,24 @@ void neighbor_enforcement(int* row_index,int* col_index, DenseMatrix<float>& gra
     
     
     for(int i=0;i<graph1.getNumberOfColumns();i++){
-        if(graph1[*row_index][i]==1){
+        if(graph1(*row_index, i)==1){
             for(int j=0;j<graph2.getNumberOfRows();j++){
                 //if node i neighbors node row_index in graph1
                 // and node j does not neighbor col_index invalidate (i,j) matching
-                if(graph2[j][*col_index]==0){
-                    matches[i][j]=-DBL_MAX;
+                if(graph2(j, *col_index)==0){
+                    matches(i,j)=-DBL_MAX;
                 }
             }
         }
     }
     
     for(int i=0;i<graph2.getNumberOfColumns();i++){
-        if(graph2[*col_index][i]==1){
+        if(graph2(*col_index, i)==1){
             for(int j=0;j<graph1.getNumberOfRows();j++){
                 //if node j neighbors node col_index in graph2
                 // and node i does not neighbor row_index invalidate (i,j) matching
-                if(graph1[j][*row_index]==0){
-                    matches[j][i]==-DBL_MAX;
+                if(graph1(j,*row_index)==0){
+                    matches(j, i)==-DBL_MAX;
                 }
             }
         }
@@ -206,12 +206,12 @@ int* get_valid_entries(DenseMatrix<float> graph1, int* ass,int size,int* ret_siz
         }
         if(invalidate==1){
             for(int j=0;j<graph_copy->getNumberOfColumns();j++){
-                (*graph_copy)[i][j]=-DBL_MAX;
+                (*graph_copy)(i,j)=-DBL_MAX;
             }
         }
         else{
             for(int j=0;j<graph_copy->getNumberOfColumns();j++){
-                if((*graph_copy)[i][j]==1)
+                if((*graph_copy)(i,j)==1)
                     *ret_size=*ret_size+1;
             }
             invalidate=1;
@@ -225,7 +225,7 @@ int* get_valid_entries(DenseMatrix<float> graph1, int* ass,int size,int* ret_siz
     
     for(int j=0;j<graph1.getNumberOfRows();j++){
         for(int i=0;i<graph1.getNumberOfColumns();i++){
-            if((*graph_copy)[j][i]==1){
+            if((*graph_copy)(j,i)==1){
                 ret_arr[ret_arr_counter]=i;
                 ret_arr_counter++;
             }
@@ -260,8 +260,8 @@ struct coordinate_pair** find_all_values(DenseMatrix<DT>& local_matches,DT* val,
     for(int i=0;i<local_matches_copy->getNumberOfRows();i++){
         for(int j=0;j<local_matches_copy->getNumberOfColumns();j++){
             for(int k=0;k<val_size;k++){
-                if(compareFloats(val[k],(*local_matches_copy)[i][j])==0){
-                    (*local_matches_copy)[i][j]=-DBL_MAX;
+                if(compareFloats(val[k],(*local_matches_copy)(i,j))==0){
+                    (*local_matches_copy)(i,j)=-DBL_MAX;
                     size++;
                 }
             }
@@ -307,7 +307,7 @@ template <typename DT>
 int all_inf(DenseMatrix<DT> &mat){
     for(int i=0;i<mat.getNumberOfRows();i++){
         for(int j=0;j<mat.getNumberOfColumns();j++){
-            if(mat[i][j]>0){
+            if(mat(i,j)>0){
                 return 0;
             }
         }
@@ -325,7 +325,7 @@ void set_to_min(DenseMatrix<DT>& matrix){
     
     for(int i=0;i<matrix.getNumberOfRows();i++){
         for(int j=0;j<matrix.getNumberOfColumns();j++){
-            matrix[i][j]=-DBL_MAX;
+            matrix(i,j)=-DBL_MAX;
         }
     }
     
@@ -346,7 +346,7 @@ void set_matrix_values(DenseMatrix<DT>& matrix1,DenseMatrix<DT>& matrix2,  vecto
     
     for(int i=0;i<matrix1.getNumberOfRows();i++){
         for(int j=0;j<matrix1.getNumberOfColumns();j++){
-            matrix1[i][j]=-DBL_MAX;
+            matrix1(i,j)=-DBL_MAX;
         }
     }
     
@@ -355,7 +355,7 @@ void set_matrix_values(DenseMatrix<DT>& matrix1,DenseMatrix<DT>& matrix2,  vecto
         r=rows[i];
         for(int j=0;j<cols.size();j++){
             c=cols[j];
-            matrix1[r][c]=matrix2[r][c];
+            matrix1(r,c)=matrix2(r,c);
         }
     }
 }
@@ -374,8 +374,8 @@ DT* find_values(DenseMatrix<DT>& matches2,DT value,int *size){
     //greater than a certain amount
     for(int i=0; i<matches2.getNumberOfRows();i++){
         for(int j=0;j<matches2.getNumberOfColumns();j++){
-            if(compareFloats(matches2[i][j],value)==1||
-               compareFloats(matches2[i][j],value)==0) {
+            if(compareFloats(matches2(i,j),value)==1||
+               compareFloats(matches2(i,j),value)==0) {
                 *size=*size+1;
             }
         }
@@ -390,8 +390,8 @@ DT* find_values(DenseMatrix<DT>& matches2,DT value,int *size){
     //exist
     for(int i=0;i<matches2.getNumberOfRows();i++){
         for(int j=0;j<matches2.getNumberOfColumns();j++){
-            if(compareFloats(matches2[i][j],value)==1||
-               compareFloats(matches2[i][j],value)==0){
+            if(compareFloats(matches2(i,j),value)==1||
+               compareFloats(matches2(i,j),value)==0){
                 retarr[counter]=retarr_counter;
                 counter++;
             }
@@ -418,12 +418,12 @@ DT get_Max(DenseMatrix<DT> *matches, int id, DT val,int *row, int *col){
     
     for(int i=0; i<matches->getNumberOfRows();i++){
         for(int j=0;j<matches->getNumberOfColumns();j++){
-            if(compareFloats((*matches)[i][j],val)==1||compareFloats((*matches)[i][j],val)==0){
+            if(compareFloats((*matches)(i,j),val)==1||compareFloats((*matches)(i,j),val)==0){
                 count++;
                 if(count==id){
                     *row=i;
                     *col=j;
-                    return (*matches)[i][j];
+                    return (*matches)(i,j);
                 }
             }
             
@@ -453,11 +453,11 @@ int return_max(DenseMatrix<DT>& matches, DT* total_score,int* max_row,int* max_c
     //and keeps a count of the number of times the values occurs
     for(int i=0; i<matches.getNumberOfRows();i++){
         for(int j=0;j<matches.getNumberOfColumns();j++){
-            if(compareFloats(matches[i][j],max_so_far)==0){
+            if(compareFloats(matches(i,j),max_so_far)==0){
                 max_so_far_count++;
             }
-            else if(compareFloats(matches[i][j],max_so_far)==1){
-                max_so_far=matches[i][j];
+            else if(compareFloats(matches(i,j),max_so_far)==1){
+                max_so_far=matches(i,j);
                 max_so_far_count=1;
             }
         }
@@ -473,7 +473,7 @@ int return_max(DenseMatrix<DT>& matches, DT* total_score,int* max_row,int* max_c
     
     for(int i=0; i<matches.getNumberOfRows();i++){
         for(int j=0;j<matches.getNumberOfColumns();j++){
-            if(compareFloats(matches[i][j],max_so_far)==0){
+            if(compareFloats(matches(i,j),max_so_far)==0){
                 counter++;
                 if(counter==random_number){
                     *max_row=i;
@@ -510,10 +510,10 @@ template <typename DT>
 void invalidate(int row, int col, DenseMatrix<DT>& matches){
     //set every entry in row and col to be -inf
     for(int j=0;j<matches.getNumberOfColumns();j++){
-        matches[row][j]=-DBL_MAX;
+        matches(row,j)=-DBL_MAX;
     }
     for(int j=0;j<matches.getNumberOfRows();j++){
-        matches[j][col]=-DBL_MAX;
+        matches(j, col)=-DBL_MAX;
     }
 }
 
@@ -625,10 +625,10 @@ DenseMatrix<float> getPermMatrix(int *ass, int ass_size,const int bigger_matrix_
     for(int i=0;i<bigger_matrix_size;i++){
         if(i<ass_size){
             hold=ass[i];
-            ret_matrix[i][hold]=1;
+            ret_matrix(i, hold)=1;
         }
         else{
-            ret_matrix[i][i]=1;
+            ret_matrix(i, i)=1;
         }
         
     }

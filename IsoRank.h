@@ -196,13 +196,13 @@ struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B
                     for(int r=0;r<b_size;r++){
                         for(int s=0;s<b_size;s++){
                             if(r<a_size&&s<a_size){
-                                matrix_A2[r][s]=matrix_A[r][s];
+                                matrix_A2(r,s)=matrix_A(r,s);
                             }
                             else if(r==s){
-                                matrix_A2[r][s]=1;
+                                matrix_A2(r,s)=1;
                             }
                             else{
-                                matrix_A2[r][s]=0;
+                                matrix_A2(r,s)=0;
                             }
                         }
                     }

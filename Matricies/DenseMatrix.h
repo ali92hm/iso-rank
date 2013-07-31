@@ -109,7 +109,6 @@ public:
     /**********
      *OPERATORS*
      **********/
-    T* operator[](int);
     friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix<T>& matrix);
     void operator= (const DenseMatrix<T>&);
     T& operator()(int i, int j);
@@ -626,13 +625,6 @@ std::ostream& operator<<(std::ostream& stream, const DenseMatrix<T>& matrix)
     }
     stream << "\n\n\n";
     return stream;
-}
-
-//Should be deleted
-template <typename T>
-T* DenseMatrix<T>::operator[](int index)
-{
-    return this->_edges[index];
 }
 
 /*
