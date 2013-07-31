@@ -17,11 +17,11 @@
 #include "greedy_algorithms.h"
 #include <vector>
 
-int GREEDY = 0;
-int CON_ENF_1 = 1;
-int CON_ENF_2 = 2;
-int CON_ENF_3 = 3;
-int CON_ENF_4 = 4;
+const int GREEDY = 0;
+const int CON_ENF_1 = 1;
+const int CON_ENF_2 = 2;
+const int CON_ENF_3 = 3;
+const int CON_ENF_4 = 4;
 
 const int NUM_OF_ISORANK_IT = 20;
 
@@ -36,40 +36,7 @@ struct IsoRank_Result
 	int frob_norm;
     int assignment_length;
 	int* assignments;
-    
-    
 };
-
-
-/*
- * function used to send the IsoRank_Result struct between two processors
- * @param: result struct of isorank
- * @param: the destination processor
- * @param: the tag used for the MPI calls
- */
-void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
-{
-	MPI_Send(&result.assignment_length, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-	MPI_Send(result.assignments, result.assignment_length, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
-	MPI_Send(&result.frob_norm, 1, MPI_INT, dest, tag + 3, MPI_COMM_WORLD);
-}
-
-/*
- * function used to receive the IsoRank_Result struct
- * @param: the source processor where this struct came from
- * @param: the tag used by the MPI calls
- * @param: the MPI_Status object used by the MPI_calls
- */
-struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat)
-{
-    // 	std::cout << "CALL to MPI_Recv_IsoRank_Result "<< std::endl;
-	struct IsoRank_Result result;
-	MPI_Recv(&result.assignment_length, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
-	result.assignments = new int[result.assignment_length];
-	MPI_Recv(result.assignments ,result.assignment_length , MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
-	MPI_Recv(&result.frob_norm, 1, MPI_INT, source, tag + 3, MPI_COMM_WORLD, &stat);
-	return result;
-}
 
 /*
  * function used to perform the isorank algorithm
@@ -77,8 +44,8 @@ struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& s
  * @param: adjacency matrix for graph2
  * @param: the matching algorithm used to choose the best node to node mapping
  */
-template <typename DT>
-struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix_B, int matching_algorithm)
+template <typename T>
+struct IsoRank_Result isoRank(DenseMatrix<T>& matrix_A, DenseMatrix<T>& matrix_B, int matching_algorithm)
 {
     //check to see both adjacency matrices are square and symmetric
     if (!matrix_A.isSquare() || !matrix_B.isSquare())
@@ -92,9 +59,9 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
     }
     
     // Degree distribution statistics
-    DenseMatrix<DT> kron_prod = matrix_A.kron(matrix_B);
+    DenseMatrix<T> kron_prod = matrix_A.kron(matrix_B);
     std::vector<vertex*> vertices = graph_con_com(kron_prod);
-    DT** eigenValues = new DT*[kron_prod.getNumberOfColumns()];
+    T** eigenValues = new T*[kron_prod.getNumberOfColumns()];
     vector<vector<int>*> comp_mask_values (kron_prod.getNumberOfColumns());
     
     //for each component find the eigenvector corresponding to the scores matrix
@@ -108,12 +75,12 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
             continue;
         }
         
-        DenseMatrix<DT> L = kron_prod.getScatteredSelection(*comp_mask,*comp_mask);
+        DenseMatrix<T> L = kron_prod.getScatteredSelection(*comp_mask,*comp_mask);
         
-        std::vector<DT> sum = L.getSumOfRows();
-        std::vector<DT> D_neg1(sum.size());
-        std::vector<DT> D_0pt5(sum.size());
-        std::vector<DT> D_neg0pt5(sum.size());
+        std::vector<T> sum = L.getSumOfRows();
+        std::vector<T> D_neg1(sum.size());
+        std::vector<T> D_0pt5(sum.size());
+        std::vector<T> D_neg0pt5(sum.size());
         
         for(int j=0; j < sum.size(); j++)
         {
@@ -122,15 +89,15 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
             D_neg0pt5[j] = 1.0/D_0pt5[j];
         }
         
-        DenseMatrix<DT> lTimesD = L.diagonalVectorTimesMatrix(D_neg0pt5);
-        DenseMatrix<DT> Ms = lTimesD.matrixTimesDiagonalVector(D_neg0pt5);
+        DenseMatrix<T> lTimesD = L.diagonalVectorTimesMatrix(D_neg0pt5);
+        DenseMatrix<T> Ms = lTimesD.matrixTimesDiagonalVector(D_neg0pt5);
         
         if(!Ms.isSymmetric())
         {
             throw NotASymmetricMatrixException();
         }
         
-        DT* eigenVec=  Ms.getTopEigenVector();
+        T* eigenVec=  Ms.getTopEigenVector();
         double vecLength = 0;
         for (int j=0; j < L.getNumberOfRows(); j++)
         {
@@ -154,7 +121,7 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
     }
     
     
-    DenseMatrix<DT> scores;
+    DenseMatrix<T> scores;
     vector<int>* comp_mask_curr=comp_mask_values[0];
     int counter_eig_vector=0;
     int counter_comp_mask=0;
@@ -162,12 +129,12 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
     
     //run matching algorithms for each component
     for(int k=0;k<kron_prod.getNumberOfColumns();k++) {
-        DT* eigenvector=eigenValues[k];
+        T* eigenvector=eigenValues[k];
         
         if(eigenvector!=NULL) {
             comp_mask_curr=comp_mask_values[k];
             scores= reshape(eigenvector,matrix_A.getNumberOfRows(),matrix_B.getNumberOfColumns(),*comp_mask_curr);
-            DenseMatrix<DT> scores_copy(scores);
+            DenseMatrix<T> scores_copy(scores);
             int * best_assignment;
             float best_frob_norm=DBL_MAX;
             
@@ -179,19 +146,19 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
                 //call the approprite matching algorithm
                 switch (matching_algorithm)
                 {
-                    case 0:
+                    case GREEDY:
                         greedy_1(scores,matrix_A,matrix_B,assignment);
                         break;
-                    case 1:
+                    case CON_ENF_1:
                         greedy_connectivity_1(scores,matrix_A,matrix_B,assignment);
                         break;
-                    case 2:
+                    case CON_ENF_2:
                         greedy_connectivity_2(scores,matrix_A,matrix_B,assignment);
                         break;
-                    case 3:
+                    case CON_ENF_3:
                         greedy_connectivity_3(scores,matrix_A,matrix_B,assignment);
                         break;
-                    case 4:
+                    case CON_ENF_4:
                         greedy_connectivity_4(scores,matrix_A,matrix_B,assignment);
                         break;
                     default:
@@ -202,13 +169,13 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
                 //find the frobenius norm
                 // two cases: matrixA is larger than matrixB and matrixA is smaller than matrixB
                 if(matrix_A.getNumberOfRows()>matrix_B.getNumberOfRows()){
-                    DenseMatrix<float> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_A.getNumberOfRows());
-                    DenseMatrix<float> product=perm_mat*matrix_A;
-                    DenseMatrix<float> get_transpose=perm_mat.transpose();
-                    DenseMatrix<float> final_mat=product*get_transpose;
-                    DenseMatrix<float> ret_matrix= matrix_A-final_mat;
+                    DenseMatrix<T> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_A.getNumberOfRows());
+                    DenseMatrix<T> product=perm_mat*matrix_A;
+                    DenseMatrix<T> get_transpose=perm_mat.transpose();
+                    DenseMatrix<T> final_mat=product*get_transpose;
+                    DenseMatrix<T> ret_matrix= matrix_A-final_mat;
 					
-                    float frob_norm_hold=ret_matrix.getFrobNorm();
+                    T frob_norm_hold=ret_matrix.getFrobNorm();
                     
                     if(frob_norm_hold<best_frob_norm){
                         best_frob_norm=frob_norm_hold;
@@ -240,11 +207,11 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
                         }
                     }
                     
-                    DenseMatrix<float> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_B.getNumberOfRows());
-                    DenseMatrix<float> product=perm_mat*matrix_A2;	
-                    DenseMatrix<float> get_transpose=perm_mat.transpose();
-                    DenseMatrix<float> final_mat=product*get_transpose;
-                    DenseMatrix<float> ret_matrix= matrix_A-final_mat;
+                    DenseMatrix<T> perm_mat=getPermMatrix(assignment,matrix_A.getNumberOfRows(),matrix_B.getNumberOfRows());
+                    DenseMatrix<T> product=perm_mat*matrix_A2;	
+                    DenseMatrix<T> get_transpose=perm_mat.transpose();
+                    DenseMatrix<T> final_mat=product*get_transpose;
+                    DenseMatrix<T> ret_matrix= matrix_A-final_mat;
                     
                     float frob_norm_hold=ret_matrix.getFrobNorm(); 
                     
@@ -283,6 +250,35 @@ struct IsoRank_Result isoRank(DenseMatrix<DT>& matrix_A, DenseMatrix<DT>& matrix
     
     delete []eigenValues;
     return ret_val;
+}
+
+/*
+ * function used to send the IsoRank_Result struct between two processors
+ * @param: result struct of isorank
+ * @param: the destination processor
+ * @param: the tag used for the MPI calls
+ */
+void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
+{
+	MPI_Send(&result.assignment_length, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+	MPI_Send(result.assignments, result.assignment_length, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+	MPI_Send(&result.frob_norm, 1, MPI_INT, dest, tag + 3, MPI_COMM_WORLD);
+}
+
+/*
+ * function used to receive the IsoRank_Result struct
+ * @param: the source processor where this struct came from
+ * @param: the tag used by the MPI calls
+ * @param: the MPI_Status object used by the MPI_calls
+ */
+struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat)
+{
+	struct IsoRank_Result result;
+	MPI_Recv(&result.assignment_length, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+	result.assignments = new int[result.assignment_length];
+	MPI_Recv(result.assignments ,result.assignment_length , MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
+	MPI_Recv(&result.frob_norm, 1, MPI_INT, source, tag + 3, MPI_COMM_WORLD, &stat);
+	return result;
 }
 
 #endif

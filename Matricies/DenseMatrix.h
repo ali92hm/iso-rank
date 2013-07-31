@@ -14,13 +14,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
-#include <sstream>
-#include <iterator>
-#include <iomanip>
-#include <cstring>
 #include <stdexcept>
-#include <limits>
-#include <math.h>
 #include "MatrixExceptions.h"
 #include "SparseElement.h"
 
