@@ -97,7 +97,7 @@ int main(int argc, char * argv[])
     const int TAG_3 = 15;
     
     /*
-     * MPI Initilalization calls
+     * MPI Initialization calls
      */
     if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
     {
@@ -113,7 +113,7 @@ int main(int argc, char * argv[])
     parseCommandLineArgs(argc, argv, ID);
     
     /*
-     * Timing Varialbles
+     * Timing Variables
      */
     std::clock_t time_start;
     std::clock_t time_end;
@@ -134,7 +134,7 @@ int main(int argc, char * argv[])
     	std::vector<SymMatrix<DataType>* >input_graphs;
         
     	/*
-    	 * Reading the grphs and storing them
+    	 * Reading the graphs and storing them
     	 */
 		for(int i = 1; i <= G_NUMBER_OF_FILES; i++)
 		{
@@ -179,7 +179,7 @@ int main(int argc, char * argv[])
                     
 					dest_ID++;
 				}
-				// Send additional pais upon worker node's request
+				// Send additional pairs upon worker node's request
 				else
 				{
 					int dest;
@@ -263,7 +263,6 @@ int main(int argc, char * argv[])
     		//Recv graphs from the master
     		DenseMatrix<DataType> mat1 (MASTER_ID, TAG_1 * ID ,stat);
     		DenseMatrix<DataType> mat2 (MASTER_ID, TAG_1 * ID + TAG_2 ,stat);
-            //     		std::cout << mat1 << "\n" << mat2 << std::endl;
             
     		if (G_DEBUG)
     			std::cout << "Process "<< ID << " : received graphs from master"<< std::endl;
@@ -275,9 +274,7 @@ int main(int argc, char * argv[])
 					std::cout << "Process "<< ID << ": received terminate signal from master"<< std::endl;
 				break;
 			}
-            
-            // 			int* assignment = new int[mat1.getNumberOfRows()];
-            // 			init_array(assignment,mat1.getNumberOfRows(),-1);
+
 			struct IsoRank_Result result;
 			try
 			{
@@ -285,10 +282,7 @@ int main(int argc, char * argv[])
 				{
 					if (G_DEBUG)
 						std::cout << "Process " << ID << ": isoRank: started." << std::endl;
-			  		result = isoRank(mat1, mat2, 0);
-			  		// result.frob_norm = 1;
-                    // 			  		result.assignments = new int[10];
-                    // 			  		result.assignment_length = 10;
+			  		result = isoRank(mat1, mat2, G_GRAPH_MATCHING_ALGORITHM);
 			  		if (G_DEBUG)
 						std::cout << "Process " << ID << ": isoRank: end." << std::endl;
 				}
@@ -306,6 +300,7 @@ int main(int argc, char * argv[])
                     std::cout << "Process "<< ID << ": :sending result to master" << std::endl;
 				//Sending results to master
 				MPI_Send_IsoRank_Result(result, MASTER_ID , TAG_1 * ID + TAG_3);
+                delete [] result.assignments;
 				
 			}
 			catch (std::exception& e)
@@ -360,13 +355,13 @@ void parseCommandLineArgs(int argc,char* argv[], int ID)
             if (ID == 0)
             	std::cout << "Working directory was set to: " << G_DIR_PATH << std::endl;
         }
-        //changing the extention of the file
+        //changing the extension of the file
         else if (std::strncmp(argv[i], "-ext",4) == 0)
         {
             i++;
             G_FILE_EXTENSION = std::string(argv[i]);
             if (ID == 0)
-            	std::cout << "File extention was set to: " << G_FILE_EXTENSION << std::endl;
+            	std::cout << "File extension was set to: " << G_FILE_EXTENSION << std::endl;
         }
         //changing the number of files to be read
         else if (std::strncmp(argv[i], "-num_files",10) == 0)
@@ -409,7 +404,7 @@ void parseCommandLineArgs(int argc,char* argv[], int ID)
             else
             {
             	if (ID == 0)
-                	std::cout << "Alorithm '" << argv [i] <<  "' is not a valid alorithm." << std::endl;
+                	std::cout << "Algorithm '" << argv [i] <<  "' is not a valid algorithm." << std::endl;
             }
         }
         //chanigng the score matching algorithm
@@ -451,11 +446,11 @@ void parseCommandLineArgs(int argc,char* argv[], int ID)
                 if (ID == 0)
                 	std::cout << "Matching algorithm was set to connectivity enforcement 4." << std::endl;
             }
-            // invalid pram for matching alorithm
+            // invalid pram for matching algorithm
             else
             {
             	if (ID == 0)
-                	std::cout << "Alorithm '" << argv [i] <<  "' is not a valid alorithm." << std::endl;
+                	std::cout << "Algorithm '" << argv [i] <<  "' is not a valid algorithm." << std::endl;
             }
         }
         //Print to console
@@ -483,7 +478,7 @@ void parseCommandLineArgs(int argc,char* argv[], int ID)
     {
 		std::cout << "\n\n" <<"Program configuration: " << std::endl;
 		std::cout << "Working directory: '" << G_DIR_PATH << "'" << std::endl;
-		std::cout << "File Extention: '" << G_FILE_EXTENSION << "'" << std::endl;
+		std::cout << "File Extension: '" << G_FILE_EXTENSION << "'" << std::endl;
 		std::cout << "Number of graphs to read: " << G_NUMBER_OF_FILES << std::endl;
 		if (G_USE_ISORANK)
 		{
