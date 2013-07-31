@@ -429,7 +429,7 @@ DenseMatrix2D<T> DenseMatrix2D<T>::getScatteredSelection(const std::vector<int>&
         {
             if ( vec_A[i] == 1 && vec_B[j] ==1)
             {
-                res_matrix[counter/num_in_B][counter%num_in_B] = this->_edges[i][j];
+                res_matrix._edges[counter/num_in_B][counter%num_in_B] = this->_edges[i][j];
                 counter++;
             }
         }
@@ -598,7 +598,7 @@ DenseMatrix2D<T> DenseMatrix2D<T>::transpose() const
     {
         for(int j=0;j<this->_cols;j++)
         {
-            ret_matrix[j][i] = this->_edges[i][j];
+            ret_matrix._edges[j][i] = this->_edges[i][j];
         }
     }
     return ret_matrix;
@@ -656,7 +656,7 @@ DenseMatrix2D<T> DenseMatrix2D<T>::operator*(const DenseMatrix2D<T>& other_matri
             {
                ret_val += this->_edges[i][k] * other_matrix._edges[k][j];
             }
-            ret_matrix[i][j] = ret_val;
+            ret_matrix._edges[i][j] = ret_val;
         }
     }
   
@@ -675,7 +675,7 @@ DenseMatrix2D<T> DenseMatrix2D<T>::operator-(const DenseMatrix2D<T>& other_matri
   {   
       for(int j = 0; j < this->_cols; j++)
       {
-           ret_matrix[i][j] = this->_edges[i][j] - other_matrix._edges[i][j];
+           ret_matrix._edges[i][j] = this->_edges[i][j] - other_matrix._edges[i][j];
       }
   }
   return ret_matrix;
@@ -693,7 +693,7 @@ DenseMatrix2D<T> DenseMatrix2D<T>::operator+(const DenseMatrix2D<T>& other_matri
   {   
       for(int j = 0; j < this->_cols; j++)
       {
-           ret_matrix[i][j] = this->_edges[i][j] + other_matrix._edges[i][j];
+           ret_matrix._edges[i][j] = this->_edges[i][j] + other_matrix._edges[i][j];
       }
   }
   return ret_matrix;
