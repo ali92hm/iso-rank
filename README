@@ -30,16 +30,16 @@ Should look like
 3 2
 3 3
   
-**The progarm expects files that have row/column indices that are 1-based. So the upperleft most value in a matrix A is A[1][1].  
+**The program expects files that have row/column indices that are 1-based. So the upper-left most value in a matrix A is A[1][1].  
 
 
 
 
-There are two versions of the graph matching software available, a sequential version and a parallel version. 
+There are three versions of the graph matching software available, a sequential version and two parallel versions. 
 
 To run the sequential version: 
 
-./main [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
+./IsoRank_seq [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
 
 Explanation of flags:
 [-dir <directory_name>] -dir indicates that the files where the graphs are stored are in the directory called directory_name
@@ -54,9 +54,9 @@ con-enf-2,con-enf-3,con-enf-4)
 
 
 
-To run the parallel version with mpi:
+To run the first parallel version with mpi:
 
-mpirun -np #number_of_processors ./main [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
+mpirun -np #number_of_processors ./IsoRank [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
 
 
 Explanation of flags:
@@ -71,7 +71,7 @@ Design Decisions:
 Matrices Implemented 
 
 Each graph is represented as an adjacency matrix where if matrix[i][j]==1 then there is an edge between node i and node j and if 
-matrix[i][j]==0 then there is no edge between node i and node j. All matrix classes can be found in the Matricies directory. There 
+matrix[i][j]==0 then there is no edge between node i and node j. All matrix classes can be found in the Matrices directory. There 
 are 5 classes that have been implemented: DenseMatrix.h, Matrix.h, SparseMatrix.h,SymMatrix.h, and SymSparseMatrix.h. DenseMatrix
 uses a 2-dimensional array to represent the adjacency matrix. Matrix.h uses a 1-d array to represent the adjacency matrix using 
 row major order. SparseMatrix.h uses a hash table where only the values that are non-zero are stored in the hash table. SymMatrix.h uses
