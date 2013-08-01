@@ -69,9 +69,9 @@ public:
     /**************
      *Constructors*
      **************/
-    DenseMatrix2D();
+    DenseMatrix2D(bool);
     DenseMatrix2D(const std::string &file_path);
-    DenseMatrix2D(int rows, int cols);
+    DenseMatrix2D(int rows, int cols,bool);
     DenseMatrix2D(const DenseMatrix2D<T>&);
 
     #ifdef USE_MPI
@@ -129,11 +129,11 @@ const T DenseMatrix2D<T>::_DEFAULT_MATRIX_ENTRY = 1;
  * Construct a matrix of size _DEFAULT_MATRIX_SIZE * _DEFAULT_MATRIX_SIZE initialized to 0
  */
 template <typename T>
-DenseMatrix2D<T>::DenseMatrix2D()
+DenseMatrix2D<T>::DenseMatrix2D(bool fill = true)
 {
     this->_rows = _DEFAULT_MATRIX_SIZE;
     this->_cols = _DEFAULT_MATRIX_SIZE;
-    _initializeMatrix(true);
+    _initializeMatrix(fill);
 }
 
 /*
@@ -233,11 +233,11 @@ DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat)
  * @pram int cols: number of columns
  */
 template <typename T>
-DenseMatrix2D<T>::DenseMatrix2D(int rows, int cols)
+DenseMatrix2D<T>::DenseMatrix2D(int rows, int cols, bool fill = true)
 {
     this->_rows = rows;
     this->_cols = cols;
-    _initializeMatrix(true);
+    _initializeMatrix(fill);
 }
 
 /*
@@ -313,7 +313,6 @@ bool DenseMatrix2D<T>::isSymmetric() const
             }
         }
     }
-    
     return true;
 }
 
@@ -515,8 +514,6 @@ T* DenseMatrix2D<T>::getTopEigenVector()
     return eigen_vector;
 #endif
 }
-
-
 
 /*
  * Returns a std::vector<T> that contains sum of the values in each row
@@ -731,10 +728,7 @@ void DenseMatrix2D<T>::_copy(const DenseMatrix2D<T>& matrix)
 
     for(int i=0; i < this->_rows; i++)
     {
-        for(int j=0; j < this->_cols; j++)
-        {
-            this->_edges[i][j] = matrix._edges[i][j];
-        }
+        memcpy(this->_edges[i], matrix._edges[i], this->_cols * sizeof(T));
     }
 }
 
@@ -748,15 +742,19 @@ void DenseMatrix2D<T>::_initializeMatrix(bool fill)
     try
     {
         this->_edges = new T*[this->_rows];
-        for(int i=0; i < this->_rows; i++)
+      
+        if (fill)
         {
-            this->_edges[i] = new T[this->_cols];
-            if (fill)
+            for(int i=0; i < this->_rows; i++)
             {
-                for(int j=0; j< this->_cols; j++)
-                {
-                    this->_edges[i][j] = 0;
-                }
+                this->_edges[i] = new T[this->_cols]();
+            }
+        }
+        else
+        {
+            for(int i=0; i < this->_rows; i++)
+            {
+                this->_edges[i] = new T[this->_cols];
             }
         }
     }
