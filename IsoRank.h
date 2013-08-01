@@ -11,7 +11,7 @@
 #ifndef Sparse_Matrix_IsoRank_h
 #define Sparse_Matrix_IsoRank_h
 
-#include "Matricies/DenseMatrix2D.h"
+#include "Matrices/DenseMatrix2D.h"
 #include "Tarjan.h"
 #include "util.h"
 #include "greedy_algorithms.h"

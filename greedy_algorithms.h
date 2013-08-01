@@ -15,7 +15,7 @@
 #include <math.h>
 #include <vector>
 #include <cmath>
-#include "Matricies/DenseMatrix2D.h"
+#include "Matrices/DenseMatrix2D.h"
 #include "greedy_algorithms_helper.h"
 #include <limits>
 

@@ -12,7 +12,7 @@
 #include <math.h>
 #include <vector>
 #include <cmath>
-#include "Matricies/DenseMatrix2D.h"
+#include "Matrices/DenseMatrix2D.h"
 #include <limits>
 
 #ifndef greedy_algorithm_helper_h

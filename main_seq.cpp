@@ -24,7 +24,7 @@
  *                                                                                                                                             *
  ***********************************************************************************************************************************************/
 
-#include "Matricies/DenseMatrix2D.h"
+#include "Matrices/DenseMatrix2D.h"
 #include "IsoRank.h"
 #include <vector>
 #include <ctime>

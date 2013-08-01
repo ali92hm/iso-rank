@@ -7,8 +7,8 @@
 #ifndef _Tarjan_h
 #define _Tarjan_h
 
-#include "Matricies/DenseMatrix2D.h"
-#include "Matricies/SparseElement.h"
+#include "Matrices/DenseMatrix2D.h"
+#include "Matrices/SparseElement.h"
 #include "vertex.h"
 #include <stack>
 
