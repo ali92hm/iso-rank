@@ -407,7 +407,7 @@ void parseCommandLineArgs(int argc,char* argv[], int ID)
                 	std::cout << "Algorithm '" << argv [i] <<  "' is not a valid algorithm." << std::endl;
             }
         }
-        //chanigng the score matching algorithm
+        //changing the score matching algorithm
         else if (std::strncmp(argv[i], "-match_alg",7) == 0)
         {
             i++;

@@ -33,9 +33,10 @@ template <typename T>
 class DenseMatrix1D
 {
 private:
-    const static int _DEFAULT_MATRIX_SIZE = 1;
+    static const int _DEFAULT_MATRIX_SIZE;
+    static const  T _DEFAULT_MATRIX_ENTRY;
     size_t _getArrSize() const;
-    void _initilalizeMatrix();
+    void _initilalizeMatrix(bool);
     void _copy(const DenseMatrix1D<T>&);
     
 protected:
@@ -48,8 +49,8 @@ public:
     /**************
      *Constructors*
      **************/
-    DenseMatrix1D();
-    DenseMatrix1D(int, int);
+    DenseMatrix1D(bool);
+    DenseMatrix1D(int, int,bool);
     DenseMatrix1D(const DenseMatrix1D<T>&);
     DenseMatrix1D(const std::string&);
     
@@ -106,13 +107,18 @@ public:
     
 };
 
+//==========================================================CONSTANTS============================================================
+template <typename T>
+const int DenseMatrix1D<T>::_DEFAULT_MATRIX_SIZE = 1;
+template <typename T>
+const T DenseMatrix1D<T>::_DEFAULT_MATRIX_ENTRY = 1;
 //==========================================================CONSTRUCTORS============================================================
 template <typename T>
-inline DenseMatrix1D<T>::DenseMatrix1D()
+inline DenseMatrix1D<T>::DenseMatrix1D(bool fill = false)
 {
     this->_rows = _DEFAULT_MATRIX_SIZE;
     this->_cols = _DEFAULT_MATRIX_SIZE;
-    _initilalizeMatrix();
+    _initilalizeMatrix(fill);
 }
 
 template<typename T>
@@ -146,11 +152,11 @@ inline DenseMatrix1D<T>::DenseMatrix1D(const std::string& file_path)
 }
 
 template <typename T>
-inline DenseMatrix1D<T>::DenseMatrix1D(int rows, int cols)
+inline DenseMatrix1D<T>::DenseMatrix1D(int rows, int cols, bool fill)
 {
     this->_rows = rows;
     this->_cols = cols;
-    _initilalizeMatrix();
+    _initilalizeMatrix(fill);
 }
 
 template <typename T>
@@ -167,36 +173,39 @@ inline DenseMatrix1D<T>::~DenseMatrix1D()
     {
         delete [] this->_edges;
     }
-    
-    if (sparse_form != NULL)
-    {
-        for(int i=0; i < sparse_form_size; i++)
-        {
-            delete sparse_form[i];
-        }
-        delete [] sparse_form;
-    }
 }
 
 //===========================================================ACCESSORS===============================================================
+/*
+ * Returns the number of the rows.
+ */
 template <typename T>
 inline int DenseMatrix1D<T>::getNumberOfRows()
 {
     return this->_rows;
 }
 
+/*
+ * Returns the number of the columns.
+ */
 template <typename T>
 inline int DenseMatrix1D<T>::getNumberOfColumns()
 {
     return this->_cols;
 }
 
+/*
+ * Returns true if the matrix is square (i.e rows == cols)
+ */
 template <typename T>
 inline bool DenseMatrix1D<T>::isSquare() const
 {
     return (this->_rows == this->_cols);
 }
 
+/*
+ * Returns true if the matrix is symmetric (i.e values at i, j are equal to values at j, i)
+ */
 template <typename T>
 inline bool DenseMatrix1D<T>::isSymmetric() const
 {
@@ -221,41 +230,64 @@ inline bool DenseMatrix1D<T>::isSymmetric() const
     return true;
 }
 
+/*
+ * Returns the frobenius norm.
+ */
 template <typename T>
-inline sparse_matrix_element<T>** DenseMatrix1D<T>::getSparseForm()
+T DenseMatrix1D<T>::getFrobNorm() const
 {
-    if(sparse_form != NULL)
-    {
-        return this->sparse_form;
-    }
-    
-    for(int i = 0; i < this->_getArrSize(); i++)
-    {
-        if(this->_edges[i] != 0)
-        {
-            sparse_form_size++;
-        }
-    }
-    
-    sparse_form = new sparse_matrix_element<T>* [sparse_form_size];
-    int counter=0;
-    
-    for(int i = 0; i < this->_getArrSize(); i++)
-    {
-        if(this->_edges[i] != 0)
-        {
-            sparse_matrix_element<T> *ele= new sparse_matrix_element<T>;
-            ele->row_index = i / this->_rows;
-            ele->col_index = i % this->_rows;
-            ele->value = this->_edges[i];
-            sparse_form[counter]=ele;
-            counter++;
-        }
-    }
-    
-    return this->sparse_form;
+    // T ret_val=0;
+
+    // for(int i=0; i < this->_rows; i++)
+    // {
+    //     for(int j=0; j < this->_cols; j++)
+    //     {
+    //         ret_val+= this->_edges[i][j] * this->_edges[i][j];
+    //     }
+    // }
+    // return ret_val;
 }
 
+/*
+ * Returns a std::vector<SparseElement<T>> of SparseElement objects that contain the i, j and value of the none-zero edges.
+ */
+template <typename T>
+inline std::vector<SparseElement<T> > DenseMatrix1D<T>::getSparseForm() const
+{    
+    std::vector<SparseElement<T> > sparse_form;
+    for(int i = 0; i < this->_getArrSize(); i++)
+    {
+        if(this->_edges[i][j] != 0)
+        {
+            sparse_form.push_back(SparseElement<T>(i,j, this->_edges[i][j]));
+        }
+    }
+    return sparse_form;
+}
+
+/*
+ * Returns a std::vector<int> of the elements with value of 1 in a columns.
+ * @pram int vertex
+ */
+template <typename T>
+inline std::vector<int> DenseMatrix1D<T>::getNeighbors(int vertex) const
+{
+  // std::vector<int> neighbors;
+  // for(int i = 0; i < this->_rows; i++)
+  // {
+  //   if(this->_edges[i][vertex] == 1)
+  //   {
+  //     neighbors.push_back(i);
+  //   }
+  // }
+  // return neighbors;
+} 
+
+/*
+ * Returns a DenseMatrix2D that has the rows that are marked 1 in vec_A, columns that are marked 1 in vec_B
+ * @pram std::vector<int>: vector of 0's and 1's for row selection
+ * @pram std::vector<int>: vector of 0's and 1's for column selection
+ */
 template <typename T>
 inline DenseMatrix1D<T> DenseMatrix1D<T>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B)
 {
@@ -310,6 +342,9 @@ inline std::vector<int> DenseMatrix1D<T>::getNeighbors(int vertex)
     return neighbors;
 }
 
+/*
+ * Returns a std::vector<T> that contains the values of the eigenvector associated to the largest eigenvalue
+ */
 template <typename T>
 inline std::vector<T> DenseMatrix1D<T>::getTopEigenVector()
 {
@@ -341,16 +376,6 @@ inline std::vector<T> DenseMatrix1D<T>::getTopEigenVector()
 #endif
 }
 
-template <typename T>
-inline int DenseMatrix1D<T>:: getSparseFormSize()
-{
-    if(sparse_form == NULL)
-    {
-        this->getSparseForm();
-    }
-    return this->sparse_form_size;
-}
-
 /*
  * returns a vector of type T where each entry corresponds to sum of entries in a matrix row.
  * Delete this object after usage.
@@ -369,19 +394,6 @@ inline std::vector<T> DenseMatrix1D<T>::getSumOfRows()
 }
 
 //===========================================================MUTATORS================================================================
-
-
-
-template <typename T>
-inline void DenseMatrix1D<T>::insert(int i, int j, T value)
-{
-    if ( (i >= _rows) || (i < 0) || (j >= _cols) || (j < 0) )
-    {
-        throw IndexOutOfBoundsException();
-    }
-    
-    this->_edges[(i * this->_cols) + j] = value;
-}
 
 //==========================================================OPERATORS================================================================
 template <typename T>
@@ -436,6 +448,10 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::kron(const DenseMatrix1D<T>& matrix)
     return prod_matrix;
 }
 
+/*
+ * Returns a DenseMatrix2D<T> of a vector that contains the diagonal values of a diagonal matrix times this matrix.
+ * @pram std::vector<T> diagonal entires of a diagonal matrix
+ */
 template <typename T>
 inline DenseMatrix1D<T> DenseMatrix1D<T>::diagonalVectorTimesMatrix(const std::vector<T>& vec)
 {
@@ -453,6 +469,10 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::diagonalVectorTimesMatrix(const std::v
     return ret_matrix;
 }
 
+/*
+ * Returns a DenseMatrix2D<T> of the product of this matrix a vector that contains the diagonal values of a diagonal matrix.
+ * @pram std::vector<T> diagonal entires of a diagonal matrix
+ */
 template <typename T>
 inline DenseMatrix1D<T> DenseMatrix1D<T>::matrixTimesDiagonalVector(const std::vector<T>& vec)
 {
@@ -470,10 +490,32 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::matrixTimesDiagonalVector(const std::v
             i++;
         }
     }
-    
     return ret_matrix;
 }
 
+/*
+ * Returns a DenseMatrix2D<T> of the transpose of this.
+ */
+template <typename T>
+DenseMatrix1D<T> DenseMatrix1D<T>::transpose() const
+{
+    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols);
+
+    for(int i=0;i<this->_rows;i++)
+    {
+        for(int j=0;j<this->_cols;j++)
+        {
+            ret_matrix._edges[j][i] = this->_edges[i][j];
+        }
+    }
+    return ret_matrix;
+}
+
+/*
+ * overloaded ostream operator for printing a matrix
+ * @pram: std::ostream 
+ * @pram: DenseMatrix2D<T>
+ */
 template <typename T>
 inline std::ostream& operator<<(std::ostream& stream, const DenseMatrix1D<T>& matrix)
 {
@@ -489,29 +531,77 @@ inline std::ostream& operator<<(std::ostream& stream, const DenseMatrix1D<T>& ma
     stream << "\n\n\n";
     return stream;
 }
-    
+
+/*
+ * Overloaded () operator for accessing and changing the values inside a matrix
+ * @pram: int i
+ * @pram: int j
+ */
 template <typename T>
-inline T DenseMatrix1D<T>::operator()(int i, int j) const
+inline T& DenseMatrix1D<T>::operator()(int i, int j)
 {
-    if ( (i >= _rows) || (i < 0) || (j >= _cols) || (j < 0) )
-    {
-        throw IndexOutOfBoundsException();
-    }
-    
     return this->_edges[(i * this->_cols) + j];
 }
-    
+
+/*
+ * Returns a DenseMatrix2D that is product of this and other_matrix
+ * @pram: DenseMatrix2D<T> 
+ */
 template <typename T>
-inline void DenseMatrix1D<T>::operator()(int i, int j, T value)
+inline DenseMatrix1D<T> DenseMatrix1D<T>::operator*(const DenseMatrix2D<T>& other_matrix) const
 {
-    if ( (i >= _rows) || (i < 0) || (j >= _cols) || (j < 0) )
-    {
-        throw IndexOutOfBoundsException();
-    }
-    
-    this->_edges[(i * this->_cols) + j] = value;
+    // DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols);
+    // T ret_val;
+    // for(int i = 0; i < this->_rows;i++)
+    // {
+    //     for(int j = 0; j < other_matrix._cols;j++)
+    //     {
+    //         ret_val = 0;
+    //         for(int k = 0; k < this->_cols;k++)
+    //         {
+    //            ret_val += this->_edges[i][k] * other_matrix._edges[k][j];
+    //         }
+    //         ret_matrix._edges[i][j] = ret_val;
+    //     }
+    // }
+  
+    // return ret_matrix;
 }
-    
+
+/*
+ * Returns a DenseMatrix2D that is the difference of this and other_matrix
+ * @pram: DenseMatrix2D<T> 
+ */
+template <typename T>
+inline DenseMatrix1D<T> DenseMatrix1D<T>::operator-(const DenseMatrix2D<T>& other_matrix) const
+{
+    DenseMatrix1D<T> ret_matrix(this->_rows,this->_cols);
+    for(int i = 0; i < this->_getArrSize() ;i++)
+    {   
+        ret_matrix._edges[i] = this->_edges[i] - other_matrix._edges[i];
+    }
+    return ret_matrix;
+}
+
+/*
+ * Returns a DenseMatrix2D that is the sum of this and other_matrix
+ * @pram: DenseMatrix2D<T> 
+ */
+template <typename T>
+inline DenseMatrix1D<T> DenseMatrix1D<T>::operator+(const DenseMatrix2D<T>& other_matrix) const
+{
+    DenseMatrix1D<T> ret_matrix(this->_rows,this->_cols);
+    for(int i = 0; i < this->_getArrSize() ;i++)
+    {   
+        ret_matrix._edges[i] = this->_edges[i] + other_matrix._edges[i];
+    }
+    return ret_matrix;
+}
+
+/*
+ * Overloaded = operator copies the content of another matrix to this
+ * @pram: DenseMatrix2D<T> 
+ */
 template <typename T>
 inline DenseMatrix1D<T>& DenseMatrix1D<T>::operator=(const DenseMatrix1D<T>& matrix)
 {
@@ -522,6 +612,10 @@ inline DenseMatrix1D<T>& DenseMatrix1D<T>::operator=(const DenseMatrix1D<T>& mat
     _copy(matrix);
 }
 
+/*
+ * Overloaded == operator to compare two matrices
+ * @pram: DenseMatrix2D<T> 
+ */
 template <typename T>
 inline bool DenseMatrix1D<T>::operator==(const DenseMatrix1D<T>& matrix)
 {
@@ -544,38 +638,43 @@ inline bool DenseMatrix1D<T>::operator==(const DenseMatrix1D<T>& matrix)
 }
     
 //===========================================================PRIVATE=================================================================
+/*
+ * Make a deep copy of a matrix object
+ * @pram: DenseMatrix2D<T> 
+ */
 template <typename T>
 inline void DenseMatrix1D<T>::_copy(const DenseMatrix1D<T>& matrix)
 {
     this->_rows = matrix._rows;
     this->_cols = matrix._cols;
     _initilalizeMatrix();
-    
-    for(int i = 0; i < this->_getArrSize(); i++)
-    {
-        this->_edges[i] = matrix._edges[i];
-    }
+    memcpy(this->_edges, matrix._edges, this->_getArrSize() * sizeof(T));
 }
-    
+
+/*
+ * makes a 2D array of size _rows*_cols
+ * @pram: bool fill: if true: initialize values to 0.
+ */  
 template <typename T>
-inline void DenseMatrix1D<T>::_initilalizeMatrix()
+inline void DenseMatrix1D<T>::_initilalizeMatrix(bool fill)
 {
-    this->sparse_form_size = 0;
-    this->sparse_form = NULL;
-    this->_edges = new T[this->_getArrSize()];
-    
-    //checking for memory issues.
-    if (this->_edges == NULL)
+    try
+    {
+        if (fill)
+        {
+            this->_edges = new T[this->_cols]();
+        }
+        else
+        {
+            this->_edges = new T[this->_cols];
+        }
+    }
+    catch (std::bad_alloc& e)
     {
         throw OutOfMemoryException();
     }
-    
-    for ( int i = 0; i < this->_getArrSize(); i++)
-    {
-        this->_edges[i] = 0;
-    }
 }
-    
+
 template<typename T>
 inline size_t DenseMatrix1D<T>::_getArrSize() const
 {
