@@ -6,7 +6,6 @@
 *.exe
 *.o
 *.so
-*.sge
 *.sge.o
 *.sge.pe
 
