@@ -147,7 +147,7 @@ inline SymMatrix<DT>::SymMatrix(const std::string& file_path)
     if(file_reader.fail())
     {
         file_reader.close();
-        throw FileDoesNotExistException(file_path.c_str());
+        throw FileDoesNotExistException(file_path);
     }
     
     file_reader >> this->_size;

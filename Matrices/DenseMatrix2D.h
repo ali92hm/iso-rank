@@ -128,6 +128,7 @@ const T DenseMatrix2D<T>::_DEFAULT_MATRIX_ENTRY = 1;
 /*
  * Default constructor:
  * Construct a matrix of size _DEFAULT_MATRIX_SIZE * _DEFAULT_MATRIX_SIZE initialized to 0
+ * @pram bool fill: fills the matrix with 0's. default value is true
  */
 template <typename T>
 inline DenseMatrix2D<T>::DenseMatrix2D(bool fill = true)
@@ -149,11 +150,11 @@ inline DenseMatrix2D<T>::DenseMatrix2D(const std::string &file_path)
     int tmp_y;
     std::ifstream file_reader;
     file_reader.open(file_path.c_str());
-    
+   
     if(file_reader.fail())
     {
         file_reader.close();
-        throw FileDoesNotExistException(file_path.c_str());
+        throw FileDoesNotExistException(file_path);
     }
     
     file_reader >> this->_rows;
@@ -208,12 +209,12 @@ inline DenseMatrix2D<T>::DenseMatrix2D(int source, int tag, MPI_Status& stat)
 template <typename T>
 inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat)
 {
-    MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD, &stat);
+    MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
     this->_cols = _rows;
     _initializeMatrix(false);
     int recv_edges_size = (int)(0.5 * this->_rows * (this->_rows + 1));
     T* recv_edges = new T[recv_edges_size];
-    MPI_Bcast(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD, &stat);
+    MPI_Bcast(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
 
     int counter = 0;
     for (int i = 0; i < this->_rows; i++)
@@ -232,6 +233,7 @@ inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat)
  * Construct a matrix n*m matrix initialized to 0.
  * @pram int rows: number of rows
  * @pram int cols: number of columns
+ * @pram bool fill: fills the matrix with 0's. default value is true
  */
 template <typename T>
 inline DenseMatrix2D<T>::DenseMatrix2D(int rows, int cols, bool fill = true)
@@ -370,7 +372,7 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::kron(const DenseMatrix2D<T>& matrix) c
     
     //Initializing and allocating the product matrix
     int prod_size = this->_rows * matrix._rows;
-    DenseMatrix2D<T> prod_matrix(prod_size, prod_size);
+    DenseMatrix2D<T> prod_matrix(prod_size, prod_size, false);
     
     /*
      *  Calculating the kronecker product:
@@ -590,7 +592,7 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::matrixTimesDiagonalVector(const std::v
 template <typename T>
 inline DenseMatrix2D<T> DenseMatrix2D<T>::transpose() const
 {
-    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols);
+    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
 
     for(int i=0;i<this->_rows;i++)
     {
@@ -643,7 +645,7 @@ inline T&  DenseMatrix2D<T>::operator()(int i, int j)
 template <typename T>
 inline DenseMatrix2D<T> DenseMatrix2D<T>::operator*(const DenseMatrix2D<T>& other_matrix) const
 {
-    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols);
+    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
     T ret_val;
     for(int i = 0; i < this->_rows;i++)
     {
@@ -668,7 +670,7 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::operator*(const DenseMatrix2D<T>& othe
 template <typename T>
 inline DenseMatrix2D<T> DenseMatrix2D<T>::operator-(const DenseMatrix2D<T>& other_matrix) const
 {
-  DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols);
+  DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
   for(int i = 0; i < this->_rows ;i++)
   {   
       for(int j = 0; j < this->_cols; j++)
@@ -686,7 +688,7 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::operator-(const DenseMatrix2D<T>& othe
 template <typename T>
 inline DenseMatrix2D<T> DenseMatrix2D<T>::operator+(const DenseMatrix2D<T>& other_matrix) const
 {
-  DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols);
+  DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
   for(int i = 0; i < this->_rows ;i++)
   {   
       for(int j = 0; j < this->_cols; j++)

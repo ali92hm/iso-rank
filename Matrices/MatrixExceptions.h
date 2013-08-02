@@ -27,13 +27,13 @@ class MatrixReaderException : public MatrixException {};
 class FileDoesNotExistException : public std::exception
 {
 protected:
-    char* _file_name;
+    const char* _file_name;
 public:
-    explicit FileDoesNotExistException(const char* file_name)
+    explicit FileDoesNotExistException(std::string file_name)
     {
-        std::strcpy(this->_file_name, file_name);
+    	_file_name = file_name.c_str();
     }
-    
+
     virtual const char* what() const throw()
     { 
     	return this->_file_name;
