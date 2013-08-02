@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#$ -S /bin/bash			# use bash shell
+#$ -V 						# inherit the submission environment
+#$ -cwd						# start job in submission directory
+
+#$ -m abe					# email on abort/end, add b for begin
+#$ -M email@illinois.edu
+#$ -j y
+
+#$ -q all.q					# queue name
+#$ -pe orte 12				#parallel environment & #cores
+
+echo Running on host `hostname`
+echo Time is `date`
+
+mpirun -np $NSLOTS .././IsoRank_broadcast -num_files 50 -print -match_alg con_enf_4
+
+echo Time is `date`
+exit 0
