@@ -1,9 +1,8 @@
-//
-//  DenseMatrix1D.h
-//
-//  Created by Ali Hajimirza on 6/11/13.
-//  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
-//
+/*********************************************************************************
+ * Dense Matrix Data Structure. This structure uses a one dimensional array that *
+ * is dynamically allocated to hold all the values in a matrix.                  * 
+ *                                                                               *
+ *********************************************************************************/
 
 #ifndef _DenseMatrix1D_h
 #define _DenseMatrix1D_h
@@ -12,9 +11,12 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <stdexcept>
 #include "MatrixExceptions.h"
+#include "SparseElement.h"
 
 #ifdef ARPACK
 #include "dsmatrxa.h"
@@ -90,7 +92,7 @@ public:
     friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix1D<T>& DenseMatrix1D);
     
     
-    /* WILL IMPLEMENT IF I HAD TIME
+    /* WILL IMPLEMENT
      DenseMatrix1D<T> operator* (const DenseMatrix1D<T>&);
      DenseMatrix1D<T> operator+ (const DenseMatrix1D<T>&);
      DenseMatrix1D<T> operator- (const DenseMatrix1D<T>&);
@@ -430,21 +432,6 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::kron(const DenseMatrix1D<T>& matrix)
             }
         }
     }
-    
-    //new method to take more advantage of 1d array and possibly faster, the assignment needs some thinking
-    
-    //    DenseMatrix1D<T>* kron_prod = new DenseMatrix1D<T>(prod_size, prod_size);
-    //    int counter = 0;
-    //    for (int i = 0; i < this->_getArrSize(); i++)
-    //    {
-    //        for (int j = 0; j < matrix._getArrSize(); j++)
-    //        {
-    //            kron_prod->_edges[counter++] = this->_edges[i] * matrix._edges[j];
-    //        }
-    //    }
-    //    std::cout << (*kron_prod) << std::endl;
-    //    std::cout << ((*kron_prod) == (*prod_matrix)) << std::endl;
-    
     return prod_matrix;
 }
 
