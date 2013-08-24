@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
-#include <stdexcept>
 #include "MatrixExceptions.h"
 #include "SparseElement.h"
 
@@ -175,56 +174,92 @@ inline DenseMatrix2D<T>::DenseMatrix2D(const std::string &file_path)
 /*
  * DensMatrix constructor:
  * Construct a matrix by receiving matrix data from a MPI_Send_Matrix call.
+ * Note the matrix being send should be of type DenseMatrix1D, DenseMatrix2D, SymmMatrix
  * @pram int source: Sender's ID
  * @pram int tag: sender's tag
  * @pram MPI_Status: MPI_Status object
+ * @pram bool symmetric: if the receiving matrix is of type SymMatrix. Default value is false.
  */
 template <typename T>
-inline DenseMatrix2D<T>::DenseMatrix2D(int source, int tag, MPI_Status& stat)
+inline DenseMatrix2D<T>::DenseMatrix2D(int source, int tag, MPI_Status& stat, bool isSymmetric = false)
 {
-    MPI_Recv(&this->_rows, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
-    this->_cols = _rows;
-    _initializeMatrix(false);
-    int recv_edges_size = (int)(0.5 * this->_rows * (this->_rows + 1));
-    T* recv_edges = new T[recv_edges_size];
-    MPI_Recv(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
-
-    int counter = 0;
-    for (int i = 0; i < this->_rows; i++)
+    if (isSymmetric)
     {
-        for (int j = 0; j <= i; j++)
+        MPI_Recv(&this->_rows, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+        this->_cols = _rows;
+        _initializeMatrix(false);
+        int recv_edges_size = (int)(0.5 * this->_rows * (this->_rows + 1));
+        T* recv_edges = new T[recv_edges_size];
+        MPI_Recv(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+
+        int counter = 0;
+        for (int i = 0; i < this->_rows; i++)
         {
-           this->_edges[j][i] = this->_edges[i][j] = recv_edges[counter++];  
+            for (int j = 0; j <= i; j++)
+            {
+               this->_edges[j][i] = this->_edges[i][j] = recv_edges[counter++];  
+            }
+        }
+        delete [] recv_edges;
+    }
+    else
+    {
+        MPI_Recv(&this->_rows, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+        MPI_Recv(&this->_cols, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+        _initializeMatrix(false);
+        int recv_edges_size = this->_rows * this->_cols;
+        T* recv_edges = new T[recv_edges_size];
+        MPI_Recv(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+        for (int i = 0; i < recv_edges_size; i++)
+        {
+            this->_edges[i/this->_cols][i%this->_cols] = recv_edges[i];
         }
     }
-    delete [] recv_edges;
 }
 
 /*
  * DensMatrix constructor:
  * Construct a matrix by receiving matrix data from a MPI_Bcast_Send_Matrix call.
+ * Note the matrix being send should be of type DenseMatrix1D, DenseMatrix2D, SymmMatrix
  * @pram int source: Sender's ID
  * @pram MPI_Status: MPI_Status object
+ * @pram bool symmetric: if the receiving matrix is of type SymMatrix. Default value is false.
  */
 template <typename T>
-inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat)
+inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat, bool isSymmetric = false)
 {
-    MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
-    this->_cols = _rows;
-    _initializeMatrix(false);
-    int recv_edges_size = (int)(0.5 * this->_rows * (this->_rows + 1));
-    T* recv_edges = new T[recv_edges_size];
-    MPI_Bcast(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
-
-    int counter = 0;
-    for (int i = 0; i < this->_rows; i++)
+    if (isSymmetric)
     {
-        for (int j = 0; j <= i; j++)
+        MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
+        this->_cols = _rows;
+        _initializeMatrix(false);
+        int recv_edges_size = (int)(0.5 * this->_rows * (this->_rows + 1));
+        T* recv_edges = new T[recv_edges_size];
+        MPI_Bcast(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
+
+        int counter = 0;
+        for (int i = 0; i < this->_rows; i++)
         {
-           this->_edges[j][i] = this->_edges[i][j] = recv_edges[counter++];  
+            for (int j = 0; j <= i; j++)
+            {
+               this->_edges[j][i] = this->_edges[i][j] = recv_edges[counter++];  
+            }
+        }
+        delete [] recv_edges;
+    }
+    else
+    {
+        MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&this->_cols, 1, MPI_INT, source, MPI_COMM_WORLD);
+        _initializeMatrix(false);
+        int recv_edges_size = this->_rows * this->_cols;
+        T* recv_edges = new T[recv_edges_size];
+        MPI_Bcast(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
+        for (int i = 0; i < recv_edges_size; i++)
+        {
+            this->_edges[i/this->_cols][i%this->_cols] = recv_edges[i];
         }
     }
-    delete [] recv_edges;
 }
 #endif
 

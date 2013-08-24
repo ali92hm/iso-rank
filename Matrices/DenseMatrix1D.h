@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
-#include <stdexcept>
 #include "MatrixExceptions.h"
 #include "SparseElement.h"
 
@@ -25,22 +24,40 @@
 #include "lsymsol.h"
 #endif
 
+#ifdef EIGEN
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+#endif
+
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
+
 template <typename T>
 class DenseMatrix1D;
 
 template <typename T>
 std::ostream& operator<< (std::ostream&, const DenseMatrix1D<T>&);
 
+/*
+ * DenseMatrix1D class definition and method declarations.
+ */
 template <typename T>
 class DenseMatrix1D
 {
 private:
-    static const int _DEFAULT_MATRIX_SIZE;
-    static const  T _DEFAULT_MATRIX_ENTRY;
+    /*
+     * Private methods (used internally)
+     */
     size_t _getArrSize() const;
     void _initilalizeMatrix(bool);
     void _copy(const DenseMatrix1D<T>&);
-    
+
+    /*
+     * Private constants.
+     */
+    static const int _DEFAULT_MATRIX_SIZE;
+    static const  T _DEFAULT_MATRIX_ENTRY;  
 protected:
     int _rows;
     int _cols;
@@ -55,6 +72,11 @@ public:
     DenseMatrix1D(int, int,bool);
     DenseMatrix1D(const DenseMatrix1D<T>&);
     DenseMatrix1D(const std::string&);
+
+    #ifdef USE_MPI
+    DenseMatrix1D(int,MPI_Status&);
+    DenseMatrix1D(int,int,MPI_Status&);
+    #endif
     
     /************
      *Destructor*
@@ -70,43 +92,29 @@ public:
     int getSparseFormSize();
     int getNumberOfColumns();
     std::vector<T> getSumOfRows();
-    std::vector<T> getTopEigenVector();
+    T* getTopEigenVector();
     std::vector<int> getNeighbors(int vertex);
     DenseMatrix1D<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B);
     
     /**********
-     *MUTATORS*
-     **********/
-    void insert(int, int, T);
-    
+    *OPERATIONS*
+    **********/
+    DenseMatrix1D<T> transpose() const;
+    std::vector<T> getSumOfRows() const;
+    DenseMatrix1D<T> kron(const DenseMatrix1D<T>& matrix) const;
+    DenseMatrix1D<T> diagonalVectorTimesMatrix(const std::vector<T>&) const;
+    DenseMatrix1D<T> matrixTimesDiagonalVector(const std::vector<T>&) const;
+
     /**********
      *OPERATORS*
      **********/
-    T operator()(int,int) const;
-    void operator()(int,int,T);
-    DenseMatrix1D<T> kron(const DenseMatrix1D<T>&); /* WORKS SHOULD BE CHANGED */
+    T& operator()(int i, int j);
+    friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix1D<T>& matrix);
+    void operator= (const DenseMatrix1D<T>&);
     bool operator==(const DenseMatrix1D<T>&);
-    DenseMatrix1D<T>& operator= (const DenseMatrix1D<T>&);
-    DenseMatrix1D<T> diagonalVectorTimesMatrix(const std::vector<T>&);
-    DenseMatrix1D<T> MatrixTimesDiagonalVector(const std::vector<T>&);
-    friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix1D<T>& DenseMatrix1D);
-    
-    
-    /* WILL IMPLEMENT
-     DenseMatrix1D<T> operator* (const DenseMatrix1D<T>&);
-     DenseMatrix1D<T> operator+ (const DenseMatrix1D<T>&);
-     DenseMatrix1D<T> operator- (const DenseMatrix1D<T>&);
-     DenseMatrix1D<T> operator* (T);
-     DenseMatrix1D<T> operator+ (T);
-     DenseMatrix1D<T> operator- (T);
-     void operator*= (const DenseMatrix1D<T>&);
-     void operator+= (const DenseMatrix1D<T>&);
-     void operator-= (const DenseMatrix1D<T>&);
-     void operator*= (T);
-     void operator+= (T);
-     void operator-= (T);
-     */
-    
+    DenseMatrix1D<T> operator+(const DenseMatrix1D<T>& other_matrix) const;
+    DenseMatrix1D<T> operator-(const DenseMatrix1D<T>& other_matrix) const;
+    DenseMatrix1D<T> operator*(const DenseMatrix1D<T>& other_matrix) const;
 };
 
 //==========================================================CONSTANTS============================================================
@@ -115,14 +123,24 @@ const int DenseMatrix1D<T>::_DEFAULT_MATRIX_SIZE = 1;
 template <typename T>
 const T DenseMatrix1D<T>::_DEFAULT_MATRIX_ENTRY = 1;
 //==========================================================CONSTRUCTORS============================================================
+/*
+ * Default constructor:
+ * Construct a matrix of size _DEFAULT_MATRIX_SIZE * _DEFAULT_MATRIX_SIZE initialized to 0
+ * @pram bool fill: fills the matrix with 0's. default value is true
+ */
 template <typename T>
-inline DenseMatrix1D<T>::DenseMatrix1D(bool fill = false)
+inline DenseMatrix1D<T>::DenseMatrix1D(bool fill = true)
 {
     this->_rows = _DEFAULT_MATRIX_SIZE;
     this->_cols = _DEFAULT_MATRIX_SIZE;
     _initilalizeMatrix(fill);
 }
 
+/*
+ * DensMatrix constructor:
+ * Construct a matrix by reading a matrix file, specified in readme.txt file the nodes that exist will have _DEFAULT_MATRIX_ENTRY value.
+ * @pram std::string : path to the file
+ */
 template<typename T>
 inline DenseMatrix1D<T>::DenseMatrix1D(const std::string& file_path)
 {
@@ -153,14 +171,111 @@ inline DenseMatrix1D<T>::DenseMatrix1D(const std::string& file_path)
     file_reader.close();
 }
 
+#ifdef USE_MPI
+/*
+ * DensMatrix constructor:
+ * Construct a matrix by receiving matrix data from a MPI_Send_Matrix call.
+ * Note the matrix being send should be of type DenseMatrix1D, DenseMatrix2D, SymmMatrix
+ * @pram int source: Sender's ID
+ * @pram int tag: sender's tag
+ * @pram MPI_Status: MPI_Status object
+ * @pram bool symmetric: if the receiving matrix is of type SymMatrix. Default value is false.
+ */
 template <typename T>
-inline DenseMatrix1D<T>::DenseMatrix1D(int rows, int cols, bool fill)
+inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat, bool isSymmetric = false)
+{
+    if(isSymmetric)
+    {
+        MPI_Recv(&this->_rows, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+        this->_cols = _rows;
+        _initializeMatrix(false);
+        int recv_edges_size = (int)(0.5 * this->_rows * (this->_rows + 1));
+        T* recv_edges = new T[recv_edges_size];
+        MPI_Recv(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+
+        int counter = 0;
+        for (int i = 0; i < this->_rows; i++)
+        {
+            for (int j = 0; j <= i; j++)
+            {
+               this->_edges[j][i] = this->_edges[i][j] = recv_edges[counter++];  
+            }
+        }
+        delete [] recv_edges;
+    }
+    else
+    {
+        MPI_Recv(&this->_rows, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
+        MPI_Recv(&this->_cols, 1, MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
+        int recv_edges_size = this->_rows * this->_cols;
+        T* recv_edges = new T[recv_edges_size];
+        MPI_Recv(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, tag + 3, MPI_COMM_WORLD, &stat);
+        this->_edges = recv_edges;
+    }
+}
+
+/*
+ * DensMatrix constructor:
+ * Construct a matrix by receiving matrix data from a MPI_Bcast_Send_Matrix call.
+ * Note the matrix being send should be of type DenseMatrix1D, DenseMatrix2D, SymmMatrix
+ * @pram int source: Sender's ID
+ * @pram MPI_Status: MPI_Status object
+ * @pram bool symmetric: if the receiving matrix is of type SymMatrix. Default value is false.
+ */
+template <typename T>
+inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat, bool isSymmetric = false)
+{
+    if (isSymmetric)
+    {
+        MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
+        this->_cols = _rows;
+        _initializeMatrix(false);
+        int recv_edges_size = (int)(0.5 * this->_rows * (this->_rows + 1));
+        T* recv_edges = new T[recv_edges_size];
+        MPI_Bcast(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
+
+        int counter = 0;
+        for (int i = 0; i < this->_rows; i++)
+        {
+            for (int j = 0; j <= i; j++)
+            {
+               this->_edges[j][i] = this->_edges[i][j] = recv_edges[counter++];  
+            }
+        }
+        delete [] recv_edges;
+    }
+    else
+    {
+        MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&this->_cols, 1, MPI_INT, source, MPI_COMM_WORLD);
+        int recv_edges_size = this->_rows * this->_cols;
+        T* recv_edges = new T[recv_edges_size];
+        MPI_Bcast(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
+        this->_edges = recv_edges;
+    }
+}
+#endif
+
+/*
+ * DensMatrix constructor:
+ * Construct a matrix n*m matrix initialized to 0.
+ * @pram int rows: number of rows
+ * @pram int cols: number of columns
+ * @pram bool fill: fills the matrix with 0's. default value is true
+ */
+template <typename T>
+inline DenseMatrix1D<T>::DenseMatrix1D(int rows, int cols, bool fill = true)
 {
     this->_rows = rows;
     this->_cols = cols;
     _initilalizeMatrix(fill);
 }
 
+/*
+ * DensMatrix copy constructor:
+ * Construct a copy of a matrix.
+ * @pram DenseMatrix2D<T>
+ */
 template <typename T>
 inline DenseMatrix1D<T>::DenseMatrix1D(const DenseMatrix1D<T>& matrix)
 {
