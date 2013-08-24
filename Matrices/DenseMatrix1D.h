@@ -50,7 +50,7 @@ private:
      * Private methods (used internally)
      */
     size_t _getArrSize() const;
-    void _initilalizeMatrix(bool);
+    void _initializeMatrix(bool);
     void _copy(const DenseMatrix1D<T>&);
 
     /*
@@ -133,7 +133,7 @@ inline DenseMatrix1D<T>::DenseMatrix1D(bool fill = true)
 {
     this->_rows = _DEFAULT_MATRIX_SIZE;
     this->_cols = _DEFAULT_MATRIX_SIZE;
-    _initilalizeMatrix(fill);
+    _initializeMatrix(fill);
 }
 
 /*
@@ -158,7 +158,7 @@ inline DenseMatrix1D<T>::DenseMatrix1D(const std::string& file_path)
     file_reader >> this->_rows;
     file_reader >> this->_cols;
     
-    _initilalizeMatrix();
+    _initializeMatrix();
     file_reader >> tmp_x;      //skip the line number
     
     while (!file_reader.eof())
@@ -268,7 +268,7 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int rows, int cols, bool fill = true)
 {
     this->_rows = rows;
     this->_cols = cols;
-    _initilalizeMatrix(fill);
+    _initializeMatrix(fill);
 }
 
 /*
@@ -283,6 +283,10 @@ inline DenseMatrix1D<T>::DenseMatrix1D(const DenseMatrix1D<T>& matrix)
 }
 
 //==========================================================DESTRUCTOR==============================================================
+/*
+ * DenseMatrix2D destructor:
+ * deleted the arrays used in the matrix. NOTE: user is responsible for deleting the objects in the matrix if they are dynamically allocated.
+ */
 template <typename T>
 inline DenseMatrix1D<T>::~DenseMatrix1D()
 {
@@ -332,7 +336,7 @@ inline bool DenseMatrix1D<T>::isSymmetric() const
         return false;
     }
     
-    //chaking for entries to be equal
+    //checking for entries to be equal
     for(int i = 0; i < this->_rows; i++)
     {
         for(int j = 0; j < this->_cols; j++)
@@ -351,18 +355,15 @@ inline bool DenseMatrix1D<T>::isSymmetric() const
  * Returns the frobenius norm.
  */
 template <typename T>
-T DenseMatrix1D<T>::getFrobNorm() const
+inline T DenseMatrix1D<T>::getFrobNorm() const
 {
-    // T ret_val=0;
+    T ret_val = 0;
+    for (int i = 0; i < this->_getArrSize(); i++)
+    {
+        ret_val += this->_edges[i] * this->_edges[j];
+    }
 
-    // for(int i=0; i < this->_rows; i++)
-    // {
-    //     for(int j=0; j < this->_cols; j++)
-    //     {
-    //         ret_val+= this->_edges[i][j] * this->_edges[i][j];
-    //     }
-    // }
-    // return ret_val;
+    return ret_val;
 }
 
 /*
@@ -374,31 +375,14 @@ inline std::vector<SparseElement<T> > DenseMatrix1D<T>::getSparseForm() const
     std::vector<SparseElement<T> > sparse_form;
     for(int i = 0; i < this->_getArrSize(); i++)
     {
-        if(this->_edges[i][j] != 0)
+        if(this->_edges[i] != 0)
         {
-            sparse_form.push_back(SparseElement<T>(i,j, this->_edges[i][j]));
+            sparse_form.push_back(SparseElement<T>(i/this->_cols, i%this->_cols, this->_edges[i]));
         }
     }
     return sparse_form;
 }
 
-/*
- * Returns a std::vector<int> of the elements with value of 1 in a columns.
- * @pram int vertex
- */
-template <typename T>
-inline std::vector<int> DenseMatrix1D<T>::getNeighbors(int vertex) const
-{
-  // std::vector<int> neighbors;
-  // for(int i = 0; i < this->_rows; i++)
-  // {
-  //   if(this->_edges[i][vertex] == 1)
-  //   {
-  //     neighbors.push_back(i);
-  //   }
-  // }
-  // return neighbors;
-} 
 
 /*
  * Returns a DenseMatrix2D that has the rows that are marked 1 in vec_A, columns that are marked 1 in vec_B
@@ -443,6 +427,10 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::getScatteredSelection(const std::vecto
     return res_matrix;
 }
 
+/*
+ * Returns a std::vector<int> of the elements with value of 1 in a columns.
+ * @pram int vertex
+ */
 template <typename T>
 inline std::vector<int> DenseMatrix1D<T>::getNeighbors(int vertex)
 {
@@ -455,7 +443,6 @@ inline std::vector<int> DenseMatrix1D<T>::getNeighbors(int vertex)
             neighbors.push_back(i);
         }
     }
-    
     return neighbors;
 }
 
@@ -463,7 +450,7 @@ inline std::vector<int> DenseMatrix1D<T>::getNeighbors(int vertex)
  * Returns a std::vector<T> that contains the values of the eigenvector associated to the largest eigenvalue
  */
 template <typename T>
-inline std::vector<T> DenseMatrix1D<T>::getTopEigenVector()
+inline T* DenseMatrix1D<T>::getTopEigenVector()
 {
 #ifdef ARPACK
     int arr_size = (0.5 * this->_rows * (this->_rows+1));
@@ -482,14 +469,43 @@ inline std::vector<T> DenseMatrix1D<T>::getTopEigenVector()
     ARdsSymMatrix<T> ARMatrix(this->_rows, sym_edges, 'L');
     ARluSymStdEig<T> eigProb(1, ARMatrix, "LM", 10);
     eigProb.FindEigenvectors();
-    
-    std::vector<T> eigen_vec (eigProb.GetN());
-    for (int i=0; i < eigProb.GetN() ; i++)
+    T* eigen_vector = new T[this->_rows];
+     
+    for (int i=0; i < this->_rows ; i++)
     {
-        eigen_vec[i] = eigProb.Eigenvector(0 ,i);
+        eigen_vector[i] = eigProb.Eigenvector(0,i);
     }
+    return eigen_vector;
+#endif
+
+#ifdef EIGEN
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> A_eigen = Eigen::MatrixXd::Zero(this->_rows, this->_cols);
+    for (long i=0; i< this->_rows; i++) 
+    {
+        for(int j = 0; j < this->_cols; j++)
+        {
+            A_eigen(i,j) = (*this)(i,j);
+        }
+    }
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;
+    es.compute(A_eigen);
     
-    return eigen_vec;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> evals_eigen = es.eigenvalues();
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> evecs_eigen = es.eigenvectors();
+    T* eigen_vector = new T[this->_rows];
+
+    for ( int i=0; i < this->_cols; i++)
+    {   
+        if (evals_eigen(i) == evals_eigen.maxCoeff())
+        {
+            for (int j= 0; j < this->_rows ; j++)
+            {
+                eigen_vector[j] = evecs_eigen(j,i);
+            }
+            break;
+        }
+    }
+    return eigen_vector;
 #endif
 }
 
@@ -513,6 +529,10 @@ inline std::vector<T> DenseMatrix1D<T>::getSumOfRows()
 //===========================================================MUTATORS================================================================
 
 //==========================================================OPERATORS================================================================
+/*
+ * Returns a DenseMatrix2D that is the kronecker product of this and another matrix.
+ * @pram DenseMatrix2D 
+ */
 template <typename T>
 inline DenseMatrix1D<T> DenseMatrix1D<T>::kron(const DenseMatrix1D<T>& matrix)
 {
@@ -601,13 +621,13 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::matrixTimesDiagonalVector(const std::v
 template <typename T>
 DenseMatrix1D<T> DenseMatrix1D<T>::transpose() const
 {
-    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols);
+    DenseMatrix1D<T> ret_matrix(this->_rows,this->_cols);
 
     for(int i=0;i<this->_rows;i++)
     {
         for(int j=0;j<this->_cols;j++)
         {
-            ret_matrix._edges[j][i] = this->_edges[i][j];
+            ret_matrix._edges(j, i) = (*this)(i, j);
         }
     }
     return ret_matrix;
@@ -652,22 +672,21 @@ inline T& DenseMatrix1D<T>::operator()(int i, int j)
 template <typename T>
 inline DenseMatrix1D<T> DenseMatrix1D<T>::operator*(const DenseMatrix2D<T>& other_matrix) const
 {
-    // DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols);
-    // T ret_val;
-    // for(int i = 0; i < this->_rows;i++)
-    // {
-    //     for(int j = 0; j < other_matrix._cols;j++)
-    //     {
-    //         ret_val = 0;
-    //         for(int k = 0; k < this->_cols;k++)
-    //         {
-    //            ret_val += this->_edges[i][k] * other_matrix._edges[k][j];
-    //         }
-    //         ret_matrix._edges[i][j] = ret_val;
-    //     }
-    // }
-  
-    // return ret_matrix;
+    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols);
+    T ret_val;
+    for(int i = 0; i < this->_rows;i++)
+    {
+        for(int j = 0; j < other_matrix._cols;j++)
+        {
+            ret_val = 0;
+            for(int k = 0; k < this->_cols;k++)
+            {
+               ret_val += (*this)(i, k) * other_matrix(k, j);
+            }
+            ret_matrix(i, j) = ret_val;
+        }
+    }
+    return ret_matrix;
 }
 
 /*
@@ -735,7 +754,6 @@ inline bool DenseMatrix1D<T>::operator==(const DenseMatrix1D<T>& matrix)
             return false;
         }
     }
-    
     return true;
 }
     
@@ -749,7 +767,7 @@ inline void DenseMatrix1D<T>::_copy(const DenseMatrix1D<T>& matrix)
 {
     this->_rows = matrix._rows;
     this->_cols = matrix._cols;
-    _initilalizeMatrix();
+    _initializeMatrix(false);
     memcpy(this->_edges, matrix._edges, this->_getArrSize() * sizeof(T));
 }
 
@@ -758,17 +776,17 @@ inline void DenseMatrix1D<T>::_copy(const DenseMatrix1D<T>& matrix)
  * @pram: bool fill: if true: initialize values to 0.
  */  
 template <typename T>
-inline void DenseMatrix1D<T>::_initilalizeMatrix(bool fill)
+inline void DenseMatrix1D<T>::_initializeMatrix(bool fill)
 {
     try
     {
         if (fill)
         {
-            this->_edges = new T[this->_cols]();
+            this->_edges = new T[this->_getArrSize()]();
         }
         else
         {
-            this->_edges = new T[this->_cols];
+            this->_edges = new T[this->_getArrSize()];
         }
     }
     catch (std::bad_alloc& e)
