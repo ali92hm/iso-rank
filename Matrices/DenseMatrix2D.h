@@ -341,6 +341,13 @@ inline bool DenseMatrix2D<T>::isSquare() const
 template <typename T>
 inline bool DenseMatrix2D<T>::isSymmetric() const
 {
+    //sym. matrix has to be square
+    if (this->_rows != this->_cols)
+    {
+        return false;
+    }
+
+    //checking for entries to be equal
     for(int i=0; i < this->_rows; i++)
     {
         for(int j=0; j<this->_cols;j++)
@@ -360,11 +367,11 @@ inline bool DenseMatrix2D<T>::isSymmetric() const
 template <typename T>
 inline T DenseMatrix2D<T>::getFrobNorm() const
 {
-    T ret_val=0;
+    T ret_val = 0;
 
-    for(int i=0; i < this->_rows; i++)
+    for(int i = 0; i < this->_rows; i++)
     {
-        for(int j=0; j < this->_cols; j++)
+        for(int j = 0; j < this->_cols; j++)
         {
             ret_val+= this->_edges[i][j] * this->_edges[i][j];
         }
@@ -524,7 +531,7 @@ inline T* DenseMatrix2D<T>::getTopEigenVector()
 
 #ifdef EIGEN
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> A_eigen = Eigen::MatrixXd::Zero(this->_rows, this->_cols);
-        for (long i=0; i< this->_rows; i++) 
+        for (int i=0; i< this->_rows; i++) 
         {
             for(int j = 0; j < this->_cols; j++)
             {
