@@ -1,10 +1,6 @@
-//
-//  Point.h
-//  Graph Matching
-//
-//  Created by Ali Hajimirza on 7/10/13.
-//  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
-//
+/*********************************************************************************
+ * This class represent a point with a x and y coordinate.                       *
+ *********************************************************************************/
 
 #ifndef __Point__
 #define __Point__
@@ -55,16 +51,4 @@ public:
     friend struct std::hash<Point>;
     friend std::ostream& operator<<(std::ostream&, const Point&);
 };
-
-template<>
-struct std::hash<Point>
-{
-    std::size_t operator()(const Point& p) const
-    {
-        std::hash<int> int_hash;
-        return ((51 + int_hash(p.getX())) * 51 + int_hash(p.getY()));
-    }
-};
-
-
-#endif /* defined(__Graph_Matching__Point__) */
+#endif

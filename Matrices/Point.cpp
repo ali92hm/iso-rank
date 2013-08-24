@@ -1,60 +1,92 @@
-//
-//  Point.cpp
-//  Graph Matching
-//
-//  Created by Ali Hajimirza on 7/10/13.
-//  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
-//
-
+/*********************************************************************************
+ * Implementation file for the Point class                                       *
+ *********************************************************************************/
 #include "Point.h"
 
 //==========================================================CONSTRUCTORS============================================================
-Point::Point()
+ /*
+  * Default constructor: 
+  * Initializes x and y to zero
+  */
+inline Point::Point()
 {
-    this->_x = -1;
-    this->_y = -1;
+    this->_x = 0;
+    this->_y = 0;
 }
 
-Point::Point(int x,int y)
+ /*
+  * Constructor with given x and y 
+  * @pram int x
+  * @pram int y
+  */
+inline Point::Point(int x,int y)
 {
     this->_x = x;
     this->_y = y;
 }
 
-Point::Point(const Point& edge)
+ /*
+  * Copy constructor
+  * @pram edge
+  */
+inline Point::Point(const Point& edge)
 {
     _copy(edge);
 }
 //==========================================================DESTRUCTOR==============================================================
-Point::~Point()
+
+ /*
+  * Destructor
+  */
+inline Point::~Point()
 {
-    
+
 }
 //===========================================================ACCESSORS===============================================================
-int Point::getX() const
+ /*
+  * X coordinate accessor
+  * @retun int x
+  */
+inline int Point::getX() const
 {
     return this->_x;
 }
 
-int Point::getY() const
+ /*
+  * Y coordinate accessor
+  * @retun int y
+  */
+inline int Point::getY() const
 {
     return this->_y;
 }
 
 //===========================================================MUTATORS================================================================
-void Point::setX(int x)
+ /*
+  * X coordinate mutator
+  * @pram int x
+  */
+inline void Point::setX(int x)
 {
     this->_x = x;
 }
 
-void Point::setY(int y)
+ /*
+  * Y coordinate mutator
+  * @pram int y
+  */
+inline void Point::setY(int y)
 {
     this->_y = y;
 }
 
 //==========================================================OPERATORS================================================================
 
-bool Point::operator>(const Point& rhs) const
+/*
+ * Overloaded > operator for point.
+ * Points are sorted based their x value, y value is used if the points have the same x
+ */
+inline bool Point::operator>(const Point& rhs) const
 {
     if (this->_x == rhs._x)
     {
@@ -66,7 +98,11 @@ bool Point::operator>(const Point& rhs) const
     }
 }
 
-bool Point::operator<(const Point& rhs) const
+/*
+ * Overloaded < operator for point.
+ * Points are sorted based their x value, y value is used if the points have the same x
+ */
+inline bool Point::operator<(const Point& rhs) const
 {
     if (this->_x == rhs._x)
     {
@@ -78,29 +114,41 @@ bool Point::operator<(const Point& rhs) const
     }
 }
 
-
-bool Point::operator==(const Point& rhs) const
+/*
+ * Overloaded equal operator for point.
+ * Two pints are equal if they have the same x and y as each other
+ */
+inline bool Point::operator==(const Point& rhs) const
 {
     return ((this->_x == rhs._x) && (this->_y == rhs._y));
 }
 
-void Point::operator=(const Point& rhs)
+/*
+ * Overloaded assignment operator.
+ */
+inline void Point::operator=(const Point& rhs)
 {
     _copy (rhs);
 }
 
-std::ostream& operator<<(std::ostream& stream, const Point& p)
+/*
+ * overloaded print "<<" operator for point.
+ */
+inline std::ostream& operator<<(std::ostream& stream, const Point& p)
 {
     stream<< "(" << p._x << ", " << p._y << ")" << std::endl;
     return stream;
 }
 
 //===========================================================PRIVATE=================================================================
-
-void Point::_copy(const Point& edge)
+ /*
+  * Copy a point
+  * @pram Point p
+  */
+inline void Point::_copy(const Point& p)
 {
-    this->_x = edge._x;
-    this->_y = edge._y;
+    this->_x = p._x;
+    this->_y = p._y;
 }
 
 //===================================================================================================================================

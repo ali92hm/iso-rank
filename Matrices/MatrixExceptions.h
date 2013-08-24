@@ -1,10 +1,7 @@
-//
-//  MatrixExceptions.h
-//  Graph Matching
-//
-//  Created by Ali Hajimirza on 7/5/13.
-//  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
-//
+/*********************************************************************************
+ * Collection of exception classes that are used in the matrix classes.          * 
+ *                                                                               *
+ *********************************************************************************/
 
 #ifndef __MatrixExceptions__
 #define __MatrixExceptions__
@@ -41,4 +38,4 @@ public:
 };
 
 
-#endif /* defined(__Graph_Matching__MatrixExceptions__) */
+#endif
