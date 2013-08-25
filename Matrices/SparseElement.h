@@ -16,7 +16,7 @@ template <typename T>
 std::ostream& operator<<(std::ostream&, const SparseElement<T>&);
 
 /*
- * Point class definition and method declaration.
+ * SparseElement class definition and method declaration.
  */
 template <typename T>
 class SparseElement
