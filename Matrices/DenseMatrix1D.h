@@ -68,8 +68,8 @@ public:
     /**************
      *Constructors*
      **************/
-    DenseMatrix1D(bool);
-    DenseMatrix1D(int, int,bool);
+    DenseMatrix1D(bool fill = true);
+    DenseMatrix1D(int, int, bool fill = true);
     DenseMatrix1D(const DenseMatrix1D<T>&);
     DenseMatrix1D(const std::string&);
 
@@ -88,33 +88,45 @@ public:
      ***********/
     bool isSquare() const;
     bool isSymmetric() const;
-    int getNumberOfRows();
-    int getSparseFormSize();
-    int getNumberOfColumns();
-    std::vector<T> getSumOfRows();
-    T* getTopEigenVector();
-    std::vector<int> getNeighbors(int vertex);
+    int getNumberOfRows() const;
+    int getNumberOfColumns() const;
+    std::vector<SparseElement<T> >getSparseForm() const;
     DenseMatrix1D<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B);
     
     /**********
+     *MUTATORS*
+     **********/
+
+    /**********
     *OPERATIONS*
     **********/
+    T getFrobNorm() const;
+    T* getTopEigenVector() const;
     DenseMatrix1D<T> transpose() const;
     std::vector<T> getSumOfRows() const;
+    std::vector<int> getNeighbors(int vertex) const;
     DenseMatrix1D<T> kron(const DenseMatrix1D<T>& matrix) const;
     DenseMatrix1D<T> diagonalVectorTimesMatrix(const std::vector<T>&) const;
     DenseMatrix1D<T> matrixTimesDiagonalVector(const std::vector<T>&) const;
+
+    /*************
+    *  MPI Send  *
+    **************/
+    #ifdef USE_MPI
+    void MPI_Send_Matrix(int, int);
+    void MPI_Bcast_Send_Matrix(int);
+    #endif
 
     /**********
      *OPERATORS*
      **********/
     T& operator()(int i, int j);
-    friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix1D<T>& matrix);
     void operator= (const DenseMatrix1D<T>&);
     bool operator==(const DenseMatrix1D<T>&);
     DenseMatrix1D<T> operator+(const DenseMatrix1D<T>& other_matrix) const;
     DenseMatrix1D<T> operator-(const DenseMatrix1D<T>& other_matrix) const;
     DenseMatrix1D<T> operator*(const DenseMatrix1D<T>& other_matrix) const;
+    friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix1D<T>& matrix);
 };
 
 //==========================================================CONSTANTS============================================================
@@ -125,7 +137,7 @@ const T DenseMatrix1D<T>::_DEFAULT_MATRIX_ENTRY = 1;
 //==========================================================CONSTRUCTORS============================================================
 /*
  * Default constructor:
- * Construct a matrix of size _DEFAULT_MATRIX_SIZE * _DEFAULT_MATRIX_SIZE initialized to 0
+ * Construct a matrix of size _DEFAULT_MATRIX_SIZE * _DEFAULT_MATRIX_SIZE initialized to 0.
  * @pram bool fill: fills the matrix with 0's. default value is true
  */
 template <typename T>
@@ -171,6 +183,21 @@ inline DenseMatrix1D<T>::DenseMatrix1D(const std::string& file_path)
     file_reader.close();
 }
 
+/*
+ * DensMatrix constructor:
+ * Construct a matrix n*m matrix initialized to 0.
+ * @pram int rows: number of rows
+ * @pram int cols: number of columns
+ * @pram bool fill: fills the matrix with 0's. default value is true
+ */
+template <typename T>
+inline DenseMatrix1D<T>::DenseMatrix1D(int rows, int cols, bool fill = true)
+{
+    this->_rows = rows;
+    this->_cols = cols;
+    _initializeMatrix(fill);
+}
+
 #ifdef USE_MPI
 /*
  * DensMatrix constructor:
@@ -179,10 +206,9 @@ inline DenseMatrix1D<T>::DenseMatrix1D(const std::string& file_path)
  * @pram int source: Sender's ID
  * @pram int tag: sender's tag
  * @pram MPI_Status: MPI_Status object
- * @pram bool symmetric: if the receiving matrix is of type SymMatrix. Default value is false.
  */
 template <typename T>
-inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat, bool isSymmetric = false)
+inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat)
 {
     if(isSymmetric)
     {
@@ -207,10 +233,8 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat, bo
     {
         MPI_Recv(&this->_rows, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
         MPI_Recv(&this->_cols, 1, MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
-        int recv_edges_size = this->_rows * this->_cols;
-        T* recv_edges = new T[recv_edges_size];
-        MPI_Recv(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, tag + 3, MPI_COMM_WORLD, &stat);
-        this->_edges = recv_edges;
+        _initializeMatrix(false);
+        MPI_Recv(this->_edges, _getArrSize()*sizeof(T), MPI_BYTE, source, tag + 3, MPI_COMM_WORLD, &stat);
     }
 }
 
@@ -220,10 +244,9 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat, bo
  * Note the matrix being send should be of type DenseMatrix1D, DenseMatrix2D, SymmMatrix
  * @pram int source: Sender's ID
  * @pram MPI_Status: MPI_Status object
- * @pram bool symmetric: if the receiving matrix is of type SymMatrix. Default value is false.
  */
 template <typename T>
-inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat, bool isSymmetric = false)
+inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat)
 {
     if (isSymmetric)
     {
@@ -248,28 +271,11 @@ inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat, bool isSymm
     {
         MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
         MPI_Bcast(&this->_cols, 1, MPI_INT, source, MPI_COMM_WORLD);
-        int recv_edges_size = this->_rows * this->_cols;
-        T* recv_edges = new T[recv_edges_size];
-        MPI_Bcast(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
-        this->_edges = recv_edges;
+        _initializeMatrix(false);
+        MPI_Recv(this->_edges, _getArrSize()*sizeof(T), MPI_BYTE, source, tag + 3, MPI_COMM_WORLD, &stat);
     }
 }
 #endif
-
-/*
- * DensMatrix constructor:
- * Construct a matrix n*m matrix initialized to 0.
- * @pram int rows: number of rows
- * @pram int cols: number of columns
- * @pram bool fill: fills the matrix with 0's. default value is true
- */
-template <typename T>
-inline DenseMatrix1D<T>::DenseMatrix1D(int rows, int cols, bool fill = true)
-{
-    this->_rows = rows;
-    this->_cols = cols;
-    _initializeMatrix(fill);
-}
 
 /*
  * DensMatrix copy constructor:
@@ -284,7 +290,7 @@ inline DenseMatrix1D<T>::DenseMatrix1D(const DenseMatrix1D<T>& matrix)
 
 //==========================================================DESTRUCTOR==============================================================
 /*
- * DenseMatrix2D destructor:
+ * DenseMatrix destructor:
  * deleted the arrays used in the matrix. NOTE: user is responsible for deleting the objects in the matrix if they are dynamically allocated.
  */
 template <typename T>
@@ -351,20 +357,7 @@ inline bool DenseMatrix1D<T>::isSymmetric() const
     return true;
 }
 
-/*
- * Returns the frobenius norm.
- */
-template <typename T>
-inline T DenseMatrix1D<T>::getFrobNorm() const
-{
-    T ret_val = 0;
-    for (int i = 0; i < this->_getArrSize(); i++)
-    {
-        ret_val += this->_edges[i] * this->_edges[j];
-    }
 
-    return ret_val;
-}
 
 /*
  * Returns a std::vector<SparseElement<T>> of SparseElement objects that contain the i, j and value of the none-zero edges.
@@ -425,6 +418,26 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::getScatteredSelection(const std::vecto
         }
     }
     return res_matrix;
+}
+
+
+
+//===========================================================MUTATORS================================================================
+
+//===========================================================OPERATIONS================================================================
+/*
+ * Returns the frobenius norm.
+ */
+template <typename T>
+inline T DenseMatrix1D<T>::getFrobNorm() const
+{
+    T ret_val = 0;
+    for (int i = 0; i < this->_getArrSize(); i++)
+    {
+        ret_val += this->_edges[i] * this->_edges[j];
+    }
+
+    return ret_val;
 }
 
 /*
@@ -525,9 +538,6 @@ inline std::vector<T> DenseMatrix1D<T>::getSumOfRows()
     
     return sum_vector;
 }
-
-//===========================================================MUTATORS================================================================
-
 //==========================================================OPERATORS================================================================
 /*
  * Returns a DenseMatrix2D that is the kronecker product of this and another matrix.

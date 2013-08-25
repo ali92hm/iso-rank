@@ -68,9 +68,9 @@ public:
     /**************
      *Constructors*
      **************/
-    DenseMatrix2D(bool);
+    DenseMatrix2D(bool fill = true);
+    DenseMatrix2D(int rows, int cols, bool fill = true);
     DenseMatrix2D(const std::string &file_path);
-    DenseMatrix2D(int rows, int cols,bool);
     DenseMatrix2D(const DenseMatrix2D<T>&);
 
     #ifdef USE_MPI
@@ -88,33 +88,45 @@ public:
      ***********/
     bool isSquare() const;
     bool isSymmetric() const;
-    T getFrobNorm() const;
     int getNumberOfRows() const;
     int getNumberOfColumns() const;
-    T* getTopEigenVector();
-    std::vector<int> getNeighbors(int vertex) const;
     std::vector<SparseElement<T> >getSparseForm() const;
     DenseMatrix2D<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B) const;
+
+    /**********
+     *MUTATORS*
+     **********/
   
     /**********
     *OPERATIONS*
     **********/
+    T getFrobNorm() const;
+    T* getTopEigenVector() const;
     DenseMatrix2D<T> transpose() const;
     std::vector<T> getSumOfRows() const;
+    std::vector<int> getNeighbors(int vertex) const;
     DenseMatrix2D<T> kron(const DenseMatrix2D<T>& matrix) const;
     DenseMatrix2D<T> diagonalVectorTimesMatrix(const std::vector<T>&) const;
     DenseMatrix2D<T> matrixTimesDiagonalVector(const std::vector<T>&) const;
 
+    /*************
+    *  MPI Send  *
+    **************/
+    #ifdef USE_MPI
+    void MPI_Send_Matrix(int, int);
+    void MPI_Bcast_Send_Matrix(int);
+    #endif
+
     /**********
      *OPERATORS*
      **********/
-    friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix2D<T>& matrix);
+    T& operator()(int, int);
     void operator= (const DenseMatrix2D<T>&);
     bool operator==(const DenseMatrix2D<T>&); 
-    T& operator()(int i, int j);
     DenseMatrix2D<T> operator+(const DenseMatrix2D<T>& other_matrix) const;
     DenseMatrix2D<T> operator-(const DenseMatrix2D<T>& other_matrix) const;
     DenseMatrix2D<T> operator*(const DenseMatrix2D<T>& other_matrix) const;
+    friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix2D<T>& matrix);
 };
 
 //==========================================================CONSTANTS============================================================
@@ -126,7 +138,7 @@ const T DenseMatrix2D<T>::_DEFAULT_MATRIX_ENTRY = 1;
 
 /*
  * Default constructor:
- * Construct a matrix of size _DEFAULT_MATRIX_SIZE * _DEFAULT_MATRIX_SIZE initialized to 0
+ * Construct a matrix of size _DEFAULT_MATRIX_SIZE * _DEFAULT_MATRIX_SIZE initialized to 0.
  * @pram bool fill: fills the matrix with 0's. default value is true
  */
 template <typename T>
@@ -170,6 +182,21 @@ inline DenseMatrix2D<T>::DenseMatrix2D(const std::string &file_path)
     file_reader.close();
 }
 
+/*
+ * DensMatrix constructor:
+ * Construct a matrix n*m matrix initialized to 0.
+ * @pram int rows: number of rows
+ * @pram int cols: number of columns
+ * @pram bool fill: fills the matrix with 0's. default value is true
+ */
+template <typename T>
+inline DenseMatrix2D<T>::DenseMatrix2D(int rows, int cols, bool fill = true)
+{
+    this->_rows = rows;
+    this->_cols = cols;
+    _initializeMatrix(fill);
+}
+
 #ifdef USE_MPI
 /*
  * DensMatrix constructor:
@@ -178,10 +205,9 @@ inline DenseMatrix2D<T>::DenseMatrix2D(const std::string &file_path)
  * @pram int source: Sender's ID
  * @pram int tag: sender's tag
  * @pram MPI_Status: MPI_Status object
- * @pram bool symmetric: if the receiving matrix is of type SymMatrix. Default value is false.
  */
 template <typename T>
-inline DenseMatrix2D<T>::DenseMatrix2D(int source, int tag, MPI_Status& stat, bool isSymmetric = false)
+inline DenseMatrix2D<T>::DenseMatrix2D(int source, int tag, MPI_Status& stat)
 {
     if (isSymmetric)
     {
@@ -223,10 +249,9 @@ inline DenseMatrix2D<T>::DenseMatrix2D(int source, int tag, MPI_Status& stat, bo
  * Note the matrix being send should be of type DenseMatrix1D, DenseMatrix2D, SymmMatrix
  * @pram int source: Sender's ID
  * @pram MPI_Status: MPI_Status object
- * @pram bool symmetric: if the receiving matrix is of type SymMatrix. Default value is false.
  */
 template <typename T>
-inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat, bool isSymmetric = false)
+inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat)
 {
     if (isSymmetric)
     {
@@ -264,21 +289,6 @@ inline DenseMatrix2D<T>::DenseMatrix2D(int source, MPI_Status& stat, bool isSymm
 #endif
 
 /*
- * DensMatrix constructor:
- * Construct a matrix n*m matrix initialized to 0.
- * @pram int rows: number of rows
- * @pram int cols: number of columns
- * @pram bool fill: fills the matrix with 0's. default value is true
- */
-template <typename T>
-inline DenseMatrix2D<T>::DenseMatrix2D(int rows, int cols, bool fill = true)
-{
-    this->_rows = rows;
-    this->_cols = cols;
-    _initializeMatrix(fill);
-}
-
-/*
  * DensMatrix copy constructor:
  * Construct a copy of a matrix.
  * @pram DenseMatrix2D<T>
@@ -291,7 +301,7 @@ inline DenseMatrix2D<T>::DenseMatrix2D(const DenseMatrix2D<T>& matrix)
 
 //==========================================================DESTRUCTOR==============================================================
 /*
- * DenseMatrix2D destructor:
+ * DenseMatrix destructor:
  * deleted the arrays used in the matrix. NOTE: user is responsible for deleting the objects in the matrix if they are dynamically allocated.
  */
 template <typename T>
@@ -361,23 +371,7 @@ inline bool DenseMatrix2D<T>::isSymmetric() const
     return true;
 }
 
-/*
- * Returns the frobenius norm.
- */
-template <typename T>
-inline T DenseMatrix2D<T>::getFrobNorm() const
-{
-    T ret_val = 0;
 
-    for(int i = 0; i < this->_rows; i++)
-    {
-        for(int j = 0; j < this->_cols; j++)
-        {
-            ret_val+= this->_edges[i][j] * this->_edges[i][j];
-        }
-    }
-    return ret_val;
-}
 
 /*
  * Returns a std::vector<SparseElement<T>> of SparseElement objects that contain the i, j and value of the none-zero edges.
@@ -397,6 +391,71 @@ inline std::vector<SparseElement<T> > DenseMatrix2D<T>::getSparseForm() const
         }
     }
     return sparse_form;
+}
+
+
+/*
+ * Returns a DenseMatrix2D that has the rows that are marked 1 in vec_A, columns that are marked 1 in vec_B
+ * @pram std::vector<int>: vector of 0's and 1's for row selection
+ * @pram std::vector<int>: vector of 0's and 1's for column selection
+ */
+template <typename T>
+inline DenseMatrix2D<T> DenseMatrix2D<T>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B) const
+{
+    int num_in_A = 0;
+    for (int i=0; i< vec_A.size(); i++)
+    {
+        if (vec_A[i] == 1)
+        {
+            num_in_A++;
+        }
+    }
+    int num_in_B = 0;
+    for (int i=0; i < vec_B.size(); i++)
+    {
+        if( vec_B[i] == 1)
+        {
+            num_in_B++;
+        }
+    }
+    //Initializing and allocating the product matrix
+    DenseMatrix2D<T> res_matrix(num_in_A, num_in_B);
+    int counter = 0;
+    for (int i=0; i< vec_A.size(); i++)
+    {
+        for(int j=0; j< vec_B.size(); j++)
+        {
+            if ( vec_A[i] == 1 && vec_B[j] ==1)
+            {
+                res_matrix._edges[counter/num_in_B][counter%num_in_B] = this->_edges[i][j];
+                counter++;
+            }
+        }
+    }
+    return res_matrix;
+}
+
+//===========================================================MUTATORS==================================================================
+
+
+//===========================================================OPERATIONS================================================================
+
+/*
+ * Returns the frobenius norm.
+ */
+template <typename T>
+inline T DenseMatrix2D<T>::getFrobNorm() const
+{
+    T ret_val = 0;
+
+    for(int i = 0; i < this->_rows; i++)
+    {
+        for(int j = 0; j < this->_cols; j++)
+        {
+            ret_val+= this->_edges[i][j] * this->_edges[i][j];
+        }
+    }
+    return ret_val;
 }
 
 /*
@@ -440,45 +499,69 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::kron(const DenseMatrix2D<T>& matrix) c
     return prod_matrix;
 }
 
+
 /*
- * Returns a DenseMatrix2D that has the rows that are marked 1 in vec_A, columns that are marked 1 in vec_B
- * @pram std::vector<int>: vector of 0's and 1's for row selection
- * @pram std::vector<int>: vector of 0's and 1's for column selection
+ * Returns a DenseMatrix2D<T> of a vector that contains the diagonal values of a diagonal matrix times this matrix.
+ * @pram std::vector<T> diagonal entires of a diagonal matrix
  */
 template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B) const
+inline DenseMatrix2D<T> DenseMatrix2D<T>::diagonalVectorTimesMatrix(const std::vector<T>& vec) const
+{    
+    if(_cols != vec.size())
+    {
+        throw DimensionMismatchException();
+    }
+    
+    DenseMatrix2D<T> ret_matrix(*this);
+    for(int i = 0; i < _rows; i++)
+    {
+        for(int j = 0; j < _cols; j++ )
+        {
+            ret_matrix._edges[i][j] = this->_edges[i][j] * vec[i];
+        }
+    }
+    return ret_matrix;
+}
+
+/*
+ * Returns a DenseMatrix2D<T> of the product of this matrix a vector that contains the diagonal values of a diagonal matrix.
+ * @pram std::vector<T> diagonal entires of a diagonal matrix
+ */
+template <typename T>
+inline DenseMatrix2D<T> DenseMatrix2D<T>::matrixTimesDiagonalVector(const std::vector<T>& vec) const
+{    
+    if(_cols != vec.size())
+    {
+        throw DimensionMismatchException();
+    }
+
+    DenseMatrix2D<T> ret_matrix(*this);
+    for(int i=0; i < _cols; i++)
+    {
+        for(int j=0; j < _rows; j++)
+        {
+            ret_matrix._edges[j][i] = this->_edges[j][i]*vec[i];
+        }
+    }
+    return ret_matrix;
+}
+
+/*
+ * Returns a DenseMatrix2D<T> of the transpose of this.
+ */
+template <typename T>
+inline DenseMatrix2D<T> DenseMatrix2D<T>::transpose() const
 {
-    int num_in_A = 0;
-    for (int i=0; i< vec_A.size(); i++)
+    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
+
+    for(int i=0;i<this->_rows;i++)
     {
-        if (vec_A[i] == 1)
+        for(int j=0;j<this->_cols;j++)
         {
-            num_in_A++;
+            ret_matrix._edges[j][i] = this->_edges[i][j];
         }
     }
-    int num_in_B = 0;
-    for (int i=0; i < vec_B.size(); i++)
-    {
-        if( vec_B[i] == 1)
-        {
-            num_in_B++;
-        }
-    }
-    //Initializing and allocating the product matrix
-    DenseMatrix2D<T> res_matrix(num_in_A, num_in_B);
-    int counter = 0;
-    for (int i=0; i< vec_A.size(); i++)
-    {
-        for(int j=0; j< vec_B.size(); j++)
-        {
-            if ( vec_A[i] == 1 && vec_B[j] ==1)
-            {
-                res_matrix._edges[counter/num_in_B][counter%num_in_B] = this->_edges[i][j];
-                counter++;
-            }
-        }
-    }
-    return res_matrix;
+    return ret_matrix;
 }
 
 /*
@@ -575,75 +658,6 @@ inline std::vector<T> DenseMatrix2D<T>::getSumOfRows() const
         }
     }
     return sum_vec;
-}
-
-//===========================================================MUTATORS==================================================================
-
-
-//===========================================================OPERATIONS================================================================
-
-/*
- * Returns a DenseMatrix2D<T> of a vector that contains the diagonal values of a diagonal matrix times this matrix.
- * @pram std::vector<T> diagonal entires of a diagonal matrix
- */
-template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::diagonalVectorTimesMatrix(const std::vector<T>& vec) const
-{    
-    if(_cols != vec.size())
-    {
-        throw DimensionMismatchException();
-    }
-    
-    DenseMatrix2D<T> ret_matrix(*this);
-    for(int i = 0; i < _rows; i++)
-    {
-        for(int j = 0; j < _cols; j++ )
-        {
-            ret_matrix._edges[i][j] = this->_edges[i][j] * vec[i];
-        }
-    }
-    return ret_matrix;
-}
-
-/*
- * Returns a DenseMatrix2D<T> of the product of this matrix a vector that contains the diagonal values of a diagonal matrix.
- * @pram std::vector<T> diagonal entires of a diagonal matrix
- */
-template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::matrixTimesDiagonalVector(const std::vector<T>& vec) const
-{    
-    if(_cols != vec.size())
-    {
-        throw DimensionMismatchException();
-    }
-
-    DenseMatrix2D<T> ret_matrix(*this);
-    for(int i=0; i < _cols; i++)
-    {
-        for(int j=0; j < _rows; j++)
-        {
-            ret_matrix._edges[j][i] = this->_edges[j][i]*vec[i];
-        }
-    }
-    return ret_matrix;
-}
-
-/*
- * Returns a DenseMatrix2D<T> of the transpose of this.
- */
-template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::transpose() const
-{
-    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
-
-    for(int i=0;i<this->_rows;i++)
-    {
-        for(int j=0;j<this->_cols;j++)
-        {
-            ret_matrix._edges[j][i] = this->_edges[i][j];
-        }
-    }
-    return ret_matrix;
 }
 
 
