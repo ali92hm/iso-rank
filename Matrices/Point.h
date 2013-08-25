@@ -8,6 +8,9 @@
 #include <iostream>
 #include "MatrixExceptions.h"
 
+/*
+ * Point class definition and method declaration.
+ */
 class Point
 {
 private:
