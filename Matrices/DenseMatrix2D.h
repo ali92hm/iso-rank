@@ -696,8 +696,19 @@ inline void DenseMatrix2D<T>::MPI_Send_Matrix(int dest, int tag, bool sparse = f
     }
     else
     {
-        MPI_Send(&_SENDING_DENSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-        //TODO
+        MPI_Send(&_SENDING_DENSE_FORM, 1,  MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        int size = this->_rows * this->_cols;
+        MPI_Send(&size,1 , MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+        T* edges = new T[size];
+        for (int i = 0; i < this->_rows; i++)
+        {
+            for (int j = 0; j < this->_cols; j++)
+            {
+                edges[counter++] = this->_edges[i][j];
+            }
+        }
+        MPI_Send(edges, size * sizeof(T), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
+        delete edges;
     }
 }
 
@@ -713,14 +724,24 @@ inline void DenseMatrix2D<T>::MPI_Bcast_Send_Matrix(int source, bool sparse = fa
     {
         MPI_Bcast(&_SENDING_SPARSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
         std::vector<T> sparse_form = this->getSparseForm();
-        MPI_Send(&sparse_form.size(), 1, MPI_INT, source, MPI_COMM_WORLD);
-        MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, sourse, MPI_COMM_WORLD);
+        MPI_Bcast(&sparse_form.size(), 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, sourse, MPI_COMM_WORLD);
     }
     else
     {
         MPI_Bcast(&_SENDING_DENSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
-        //TODO
-
+        int size = this->_rows * this->_cols;
+        MPI_Bcast(&size, 1, MPI_INT, source, MPI_COMM_WORLD);
+        T* edges = new T[size];
+        for (int i = 0; i < this->_rows; i++)
+        {
+            for (int j = 0; j < this->_cols; j++)
+            {
+                edges[counter++] = this->_edges[i][j];
+            }
+        }
+        MPI_Bcast(edges, size * sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
+        delete edges;
     }
 }
 //==========================================================OPERATORS================================================================

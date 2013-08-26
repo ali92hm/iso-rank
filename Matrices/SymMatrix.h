@@ -564,13 +564,21 @@ void SymMatrix<DT>::MPI_Send_SymMatrix(int dest, int tag, bool sparse = false)
 {
     if(sparse)
     {
-        MPI_Send(&_SENDING_SYM_SPARSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-        //TODO
-
+        MPI_Send(&_SENDING_SYM_SPARSE_FORM, 1 ,MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        std::vector<SparseElement<DT> > sparse_form;
+        for (int i = 0; i < this->_size; i++)
+        {
+            for (int j = i ; j < this->_size; j++)
+            {   
+                sparse_form.push_back(SparseElement(i,j,(*this)(i,j));
+            }
+        }
+        MPI_Send(&sparse_form.size(), 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+        MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<DT>), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
     }
     else
     {
-        MPI_Send(&_SENDING_SYM_DENSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        MPI_Send(&_SENDING_SYM_DENSE_FORM, 1 ,MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
         MPI_Send(&this->_size, 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
         MPI_Send(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
     }
@@ -586,9 +594,17 @@ void SymMatrix<DT>::MPI_Bcast_Send_SymMatrix(int source, bool sparse = false)
 {
     if(sparse)
     {
-         MPI_Bcast(&_SENDING_SYM_SPARSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-         //TODO
-
+        MPI_Bcast(&_SENDING_SYM_SPARSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        std::vector<SparseElement<DT> > sparse_form;
+        for (int i = 0; i < this->_size; i++)
+        {
+            for (int j = i ; j < this->_size; j++)
+            {   
+                sparse_form.push_back(SparseElement(i,j,(*this)(i,j));
+            }
+        }
+        MPI_Bcast(&sparse_form.size(), 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<DT>), MPI_BYTE, source, MPI_COMM_WORLD);
     }
     else
     {
