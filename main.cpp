@@ -28,6 +28,8 @@
 #include "Matrices/SymMatrix.h"
 #include "Matrices/DenseMatrix2D.h"
 #include "IsoRank.h"
+#include <string>
+#include <sstream>
 #include <vector>
 #include <ctime>
 #include "mpi.h"

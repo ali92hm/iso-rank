@@ -34,16 +34,16 @@
 #include "mpi.h"
 #endif
 
-template <typename DT>
+template <typename T>
 class SymMatrix;
 
-template <typename DT>
-std::ostream& operator<< (std::ostream&, const SymMatrix<DT>&);
+template <typename T>
+std::ostream& operator<< (std::ostream&, const SymMatrix<T>&);
 
 /*
  * SymMatrix class definition and method declarations.
  */
-template <typename DT>
+template <typename T>
 class SymMatrix
 {
 private:
@@ -52,7 +52,7 @@ private:
      */
     size_t _getArrSize() const;
     void _initializeMatrix(bool);
-    void _copy(const SymMatrix<DT>&);
+    void _copy(const SymMatrix<T>&);
 
     /*
      * Private constants.
@@ -60,15 +60,15 @@ private:
     static const int _DEFAULT_MATRIX_SIZE;
     static const  T _DEFAULT_MATRIX_ENTRY;
 #ifdef USE_MPI
-    static const int SENDING_SPARSE_FORM;
-    static const int SENDING_DENSE_FORM:
-    static const int SENDING_SYM_SPARSE_FORM;
-    static const int SENDING_SYM_DENSE_FORM:
+    static const int _SPARSE_FORM;
+    static const int _DENSE_FORM;
+    static const int _SYM_SPARSE_FORM;
+    static const int _SYM_DENSE_FORM;
 #endif
     
 protected:
     int _size;
-    DT* _edges;
+    T* _edges;
 
 public:
       
@@ -77,7 +77,7 @@ public:
      **************/
     SymMatrix(bool fill = true);
     SymMatrix(int size, bool fill = true);
-    SymMatrix(const SymMatrix<DT>&);
+    SymMatrix(const SymMatrix<T>&);
     SymMatrix(const std::string&);
 
     #ifdef USE_MPI
@@ -96,7 +96,7 @@ public:
     int getNumberOfRows() const;
     int getNumberOfColumns() const;
     std::vector<SparseElement<T> >getSparseForm() const;
-    DenseMatrix1D<DT> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B);
+    DenseMatrix1D<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B) const;
     
     /**********
      *MUTATORS*
@@ -109,6 +109,7 @@ public:
     T* getTopEigenVector() const;
     SymMatrix<T> transpose() const;
     std::vector<T> getSumOfRows() const;
+    std::vector<int> getNeighbors(int vertex) const;
     SymMatrix<T> kron(const SymMatrix<T>& matrix) const;
     SymMatrix<T> diagonalVectorTimesMatrix(const std::vector<T>&) const;
     SymMatrix<T> matrixTimesDiagonalVector(const std::vector<T>&) const;
@@ -117,8 +118,8 @@ public:
     *  MPI Send  *
     **************/
     #ifdef USE_MPI
-    void MPI_Send_Matrix(int, int, bool);
-    void MPI_Bcast_Send_Matrix(int, bool);
+    void MPI_Send_Matrix(int, int, bool sparse = false);
+    void MPI_Bcast_Send_Matrix(int, bool sparse = false);
     #endif
 
     /**********
@@ -127,9 +128,9 @@ public:
     T& operator()(int, int);
     void operator=(const SymMatrix<T>&);
     bool operator==(const SymMatrix<T>&); 
-    SymMatrix<T> operator+(const SymMatrix<T>& other_matrix) const;
-    SymMatrix<T> operator-(const SymMatrix<T>& other_matrix) const;
-    SymMatrix<T> operator*(const SymMatrix<T>& other_matrix) const;
+    DenseMatrix1D<T> operator+(const DenseMatrix1D<T>& other_matrix) const;
+    DenseMatrix1D<T> operator-(const DenseMatrix1D<T>& other_matrix) const;
+    DenseMatrix1D<T> operator*(const DenseMatrix1D<T>& other_matrix) const;
     friend std::ostream& operator<< <> (std::ostream& stream, const SymMatrix<T>& matrix);
 };
 
@@ -155,8 +156,8 @@ const int SymMatrix<T>::_SENDING_SYM_SPARSE_FORM = 3;
  * Construct a matrix of size _DEFAULT_MATRIX_SIZE * _DEFAULT_MATRIX_SIZE initialized to 0.
  * @pram bool fill: fills the matrix with 0's. default value is true
  */
-template <typename DT>
-inline SymMatrix<DT>::SymMatrix(bool fill = true)
+template <typename T>
+inline SymMatrix<T>::SymMatrix(bool fill)
 {
     this->_size = _DEFAULT_MATRIX_SIZE;
     _initializeMatrix(fill);
@@ -167,8 +168,8 @@ inline SymMatrix<DT>::SymMatrix(bool fill = true)
  * Construct a matrix by reading a matrix file, specified in readme.txt file the nodes that exist will have _DEFAULT_MATRIX_ENTRY value.
  * @pram std::string : path to the file
  */
-template<typename DT>
-inline SymMatrix<DT>::SymMatrix(const std::string& file_path)
+template<typename T>
+inline SymMatrix<T>::SymMatrix(const std::string& file_path)
 {
     int tmp_x;
     int tmp_y;
@@ -191,7 +192,7 @@ inline SymMatrix<DT>::SymMatrix(const std::string& file_path)
         throw NotASquareMatrixException();
     }
     
-    _initializeMatrix(false);
+    _initializeMatrix(true);
     file_reader >> tmp_x;      //skip the line number
     
     while (!file_reader.eof())
@@ -210,8 +211,8 @@ inline SymMatrix<DT>::SymMatrix(const std::string& file_path)
  * @pram int size: number of rows and columns
  * @pram bool fill: fills the matrix with 0's. default value is true
  */
-template <typename DT>
-inline SymMatrix<DT>::SymMatrix(int size, bool fill = true)
+template <typename T>
+inline SymMatrix<T>::SymMatrix(int size, bool fill)
 {
     this->_size = size;
     _initializeMatrix(fill);
@@ -226,12 +227,12 @@ inline SymMatrix<DT>::SymMatrix(int size, bool fill = true)
  * @pram int tag: sender's tag
  * @pram MPI_Status: MPI_Status object
  */
-template <typename DT>
-inline SymMatrix<DT>::SymMatrix(int source, int tag, MPI_Status& stat)
+template <typename T>
+inline SymMatrix<T>::SymMatrix(int source, int tag, MPI_Status& stat)
 {
     MPI_Recv(&this->_size, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
     _initializeMatrix(false);
-    MPI_Recv(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+    MPI_Recv(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
 }
 
 /*
@@ -241,12 +242,12 @@ inline SymMatrix<DT>::SymMatrix(int source, int tag, MPI_Status& stat)
  * @pram int source: Sender's ID
  * @pram MPI_Status: MPI_Status object
  */
-template <typename DT>
-inline SymMatrix<DT>::SymMatrix(int source, MPI_Status& stat)
+template <typename T>
+inline SymMatrix<T>::SymMatrix(int source, MPI_Status& stat)
 {
     MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
     _initializeMatrix(false);
-    MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, source, MPI_COMM_WORLD);
+    MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
 }
 
 #endif
@@ -256,8 +257,8 @@ inline SymMatrix<DT>::SymMatrix(int source, MPI_Status& stat)
  * Construct a copy of a matrix.
  * @pram DenseMatrix2D<T>
  */
-template <typename DT>
-inline SymMatrix<DT>::SymMatrix(const SymMatrix<DT>& matrix)
+template <typename T>
+inline SymMatrix<T>::SymMatrix(const SymMatrix<T>& matrix)
 {
     _copy(matrix);
 }
@@ -267,8 +268,8 @@ inline SymMatrix<DT>::SymMatrix(const SymMatrix<DT>& matrix)
  * SymMatrix destructor:
  * deleted the arrays used in the matrix. NOTE: user is responsible for deleting the objects in the matrix if they are dynamically allocated.
  */
-template <typename DT>
-inline SymMatrix<DT>::~SymMatrix()
+template <typename T>
+inline SymMatrix<T>::~SymMatrix()
 {
     if (_edges != NULL)
     {
@@ -281,7 +282,7 @@ inline SymMatrix<DT>::~SymMatrix()
  * Returns the number of the rows.
  */
 template <typename T>
-inline int SymMatrix<T>::getNumberOfRows()
+inline int SymMatrix<T>::getNumberOfRows() const
 {
     return this->_size;
 }
@@ -290,7 +291,7 @@ inline int SymMatrix<T>::getNumberOfRows()
  * Returns the number of the columns.
  */
 template <typename T>
-inline int SymMatrix<T>::getNumberOfColumns()
+inline int SymMatrix<T>::getNumberOfColumns() const
 {
     return this->_size;
 }
@@ -299,7 +300,7 @@ inline int SymMatrix<T>::getNumberOfColumns()
  * Returns a std::vector<SparseElement<T>> of SparseElement objects that contain the i, j and value of the none-zero edges.
  */
 template <typename T>
-inline std::vector<SparseElement<T> > DenseMatrix1D<T>::getSparseForm() const
+inline std::vector<SparseElement<T> > SymMatrix<T>::getSparseForm() const
 {    
     std::vector<SparseElement<T> > sparse_form;
     for(int i = 0; i < this->_rows; i++)
@@ -320,8 +321,8 @@ inline std::vector<SparseElement<T> > DenseMatrix1D<T>::getSparseForm() const
  * @pram std::vector<int>: vector of 0's and 1's for row selection
  * @pram std::vector<int>: vector of 0's and 1's for column selection
  */
-template <typename DT>
-inline DenseMatrix1D<DT> SymMatrix<DT>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B)
+template <typename T>
+inline DenseMatrix1D<T> SymMatrix<T>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B) const
 {
     int num_in_A = 0;
     for (int i=0; i< vec_A.size(); i++)
@@ -340,7 +341,7 @@ inline DenseMatrix1D<DT> SymMatrix<DT>::getScatteredSelection(const std::vector<
         }
     }
     //Initializing and allocating the product matrix
-    DenseMatrix1D<DT> res_matrix(num_in_A, num_in_B);
+    DenseMatrix1D<T> res_matrix(num_in_A, num_in_B);
     int counter = 0;
     for (int i=0; i< vec_A.size(); i++)
     {
@@ -370,21 +371,21 @@ inline T SymMatrix<T>::getFrobNorm() const
 /*
  * Returns a std::vector<T> that contains the values of the eigenvector associated to the largest eigenvalue
  */
-template <typename DT>
-inline std::vector<DT> SymMatrix<DT>::getTopEigenVector()
+template <typename T>
+inline T* SymMatrix<T>::getTopEigenVector() const
 {
 #ifdef ARPACK
-    ARdsSymMatrix<DT> ARMatrix(this->_size, this->_edges, 'L');
-    ARluSymStdEig<DT> eigProb(1, ARMatrix, "LM", 10);
+    ARdsSymMatrix<T> ARMatrix(this->_size, this->_edges, 'L');
+    ARluSymStdEig<T> eigProb(1, ARMatrix, "LM", 10);
     eigProb.FindEigenvectors();
-    std::vector<DT> eigen_vec = new std::vector<DT>(eigProb.GetN());
+    T* eigen_vector = new T[this->_size];
      
-    for (int i=0; i < eigProb.GetN() ; i++)
+    for (int i=0; i < this->_size; i++)
     {
-        eigen_vec[i] = eigProb.Eigenvector(0,i);
+        eigen_vector[i] = eigProb.Eigenvector(0,i);
     }
     
-    return eigen_vec;
+    return eigen_vector;
 #endif
 
 #ifdef EIGEN
@@ -422,7 +423,7 @@ inline std::vector<DT> SymMatrix<DT>::getTopEigenVector()
  * Returns a SymMatrix<T> of the transpose of this (creates a copy)
  */
 template <typename T>
-inline SymMatrix<T>::transpose() const
+inline SymMatrix<T> SymMatrix<T>::transpose() const
 {
     return SymMatrix<T>(*this);
 }
@@ -430,10 +431,10 @@ inline SymMatrix<T>::transpose() const
 /*
  * Returns a std::vector<T> that contains sum of the values in each row
  */
-template <typename DT>
-inline std::vector<DT> SymMatrix<DT>::getSumOfRows()
+template <typename T>
+inline std::vector<T> SymMatrix<T>::getSumOfRows() const
 {
-    std::vector<DT> result_vec(this->_size);
+    std::vector<T> result_vec(this->_size);
     
     for (int i = 0 ; i < this->_size; i++)
     {
@@ -450,8 +451,8 @@ inline std::vector<DT> SymMatrix<DT>::getSumOfRows()
  * Returns a std::vector<int> of the elements with value of 1 in a columns.
  * @pram int vertex
  */
-template <typename DT> //NEEDS REVIEW
-inline std::vector<int> SymMatrix<DT>::getNeighbors(int vertex)
+template <typename T> //NEEDS REVIEW
+inline std::vector<int> SymMatrix<T>::getNeighbors(int vertex) const
 {
     std::vector<int> neighbors;
     
@@ -470,14 +471,14 @@ inline std::vector<int> SymMatrix<DT>::getNeighbors(int vertex)
  * Returns a DenseMatrix2D that is the kronecker product of this and another matrix.
  * @pram DenseMatrix2D 
  */
-template <typename DT> //should be a better implementation
-inline SymMatrix<DT> SymMatrix<DT>::kron(const SymMatrix<DT>& matrix)
+template <typename T> //should be a better implementation
+inline SymMatrix<T> SymMatrix<T>::kron(const SymMatrix<T>& matrix) const
 {
 
     
     //Initializing and allocating the product matrix
     int prod_size = this->_size * matrix._size;
-    SymMatrix<DT> prod_matrix(prod_size);
+    SymMatrix<T> prod_matrix(prod_size);
     
     /*
      *  Calculating the kronecker product:
@@ -508,15 +509,15 @@ inline SymMatrix<DT> SymMatrix<DT>::kron(const SymMatrix<DT>& matrix)
  * Returns a DenseMatrix2D<T> of a vector that contains the diagonal values of a diagonal matrix times this matrix.
  * @pram std::vector<T> diagonal entires of a diagonal matrix
  */
-template <typename DT>
-inline SymMatrix<DT> SymMatrix<DT>::diagonalVectorTimesMatrix(const std::vector<DT>& vec)
+template <typename T>
+inline SymMatrix<T> SymMatrix<T>::diagonalVectorTimesMatrix(const std::vector<T>& vec) const
 {
     // if(this->_rows != vec.size())
     // {
     //     throw DimensionMismatchException();
     // }
     
-    // SymMatrix<DT> ret_matrix(*this);
+    // SymMatrix<T> ret_matrix(*this);
     // for(int i = 0; i < this->_getArrSize(); i++)
     // {
     //     ret_matrix._edges[i] = vec[i/this->_rows] * this->_edges[i];
@@ -529,15 +530,15 @@ inline SymMatrix<DT> SymMatrix<DT>::diagonalVectorTimesMatrix(const std::vector<
  * Returns a DenseMatrix2D<T> of the product of this matrix a vector that contains the diagonal values of a diagonal matrix.
  * @pram std::vector<T> diagonal entires of a diagonal matrix
  */
-template <typename DT>
-inline SymMatrix<DT> SymMatrix<DT>::matrixTimesDiagonalVector(const std::vector<DT>& vec)
+template <typename T>
+inline SymMatrix<T> SymMatrix<T>::matrixTimesDiagonalVector(const std::vector<T>& vec) const
 {
     // if(this->_cols != vec.size())
     // {
     //     throw DimensionMismatchException();
     // }
     
-    // SymMatrix<DT> ret_matrix(*this);
+    // SymMatrix<T> ret_matrix(*this);
     // for(int i = 0; i < this->_getArrSize(); )
     // {
     //     for(int j = 0; j < vec.size(); j++)
@@ -559,13 +560,13 @@ inline SymMatrix<DT> SymMatrix<DT>::matrixTimesDiagonalVector(const std::vector<
  * @pram int tag 
  * @pram bool sending sparse form, default value is false.
  */
-template <typename DT>
-void SymMatrix<DT>::MPI_Send_SymMatrix(int dest, int tag, bool sparse = false)
+template <typename T>
+void SymMatrix<T>::MPI_Send_SymMatrix(int dest, int tag, bool sparse = false)
 {
     if(sparse)
     {
-        MPI_Send(&_SENDING_SYM_SPARSE_FORM, 1 ,MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-        std::vector<SparseElement<DT> > sparse_form;
+        MPI_Send(&_SYM_SPARSE_FORM, 1 ,MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        std::vector<SparseElement<T> > sparse_form;
         for (int i = 0; i < this->_size; i++)
         {
             for (int j = i ; j < this->_size; j++)
@@ -574,13 +575,13 @@ void SymMatrix<DT>::MPI_Send_SymMatrix(int dest, int tag, bool sparse = false)
             }
         }
         MPI_Send(&sparse_form.size(), 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
-        MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<DT>), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
+        MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
     }
     else
     {
-        MPI_Send(&_SENDING_SYM_DENSE_FORM, 1 ,MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        MPI_Send(&_SYM_DENSE_FORM, 1 ,MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
         MPI_Send(&this->_size, 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
-        MPI_Send(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
+        MPI_Send(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
     }
 }
 
@@ -589,13 +590,13 @@ void SymMatrix<DT>::MPI_Send_SymMatrix(int dest, int tag, bool sparse = false)
  * @pram int sourse sender's ID
  * @pram bool sending sparse form, default value is false.
  */
-template <typename DT>
-void SymMatrix<DT>::MPI_Bcast_Send_SymMatrix(int source, bool sparse = false)
+template <typename T>
+void SymMatrix<T>::MPI_Bcast_Send_SymMatrix(int source, bool sparse = false)
 {
     if(sparse)
     {
-        MPI_Bcast(&_SENDING_SYM_SPARSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-        std::vector<SparseElement<DT> > sparse_form;
+        MPI_Bcast(&_SYM_SPARSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        std::vector<SparseElement<T> > sparse_form;
         for (int i = 0; i < this->_size; i++)
         {
             for (int j = i ; j < this->_size; j++)
@@ -604,13 +605,13 @@ void SymMatrix<DT>::MPI_Bcast_Send_SymMatrix(int source, bool sparse = false)
             }
         }
         MPI_Bcast(&sparse_form.size(), 1, MPI_INT, source, MPI_COMM_WORLD);
-        MPI_Bcast(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<DT>), MPI_BYTE, source, MPI_COMM_WORLD);
+        MPI_Bcast(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
     }
     else
     {
-        MPI_Bcast(&_SENDING_SYM_DENSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&_SYM_DENSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
         MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
-        MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(DT), MPI_BYTE, source, MPI_COMM_WORLD);
+        MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
     }
 
 }
@@ -624,14 +625,9 @@ void SymMatrix<DT>::MPI_Bcast_Send_SymMatrix(int source, bool sparse = false)
  * @pram: int i
  * @pram: int j
  */
-template <typename DT>
-inline DT& SymMatrix<DT>::operator()(int i, int j) const
+template <typename T>
+inline T& SymMatrix<T>::operator()(int i, int j)
 {
-    if ( (i >= _size) || (i < 0) || (j >= _size) || (j < 0) )
-    {
-        throw IndexOutOfBoundsException();
-    }
-    
     if(i<=j)
     {
         return this->_edges[i+size_t(j)*(j+1)/2];
@@ -646,8 +642,8 @@ inline DT& SymMatrix<DT>::operator()(int i, int j) const
  * Overloaded = operator copies the content of another matrix to this
  * @pram: SymMatrix<T> 
  */
-template <typename DT>
-inline SymMatrix<DT>& SymMatrix<DT>::operator=(const SymMatrix<DT>& matrix)
+template <typename T>
+inline void SymMatrix<T>::operator=(const SymMatrix<T>& matrix)
 {
     delete [] this->_edges;
     _copy(matrix);
@@ -680,7 +676,7 @@ inline SymMatrix<DT>& SymMatrix<DT>::operator=(const SymMatrix<DT>& matrix)
  * @pram: DenseMatrix1D<T> 
  */
 template <typename T>
-inline DenseMatrix1D<T> DenseMatrix1D<T>::operator+(const DenseMatrix1D<T>& other_matrix) const
+inline DenseMatrix1D<T> SymMatrix<T>::operator+(const DenseMatrix1D<T>& other_matrix) const
 {
     // DenseMatrix1D<T> ret_matrix(this->_rows,this->_cols);
     // for(int i = 0; i < this->_getArrSize() ;i++)
@@ -695,7 +691,7 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::operator+(const DenseMatrix1D<T>& othe
  * @pram: DenseMatrix1D<T> 
  */
 template <typename T>
-inline DenseMatrix1D<T> DenseMatrix1D<T>::operator-(const DenseMatrix1D<T>& other_matrix) const
+inline DenseMatrix1D<T> SymMatrix<T>::operator-(const DenseMatrix1D<T>& other_matrix) const
 {
     // DenseMatrix1D<T> ret_matrix(this->_rows,this->_cols);
     // for(int i = 0; i < this->_getArrSize() ;i++)
@@ -710,7 +706,7 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::operator-(const DenseMatrix1D<T>& othe
  * @pram: DenseMatrix1D<T> 
  */
 template <typename T>
-inline DenseMatrix1D<T> DenseMatrix1D<T>::operator*(const DenseMatrix1D<T>& other_matrix) const
+inline DenseMatrix1D<T> SymMatrix<T>::operator*(const DenseMatrix1D<T>& other_matrix) const
 {
     // DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols);
     // T ret_val;
@@ -734,15 +730,22 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::operator*(const DenseMatrix1D<T>& othe
  * @pram: std::ostream 
  * @pram: SymMatrix<T>
  */
-template <typename DT>
-inline std::ostream& operator<<(std::ostream& stream, const SymMatrix<DT>& matrix)
+template <typename T>
+inline std::ostream& operator<<(std::ostream& stream, const SymMatrix<T>& matrix)
 {
-    stream<< "Size: " << matrix.getSize() << "*" << matrix.getSize()<< '\n';
-    for (int i = 0; i < matrix.getSize(); i++)
+    stream<< "Size: " << matrix._size << "*" << matrix._size<< '\n';
+    for (int i = 0; i < matrix._size; i++)
     {
-        for( int j = 0; j< matrix.getSize(); j++)
+        for( int j = 0; j< matrix._size; j++)
         {
-            stream << matrix(i, j) << ' ';
+            if(i<=j)
+            {
+                stream <<  matrix._edges[i+size_t(j)*(j+1)/2] << ' ';;
+            }
+            else
+            {
+                stream <<  matrix._edges[j+size_t(i)*(i+1)/2] << ' ';;
+            }
         }
         stream << "\n";
     }
@@ -755,8 +758,8 @@ inline std::ostream& operator<<(std::ostream& stream, const SymMatrix<DT>& matri
  * Make a deep copy of a matrix object
  * @pram: SymMatrix<T> 
  */
-template <typename DT>
-inline void SymMatrix<DT>::_copy(const SymMatrix<DT>& matrix)
+template <typename T>
+inline void SymMatrix<T>::_copy(const SymMatrix<T>& matrix)
 {
     this->_size = matrix._size;
     _initializeMatrix();
@@ -771,8 +774,8 @@ inline void SymMatrix<DT>::_copy(const SymMatrix<DT>& matrix)
  * makes a 1D array of size _rows*_cols
  * @pram: bool fill: if true: initialize values to 0.
  */  
-template <typename DT>
-inline void SymMatrix<DT>::_initializeMatrix()
+template <typename T>
+inline void SymMatrix<T>::_initializeMatrix(bool fill)
 {
     try
     {
@@ -795,8 +798,8 @@ inline void SymMatrix<DT>::_initializeMatrix()
  * Return the size of the internal array
  * @return: size_t
  */
-template<typename DT>
-inline size_t SymMatrix<DT>::_getArrSize() const
+template<typename T>
+inline size_t SymMatrix<T>::_getArrSize() const
 {
     return (int)(0.5 * this->_size * (this->_size + 1));
 }

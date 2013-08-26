@@ -60,9 +60,9 @@ private:
     static const  T _DEFAULT_MATRIX_ENTRY;
 #ifdef USE_MPI
     static const int SENDING_SPARSE_FORM;
-    static const int SENDING_DENSE_FORM:
+    static const int SENDING_DENSE_FORM;
     static const int SENDING_SYM_SPARSE_FORM;
-    static const int SENDING_SYM_DENSE_FORM:
+    static const int SENDING_SYM_DENSE_FORM;
 #endif
     
 protected:
@@ -80,8 +80,8 @@ public:
     DenseMatrix2D(const DenseMatrix2D<T>&);
 
     #ifdef USE_MPI
-    DenseMatrix2D(int,MPI_Status&,bool);
-    DenseMatrix2D(int,int,MPI_Status&, bool);
+    DenseMatrix2D(int,MPI_Status&);
+    DenseMatrix2D(int,int,MPI_Status&);
     #endif
 
     /************
@@ -119,8 +119,8 @@ public:
     *  MPI Send  *
     **************/
     #ifdef USE_MPI
-    void MPI_Send_Matrix(int, int);
-    void MPI_Bcast_Send_Matrix(int);
+    void MPI_Send_Matrix(int, int, bool sparse = true);
+    void MPI_Bcast_Send_Matrix(int, bool sparse = true);
     #endif
 
     /**********
@@ -142,13 +142,13 @@ template <typename T>
 const T DenseMatrix2D<T>::_DEFAULT_MATRIX_ENTRY = 1;
 #ifdef USE_MPI
 template <typename T>
-const int DenseMatrix2D<T>::_SENDING_DENSE_FORM = 0;
+const int DenseMatrix2D<T>::_DENSE_FORM = 0;
 template <typename T>
-const int DenseMatrix2D<T>::_SENDING_SPARSE_FORM = 1;
+const int DenseMatrix2D<T>::_SPARSE_FORM = 1;
 template <typename T>
-const int DenseMatrix2D<T>::_SENDING_SYM_DENSE_FORM = 2;
+const int DenseMatrix2D<T>::_DENSE_FORM = 2;
 template <typename T>
-const int DenseMatrix2D<T>::_SENDING_SYM_SPARSE_FORM = 3;
+const int DenseMatrix2D<T>::_SYM_SPARSE_FORM = 3;
 #endif
 //==========================================================CONSTRUCTORS============================================================
 
@@ -158,7 +158,7 @@ const int DenseMatrix2D<T>::_SENDING_SYM_SPARSE_FORM = 3;
  * @pram bool fill: fills the matrix with 0's. default value is true
  */
 template <typename T>
-inline DenseMatrix2D<T>::DenseMatrix2D(bool fill = true)
+inline DenseMatrix2D<T>::DenseMatrix2D(bool fill)
 {
     this->_rows = _DEFAULT_MATRIX_SIZE;
     this->_cols = _DEFAULT_MATRIX_SIZE;
@@ -206,7 +206,7 @@ inline DenseMatrix2D<T>::DenseMatrix2D(const std::string &file_path)
  * @pram bool fill: fills the matrix with 0's. default value is true
  */
 template <typename T>
-inline DenseMatrix2D<T>::DenseMatrix2D(int rows, int cols, bool fill = true)
+inline DenseMatrix2D<T>::DenseMatrix2D(int rows, int cols, bool fill)
 {
     this->_rows = rows;
     this->_cols = cols;
@@ -478,7 +478,7 @@ inline T DenseMatrix2D<T>::getFrobNorm() const
  * Returns a std::vector<T> that contains the values of the eigenvector associated to the largest eigenvalue
  */
 template <typename T>
-inline T* DenseMatrix2D<T>::getTopEigenVector()
+inline T* DenseMatrix2D<T>::getTopEigenVector() const
 {
 #ifdef ARPACK
     int arr_size = (this->_rows*(this->_rows+1))/2;
@@ -684,11 +684,11 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::matrixTimesDiagonalVector(const std::v
  * @pram bool sending sparse form, default value is false.
  */
 template <typename T>
-inline void DenseMatrix2D<T>::MPI_Send_Matrix(int dest, int tag, bool sparse = false)
+inline void DenseMatrix2D<T>::MPI_Send_Matrix(int dest, int tag, bool sparse)
 {
     if(sparse)
     {
-        MPI_Send(&_SENDING_SPARSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        MPI_Send(&_SPARSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
         std::vector<T> sparse_form = this->getSparseForm();
         MPI_Send(&sparse_form.size(), 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
         MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
@@ -696,7 +696,7 @@ inline void DenseMatrix2D<T>::MPI_Send_Matrix(int dest, int tag, bool sparse = f
     }
     else
     {
-        MPI_Send(&_SENDING_DENSE_FORM, 1,  MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        MPI_Send(&_DENSE_FORM, 1,  MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
         int size = this->_rows * this->_cols;
         MPI_Send(&size,1 , MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
         T* edges = new T[size];
@@ -710,6 +710,10 @@ inline void DenseMatrix2D<T>::MPI_Send_Matrix(int dest, int tag, bool sparse = f
         MPI_Send(edges, size * sizeof(T), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
         delete edges;
     }
+        //     for(int i = 0;  i < recv_edges_size; i++)
+        // {
+        //     this->_edges[recv_edges[i].getJ()][recv_edges[i].getI()] = this->_edges[recv_edges[i].getI()][recv_edges[i].getJ()] = recv_edges[i].getValue();
+        // }
 }
 
 /*
@@ -718,18 +722,18 @@ inline void DenseMatrix2D<T>::MPI_Send_Matrix(int dest, int tag, bool sparse = f
  * @pram bool sending sparse form, default value is false.
  */
 template <typename T>
-inline void DenseMatrix2D<T>::MPI_Bcast_Send_Matrix(int source, bool sparse = false)
+inline void DenseMatrix2D<T>::MPI_Bcast_Send_Matrix(int source, bool sparse)
 {
     if(sparse)
     {
-        MPI_Bcast(&_SENDING_SPARSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&_SPARSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
         std::vector<T> sparse_form = this->getSparseForm();
         MPI_Bcast(&sparse_form.size(), 1, MPI_INT, source, MPI_COMM_WORLD);
         MPI_Bcast(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, sourse, MPI_COMM_WORLD);
     }
     else
     {
-        MPI_Bcast(&_SENDING_DENSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&_DENSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
         int size = this->_rows * this->_cols;
         MPI_Bcast(&size, 1, MPI_INT, source, MPI_COMM_WORLD);
         T* edges = new T[size];
@@ -744,6 +748,7 @@ inline void DenseMatrix2D<T>::MPI_Bcast_Send_Matrix(int source, bool sparse = fa
         delete edges;
     }
 }
+#endif
 //==========================================================OPERATORS================================================================
 
 /*
