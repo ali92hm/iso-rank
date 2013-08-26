@@ -58,6 +58,12 @@ private:
      */
     static const int _DEFAULT_MATRIX_SIZE;
     static const  T _DEFAULT_MATRIX_ENTRY;
+#ifdef USE_MPI
+    static const int SENDING_SPARSE_FORM;
+    static const int SENDING_DENSE_FORM:
+    static const int SENDING_SYM_SPARSE_FORM;
+    static const int SENDING_SYM_DENSE_FORM:
+#endif
     
 protected:
     unsigned int _rows;
@@ -74,8 +80,8 @@ public:
     DenseMatrix2D(const DenseMatrix2D<T>&);
 
     #ifdef USE_MPI
-    DenseMatrix2D(int,MPI_Status&);
-    DenseMatrix2D(int,int,MPI_Status&);
+    DenseMatrix2D(int,MPI_Status&,bool);
+    DenseMatrix2D(int,int,MPI_Status&, bool);
     #endif
 
     /************
@@ -134,6 +140,16 @@ template <typename T>
 const int DenseMatrix2D<T>::_DEFAULT_MATRIX_SIZE = 1;
 template <typename T>
 const T DenseMatrix2D<T>::_DEFAULT_MATRIX_ENTRY = 1;
+#ifdef USE_MPI
+template <typename T>
+const int DenseMatrix2D<T>::_SENDING_DENSE_FORM = 0;
+template <typename T>
+const int DenseMatrix2D<T>::_SENDING_SPARSE_FORM = 1;
+template <typename T>
+const int DenseMatrix2D<T>::_SENDING_SYM_DENSE_FORM = 2;
+template <typename T>
+const int DenseMatrix2D<T>::_SENDING_SYM_SPARSE_FORM = 3;
+#endif
 //==========================================================CONSTRUCTORS============================================================
 
 /*
@@ -459,130 +475,6 @@ inline T DenseMatrix2D<T>::getFrobNorm() const
 }
 
 /*
- * Returns a DenseMatrix2D that is the kronecker product of this and another matrix.
- * @pram DenseMatrix2D 
- */
-template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::kron(const DenseMatrix2D<T>& matrix) const
-{
-    // also checking for matrices to be square
-    if (!this->isSquare() || !matrix.isSquare())
-    {
-        throw NotASquareMatrixException();
-    }
-    
-    //Initializing and allocating the product matrix
-    int prod_size = this->_rows * matrix._rows;
-    DenseMatrix2D<T> prod_matrix(prod_size, prod_size, false);
-    
-    /*
-     *  Calculating the kronecker product:
-     *  The indices of the product matrix is calculated by:
-     *      i = (i_outer*size) + i_inner
-     *      j = (j_outer*size) + j_inner
-     */
-    for (int i_outer = 0; i_outer < this->_rows; i_outer++)
-    {
-        for (int j_outer=0; j_outer < this->_cols; j_outer++)
-        {
-            for(int i_inner=0; i_inner < matrix._rows; i_inner++)
-            {
-                for(int j_inner=0; j_inner < matrix._cols; j_inner++)
-                {
-                    prod_matrix._edges[(i_outer*matrix._rows) + i_inner][(j_outer*matrix._cols)+j_inner] =
-                    this->_edges[i_outer][j_outer] * matrix._edges[i_inner][j_inner];
-                }
-            }
-        }
-    }
-    
-    return prod_matrix;
-}
-
-
-/*
- * Returns a DenseMatrix2D<T> of a vector that contains the diagonal values of a diagonal matrix times this matrix.
- * @pram std::vector<T> diagonal entires of a diagonal matrix
- */
-template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::diagonalVectorTimesMatrix(const std::vector<T>& vec) const
-{    
-    if(_cols != vec.size())
-    {
-        throw DimensionMismatchException();
-    }
-    
-    DenseMatrix2D<T> ret_matrix(*this);
-    for(int i = 0; i < _rows; i++)
-    {
-        for(int j = 0; j < _cols; j++ )
-        {
-            ret_matrix._edges[i][j] = this->_edges[i][j] * vec[i];
-        }
-    }
-    return ret_matrix;
-}
-
-/*
- * Returns a DenseMatrix2D<T> of the product of this matrix a vector that contains the diagonal values of a diagonal matrix.
- * @pram std::vector<T> diagonal entires of a diagonal matrix
- */
-template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::matrixTimesDiagonalVector(const std::vector<T>& vec) const
-{    
-    if(_cols != vec.size())
-    {
-        throw DimensionMismatchException();
-    }
-
-    DenseMatrix2D<T> ret_matrix(*this);
-    for(int i=0; i < _cols; i++)
-    {
-        for(int j=0; j < _rows; j++)
-        {
-            ret_matrix._edges[j][i] = this->_edges[j][i]*vec[i];
-        }
-    }
-    return ret_matrix;
-}
-
-/*
- * Returns a DenseMatrix2D<T> of the transpose of this.
- */
-template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::transpose() const
-{
-    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
-
-    for(int i=0;i<this->_rows;i++)
-    {
-        for(int j=0;j<this->_cols;j++)
-        {
-            ret_matrix._edges[j][i] = this->_edges[i][j];
-        }
-    }
-    return ret_matrix;
-}
-
-/*
- * Returns a std::vector<int> of the elements with value of 1 in a columns.
- * @pram int vertex
- */
-template <typename T>
-inline std::vector<int> DenseMatrix2D<T>::getNeighbors(int vertex) const
-{
-  std::vector<int> neighbors;
-  for(int i = 0; i < this->_rows; i++)
-  {
-    if(this->_edges[i][vertex] == 1)
-    {
-      neighbors.push_back(i);
-    }
-  }
-  return neighbors;
-} 
-
-/*
  * Returns a std::vector<T> that contains the values of the eigenvector associated to the largest eigenvalue
  */
 template <typename T>
@@ -644,6 +536,24 @@ inline T* DenseMatrix2D<T>::getTopEigenVector()
 }
 
 /*
+ * Returns a DenseMatrix2D<T> of the transpose of this.
+ */
+template <typename T>
+inline DenseMatrix2D<T> DenseMatrix2D<T>::transpose() const
+{
+    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
+
+    for(int i=0;i<this->_rows;i++)
+    {
+        for(int j=0;j<this->_cols;j++)
+        {
+            ret_matrix._edges[j][i] = this->_edges[i][j];
+        }
+    }
+    return ret_matrix;
+}
+
+/*
  * Returns a std::vector<T> that contains sum of the values in each row
  */
 template <typename T>
@@ -660,28 +570,160 @@ inline std::vector<T> DenseMatrix2D<T>::getSumOfRows() const
     return sum_vec;
 }
 
-
-//==========================================================OPERATORS================================================================
 /*
- * overloaded ostream operator for printing a matrix
- * @pram: std::ostream 
- * @pram: DenseMatrix2D<T>
+ * Returns a std::vector<int> of the elements with value of 1 in a columns.
+ * @pram int vertex
  */
 template <typename T>
-inline std::ostream& operator<<(std::ostream& stream, const DenseMatrix2D<T>& matrix)
+inline std::vector<int> DenseMatrix2D<T>::getNeighbors(int vertex) const
 {
-    stream<< "Size: " << matrix._rows << "*" << matrix._cols << '\n';
-    for (int i = 0; i < matrix._rows; i++)
+  std::vector<int> neighbors;
+  for(int i = 0; i < this->_rows; i++)
+  {
+    if(this->_edges[i][vertex] == 1)
     {
-        for( int j = 0; j< matrix._cols; j++)
-        {
-            stream << matrix._edges[i][j] << ' ';
-        }
-        stream << "\n";
+      neighbors.push_back(i);
     }
-    stream << "\n\n\n";
-    return stream;
+  }
+  return neighbors;
+} 
+
+/*
+ * Returns a DenseMatrix2D that is the kronecker product of this and another matrix.
+ * @pram DenseMatrix2D 
+ */
+template <typename T>
+inline DenseMatrix2D<T> DenseMatrix2D<T>::kron(const DenseMatrix2D<T>& matrix) const
+{
+    // also checking for matrices to be square
+    if (!this->isSquare() || !matrix.isSquare())
+    {
+        throw NotASquareMatrixException();
+    }
+    
+    //Initializing and allocating the product matrix
+    int prod_size = this->_rows * matrix._rows;
+    DenseMatrix2D<T> prod_matrix(prod_size, prod_size, false);
+    
+    /*
+     *  Calculating the kronecker product:
+     *  The indices of the product matrix is calculated by:
+     *      i = (i_outer*size) + i_inner
+     *      j = (j_outer*size) + j_inner
+     */
+    for (int i_outer = 0; i_outer < this->_rows; i_outer++)
+    {
+        for (int j_outer=0; j_outer < this->_cols; j_outer++)
+        {
+            for(int i_inner=0; i_inner < matrix._rows; i_inner++)
+            {
+                for(int j_inner=0; j_inner < matrix._cols; j_inner++)
+                {
+                    prod_matrix._edges[(i_outer*matrix._rows) + i_inner][(j_outer*matrix._cols)+j_inner] =
+                    this->_edges[i_outer][j_outer] * matrix._edges[i_inner][j_inner];
+                }
+            }
+        }
+    }
+    
+    return prod_matrix;
 }
+
+/*
+ * Returns a DenseMatrix2D<T> of a vector that contains the diagonal values of a diagonal matrix times this matrix.
+ * @pram std::vector<T> diagonal entires of a diagonal matrix
+ */
+template <typename T>
+inline DenseMatrix2D<T> DenseMatrix2D<T>::diagonalVectorTimesMatrix(const std::vector<T>& vec) const
+{    
+    if(_cols != vec.size())
+    {
+        throw DimensionMismatchException();
+    }
+    
+    DenseMatrix2D<T> ret_matrix(*this);
+    for(int i = 0; i < _rows; i++)
+    {
+        for(int j = 0; j < _cols; j++ )
+        {
+            ret_matrix._edges[i][j] = this->_edges[i][j] * vec[i];
+        }
+    }
+    return ret_matrix;
+}
+
+/*
+ * Returns a DenseMatrix2D<T> of the product of this matrix a vector that contains the diagonal values of a diagonal matrix.
+ * @pram std::vector<T> diagonal entires of a diagonal matrix
+ */
+template <typename T>
+inline DenseMatrix2D<T> DenseMatrix2D<T>::matrixTimesDiagonalVector(const std::vector<T>& vec) const
+{    
+    if(_cols != vec.size())
+    {
+        throw DimensionMismatchException();
+    }
+
+    DenseMatrix2D<T> ret_matrix(*this);
+    for(int i=0; i < _cols; i++)
+    {
+        for(int j=0; j < _rows; j++)
+        {
+            ret_matrix._edges[j][i] = this->_edges[j][i]*vec[i];
+        }
+    }
+    return ret_matrix;
+}
+
+//===========================================================MPI SEND/REC================================================================
+#ifdef USE_MPI
+/*
+ * Sends a DenseMatrix2D<T> using MPI_Send.
+ * @pram int destination processor
+ * @pram int tag 
+ * @pram bool sending sparse form, default value is false.
+ */
+template <typename T>
+inline void DenseMatrix2D<T>::MPI_Send_Matrix(int dest, int tag, bool sparse = false)
+{
+    if(sparse)
+    {
+        MPI_Send(&_SENDING_SPARSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        std::vector<T> sparse_form = this->getSparseForm();
+        MPI_Send(&sparse_form.size(), 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+        MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
+
+    }
+    else
+    {
+        MPI_Send(&_SENDING_DENSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        //TODO
+    }
+}
+
+/*
+ * Sends a DenseMatrix2D<T> using MPI_Bcast.
+ * @pram int sourse sender's ID
+ * @pram bool sending sparse form, default value is false.
+ */
+template <typename T>
+inline void DenseMatrix2D<T>::MPI_Bcast_Send_Matrix(int source, bool sparse = false)
+{
+    if(sparse)
+    {
+        MPI_Bcast(&_SENDING_SPARSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
+        std::vector<T> sparse_form = this->getSparseForm();
+        MPI_Send(&sparse_form.size(), 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, sourse, MPI_COMM_WORLD);
+    }
+    else
+    {
+        MPI_Bcast(&_SENDING_DENSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
+        //TODO
+
+    }
+}
+//==========================================================OPERATORS================================================================
 
 /*
  * Overloaded () operator for accessing and changing the values inside a matrix
@@ -692,67 +734,6 @@ template <typename T>
 inline T&  DenseMatrix2D<T>::operator()(int i, int j)
 {
     return this->_edges[i][j];
-}
-
-/*
- * Returns a DenseMatrix2D that is product of this and other_matrix
- * @pram: DenseMatrix2D<T> 
- */
-template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::operator*(const DenseMatrix2D<T>& other_matrix) const
-{
-    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
-    T ret_val;
-    for(int i = 0; i < this->_rows;i++)
-    {
-        for(int j = 0; j < other_matrix._cols;j++)
-        {
-            ret_val = 0;
-            for(int k = 0; k < this->_cols;k++)
-            {
-               ret_val += this->_edges[i][k] * other_matrix._edges[k][j];
-            }
-            ret_matrix._edges[i][j] = ret_val;
-        }
-    }
-  
-    return ret_matrix;
-}
-
-/*
- * Returns a DenseMatrix2D that is the difference of this and other_matrix
- * @pram: DenseMatrix2D<T> 
- */
-template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::operator-(const DenseMatrix2D<T>& other_matrix) const
-{
-  DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
-  for(int i = 0; i < this->_rows ;i++)
-  {   
-      for(int j = 0; j < this->_cols; j++)
-      {
-           ret_matrix._edges[i][j] = this->_edges[i][j] - other_matrix._edges[i][j];
-      }
-  }
-  return ret_matrix;
-}
-
-/*
- * Returns a DenseMatrix2D that is the sum of this and other_matrix
- * @pram: DenseMatrix2D<T> 
- */
-template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::operator+(const DenseMatrix2D<T>& other_matrix) const
-{
-  DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
-  for(int i = 0; i < this->_rows ;i++)
-  {   
-      for(int j = 0; j < this->_cols; j++)
-      {
-           ret_matrix._edges[i][j] = this->_edges[i][j] + other_matrix._edges[i][j];
-      }
-  }
-  return ret_matrix;
 }
 
 /*
@@ -796,6 +777,88 @@ inline bool DenseMatrix2D<T>::operator==(const DenseMatrix2D<T>& matrix)
         }   
     }
     return true;
+}
+
+/*
+ * Returns a DenseMatrix2D that is the sum of this and other_matrix
+ * @pram: DenseMatrix2D<T> 
+ */
+template <typename T>
+inline DenseMatrix2D<T> DenseMatrix2D<T>::operator+(const DenseMatrix2D<T>& other_matrix) const
+{
+  DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
+  for(int i = 0; i < this->_rows ;i++)
+  {   
+      for(int j = 0; j < this->_cols; j++)
+      {
+           ret_matrix._edges[i][j] = this->_edges[i][j] + other_matrix._edges[i][j];
+      }
+  }
+  return ret_matrix;
+}
+
+/*
+ * Returns a DenseMatrix2D that is the difference of this and other_matrix
+ * @pram: DenseMatrix2D<T> 
+ */
+template <typename T>
+inline DenseMatrix2D<T> DenseMatrix2D<T>::operator-(const DenseMatrix2D<T>& other_matrix) const
+{
+  DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
+  for(int i = 0; i < this->_rows ;i++)
+  {   
+      for(int j = 0; j < this->_cols; j++)
+      {
+           ret_matrix._edges[i][j] = this->_edges[i][j] - other_matrix._edges[i][j];
+      }
+  }
+  return ret_matrix;
+}
+
+/*
+ * Returns a DenseMatrix2D that is product of this and other_matrix
+ * @pram: DenseMatrix2D<T> 
+ */
+template <typename T>
+inline DenseMatrix2D<T> DenseMatrix2D<T>::operator*(const DenseMatrix2D<T>& other_matrix) const
+{
+    DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
+    T ret_val;
+    for(int i = 0; i < this->_rows;i++)
+    {
+        for(int j = 0; j < other_matrix._cols;j++)
+        {
+            ret_val = 0;
+            for(int k = 0; k < this->_cols;k++)
+            {
+               ret_val += this->_edges[i][k] * other_matrix._edges[k][j];
+            }
+            ret_matrix._edges[i][j] = ret_val;
+        }
+    }
+  
+    return ret_matrix;
+}
+
+/*
+ * overloaded ostream operator for printing a matrix
+ * @pram: std::ostream 
+ * @pram: DenseMatrix2D<T>
+ */
+template <typename T>
+inline std::ostream& operator<<(std::ostream& stream, const DenseMatrix2D<T>& matrix)
+{
+    stream<< "Size: " << matrix._rows << "*" << matrix._cols << '\n';
+    for (int i = 0; i < matrix._rows; i++)
+    {
+        for( int j = 0; j< matrix._cols; j++)
+        {
+            stream << matrix._edges[i][j] << ' ';
+        }
+        stream << "\n";
+    }
+    stream << "\n\n\n";
+    return stream;
 }
 
 //===========================================================PRIVATE=================================================================
