@@ -2,7 +2,7 @@
 
 // #include "SymMatrix.h"
 #include "DenseMatrix1D.h"
-// #include "DenseMatrix2D.h"
+#include "DenseMatrix2D.h"
 #include <vector>
 #include <sstream>
 #include <string>
@@ -28,6 +28,45 @@ typedef long double DataType;
 #else
 typedef float DataType;
 #endif
+
+template <typename T>
+bool qeual(DenseMatrix1D<T>& mat1, DenseMatrix2D<T>& mat2)
+{
+	if (mat1.getNumberOfRows() != mat2.getNumberOfRows() || mat1.getNumberOfColumns() != mat2.getNumberOfColumns())
+	{
+		return false;
+	}
+
+	for (int i = 0; i < mat1.getNumberOfRows(); i++)
+	{
+		for (int j = 0; j < mat1.getNumberOfColumns(); j++)
+		{
+			if (mat1(i,j) != mat2(i,j))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+template<typename T>
+bool qeual(std::vector<T>& vec1, std::vector<T>& vec2)
+{
+	if (vec1.size() != vec2.size())
+	{
+		return false;
+	}
+
+	for(int i = 0; i < vec1.size(); i++)
+	{
+		if (vec1[i] != vec2[i])
+		{
+			return false;
+		}
+	}
+	return true;
+}
 
 #ifdef USE_MPI
 int main(int argc, char *argv[])
@@ -87,7 +126,8 @@ int main(int argc, char *argv[])
 #else
 int main(int argc, char *argv[])
 {
-	    std::vector<SymMatrix<DataType>* >input_graphs;
+	    std::vector<DenseMatrix1D<DataType> >input_graphs_1D;
+	    std::vector<DenseMatrix2D<DataType> >input_graphs_2D;
 	    std::ostringstream itos_converter;
     	/*
     	 * Reading the graphs and storing them
@@ -97,7 +137,8 @@ int main(int argc, char *argv[])
 			try
 			{
 				itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
-				input_graphs.push_back(new SymMatrix<DataType>(itos_converter.str()));
+				input_graphs_1D.push_back(DenseMatrix1D<DataType>(itos_converter.str()));
+				input_graphs_2D.push_back(DenseMatrix2D<DataType>(itos_converter.str()));
 				itos_converter.str(""); //clearing the stream
 				itos_converter.clear();
 			}
@@ -108,9 +149,22 @@ int main(int argc, char *argv[])
 				itos_converter.clear();
 			}
 		}
-		for(int i = 0; i < input_graphs.size(); i++)
+
+		std::cout << "Raw matrices are equal: \n"<< qeual(input_graphs_1D[0], input_graphs_2D[0]) << std::endl;
+		std::cout << input_graphs_1D[0].isSquare() << std::endl;
+		std::cout << input_graphs_1D[0].isSemmetric()<< std::endl;
+		std::cout << input_graphs_1D[0].getNumberOfRows()<< std::endl;
+		std::cout << input_graphs_1D[0].getNumberOfColumns()<< std::endl;
+		std::cout << "Sparse form are equal: \n" << equal(input_graphs_1D[0].getSparseForm(), input_graphs_2D[0].getSparseForm()) << std::endl;
+		std::cout << "FrobNorm are qeual: \n" << (input_graphs_1D[0].getFrobNorm() == input_graphs_2D[0].FrobNorm()) << std::endl;
+		std::cout << "Transpose are equal: \n"<< qeual(input_graphs_1D[0].transpose(), input_graphs_2D[0].transpose()) << std::endl;
+		std::cout << "Kron Products are equal: \n"<< qeual(input_graphs_1D[0].kron(input_graphs_1D[0]), input_graphs_2D[0].kron(input_graphs_2D[0])) << std::endl;
+
+		//input_graphs_1D[0].getScatteredSelection();
+
+		for(int i = 0; i < input_graphs_2D.size(); i++)
 		{
-			std::cout << *input_graphs[i] << std::endl;
+			std::cout << input_graphs_2D[i] << std::endl;
 		}
 	return 0;
 }
