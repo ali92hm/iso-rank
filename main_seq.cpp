@@ -31,13 +31,10 @@
 
 /*
  * Path to the graph folders.
+ * Extention of the files.
+ * Number of files to read.
  */
-#ifdef __linux__
-std::string G_DIR_PATH = "/home/ali/lib/input/";
-#elif defined __APPLE__
-std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
-#endif
-
+std::string G_DIR_PATH = "Sample input/";
 std::string G_FILE_EXTENSION = ".dat";
 int G_NUMBER_OF_FILES = 2;
 

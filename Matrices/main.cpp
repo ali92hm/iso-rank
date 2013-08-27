@@ -10,12 +10,8 @@
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
-#ifdef __linux__
-std::string G_DIR_PATH = "/home/ali/lib/input/";
-#elif defined __APPLE__
-std::string G_DIR_PATH = "/Users/AliHM/Documents/Course Material/Summer 13 REU/graphs/";
-#endif
 
+std::string G_DIR_PATH = "../Sample input/";
 std::string G_FILE_EXTENSION = ".dat";
 int G_NUMBER_OF_FILES = 2;
 
@@ -150,15 +146,15 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		std::cout << "Raw matrices are equal: \n"<< qeual(input_graphs_1D[0], input_graphs_2D[0]) << std::endl;
-		std::cout << input_graphs_1D[0].isSquare() << std::endl;
-		std::cout << input_graphs_1D[0].isSemmetric()<< std::endl;
-		std::cout << input_graphs_1D[0].getNumberOfRows()<< std::endl;
-		std::cout << input_graphs_1D[0].getNumberOfColumns()<< std::endl;
-		std::cout << "Sparse form are equal: \n" << equal(input_graphs_1D[0].getSparseForm(), input_graphs_2D[0].getSparseForm()) << std::endl;
-		std::cout << "FrobNorm are qeual: \n" << (input_graphs_1D[0].getFrobNorm() == input_graphs_2D[0].FrobNorm()) << std::endl;
-		std::cout << "Transpose are equal: \n"<< qeual(input_graphs_1D[0].transpose(), input_graphs_2D[0].transpose()) << std::endl;
-		std::cout << "Kron Products are equal: \n"<< qeual(input_graphs_1D[0].kron(input_graphs_1D[0]), input_graphs_2D[0].kron(input_graphs_2D[0])) << std::endl;
+		// std::cout << "Raw matrices are equal: \n"<< qeual(input_graphs_1D[0], input_graphs_2D[0]) << std::endl;
+		// std::cout << input_graphs_1D[0].isSquare() << std::endl;
+		// std::cout << input_graphs_1D[0].isSemmetric()<< std::endl;
+		// std::cout << input_graphs_1D[0].getNumberOfRows()<< std::endl;
+		// std::cout << input_graphs_1D[0].getNumberOfColumns()<< std::endl;
+		// std::cout << "Sparse form are equal: \n" << equal(input_graphs_1D[0].getSparseForm(), input_graphs_2D[0].getSparseForm()) << std::endl;
+		// std::cout << "FrobNorm are qeual: \n" << (input_graphs_1D[0].getFrobNorm() == input_graphs_2D[0].FrobNorm()) << std::endl;
+		// std::cout << "Transpose are equal: \n"<< qeual(input_graphs_1D[0].transpose(), input_graphs_2D[0].transpose()) << std::endl;
+		// std::cout << "Kron Products are equal: \n"<< qeual(input_graphs_1D[0].kron(input_graphs_1D[0]), input_graphs_2D[0].kron(input_graphs_2D[0])) << std::endl;
 
 		//input_graphs_1D[0].getScatteredSelection();
 
