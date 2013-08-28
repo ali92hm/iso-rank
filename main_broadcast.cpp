@@ -7,7 +7,7 @@
 //
 
 #include "Matrices/SymMatrix.h"
-#include "Matrices/DenseMatrix2D.h"
+#include "Matrices/DenseMatrix1D.h"
 #include "IsoRank.h"
 #include <vector>
 #include <ctime>
@@ -221,12 +221,12 @@ int main(int argc, char * argv[])
     else
     {
     	
-    	std::vector<DenseMatrix2D<DataType>* > recv_graphs;
+    	std::vector<DenseMatrix1D<DataType>* > recv_graphs;
     	
     	MPI_Bcast (&number_of_graphs, 1, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
     	for (int i = 0; i < number_of_graphs; i++)
     	{
-    		recv_graphs.push_back(new DenseMatrix2D<DataType>(MASTER_ID, stat));
+    		recv_graphs.push_back(new DenseMatrix1D<DataType>(MASTER_ID, stat));
     	}
 
 		if (G_DEBUG)
@@ -289,7 +289,7 @@ int main(int argc, char * argv[])
 				}
 			}
 		}
-		typename std::vector<DenseMatrix2D<DataType>* >::iterator graph_it;
+		typename std::vector<DenseMatrix1D<DataType>* >::iterator graph_it;
 		for ( graph_it = recv_graphs.begin() ; graph_it < recv_graphs.end(); ++graph_it )
 		{
 			delete  *graph_it;

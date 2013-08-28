@@ -26,7 +26,7 @@
 
 
 #include "Matrices/SymMatrix.h"
-#include "Matrices/DenseMatrix2D.h"
+#include "Matrices/DenseMatrix1D.h"
 #include "IsoRank.h"
 #include <string>
 #include <sstream>
@@ -260,8 +260,8 @@ int main(int argc, char * argv[])
     	while(true)
     	{
     		//Recv graphs from the master
-    		DenseMatrix2D<DataType> mat1 (MASTER_ID, TAG_1 * ID ,stat);
-    		DenseMatrix2D<DataType> mat2 (MASTER_ID, TAG_1 * ID + TAG_2 ,stat);
+    		DenseMatrix1D<DataType> mat1 (MASTER_ID, TAG_1 * ID ,stat);
+    		DenseMatrix1D<DataType> mat2 (MASTER_ID, TAG_1 * ID + TAG_2 ,stat);
             
     		if (G_DEBUG)
     			std::cout << "Process "<< ID << " : received graphs from master"<< std::endl;
