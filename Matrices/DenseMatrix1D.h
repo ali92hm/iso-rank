@@ -509,7 +509,7 @@ inline T* DenseMatrix1D<T>::getTopEigenVector() const
     {
         for(int j = i; j < this->_cols; j++)
         {
-            sym_edges[counter] = (*this)(i,j);
+            sym_edges[counter] = this->_edges[i * this->_cols +j];
             counter++;
         }
     }
@@ -532,7 +532,7 @@ inline T* DenseMatrix1D<T>::getTopEigenVector() const
     {
         for(int j = 0; j < this->_cols; j++)
         {
-            A_eigen(i,j) = (*this)(i,j);
+            A_eigen(i,j) = this->_edges[i * this->_cols +j];
         }
     }
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;

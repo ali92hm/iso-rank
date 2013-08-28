@@ -104,7 +104,6 @@ struct IsoRank_Result isoRank(DenseMatrix1D<T>& matrix_A, DenseMatrix1D<T>& matr
             eigenVec[j] *= D_0pt5[j];
             vecLength += pow(eigenVec[j],2);
         }
-        
         vecLength = sqrt(vecLength);
         
         int coef = 1;
