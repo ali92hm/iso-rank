@@ -180,7 +180,7 @@ void strong_com(std::vector<SparseElement<T> >& sparse_graph, int num_vertices,i
  */
 
 template <typename T>
-std::vector<vertex*> graph_con_com(DenseMatrix2D<T>& sm){
+std::vector<vertex*> graph_con_com(DenseMatrix1D<T>& sm){
     
     std::stack<vertex*> st;
     int num_vertices = sm.getNumberOfRows();
