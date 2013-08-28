@@ -26,7 +26,7 @@ typedef float DataType;
 #endif
 
 template <typename T>
-bool qeual(DenseMatrix1D<T>& mat1, DenseMatrix2D<T>& mat2)
+bool qeual(DenseMatrix1D<T> mat1, DenseMatrix2D<T> mat2)
 {
 	if (mat1.getNumberOfRows() != mat2.getNumberOfRows() || mat1.getNumberOfColumns() != mat2.getNumberOfColumns())
 	{
@@ -47,7 +47,7 @@ bool qeual(DenseMatrix1D<T>& mat1, DenseMatrix2D<T>& mat2)
 }
 
 template<typename T>
-bool qeual(std::vector<T>& vec1, std::vector<T>& vec2)
+bool qeual(std::vector<T> vec1, std::vector<T> vec2)
 {
 	if (vec1.size() != vec2.size())
 	{
@@ -57,6 +57,28 @@ bool qeual(std::vector<T>& vec1, std::vector<T>& vec2)
 	for(int i = 0; i < vec1.size(); i++)
 	{
 		if (vec1[i] != vec2[i])
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+template<typename T>
+bool qeual(std::vector<SparseElement<T> > vec1, std::vector<SparseElement<T> > vec2)
+{
+	if (vec1.size() != vec2.size())
+	{
+		return false;
+	}
+
+	for(int i = 0; i < vec1.size(); i++)
+	{
+		if (vec1[i] == vec2[i])
+		{
+			
+		}
+		else
 		{
 			return false;
 		}
@@ -146,22 +168,48 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		// std::cout << "Raw matrices are equal: \n"<< qeual(input_graphs_1D[0], input_graphs_2D[0]) << std::endl;
-		// std::cout << input_graphs_1D[0].isSquare() << std::endl;
-		// std::cout << input_graphs_1D[0].isSemmetric()<< std::endl;
-		// std::cout << input_graphs_1D[0].getNumberOfRows()<< std::endl;
-		// std::cout << input_graphs_1D[0].getNumberOfColumns()<< std::endl;
-		// std::cout << "Sparse form are equal: \n" << equal(input_graphs_1D[0].getSparseForm(), input_graphs_2D[0].getSparseForm()) << std::endl;
-		// std::cout << "FrobNorm are qeual: \n" << (input_graphs_1D[0].getFrobNorm() == input_graphs_2D[0].FrobNorm()) << std::endl;
-		// std::cout << "Transpose are equal: \n"<< qeual(input_graphs_1D[0].transpose(), input_graphs_2D[0].transpose()) << std::endl;
-		// std::cout << "Kron Products are equal: \n"<< qeual(input_graphs_1D[0].kron(input_graphs_1D[0]), input_graphs_2D[0].kron(input_graphs_2D[0])) << std::endl;
+		std::vector<int> vec_A(7, 0);
+		vec_A[1] = 1;
+		vec_A[4] = 1;
+		vec_A[5] = 1;
+		vec_A[7] = 1;
 
-		//input_graphs_1D[0].getScatteredSelection();
-
-		for(int i = 0; i < input_graphs_2D.size(); i++)
+		std::vector<DataType> vec_B(input_graphs_1D[0].getNumberOfRows());
+		for (int i=0; i < vec_B.size(); i++)
 		{
-			std::cout << input_graphs_2D[i] << std::endl;
+			vec_B[i] = rand()%10;
 		}
+
+		
+		std::cout << "Raw matrices are equal: \n"<< qeual(input_graphs_1D[0], input_graphs_2D[0]) << std::endl;
+		std::cout << input_graphs_1D[0].isSquare() << std::endl;
+		std::cout << input_graphs_1D[0].isSymmetric()<< std::endl;
+		std::cout << input_graphs_1D[0].getNumberOfRows()<< std::endl;
+		std::cout << input_graphs_1D[0].getNumberOfColumns()<< std::endl;
+		std::cout << "Sparse form are equal: \n" << qeual(input_graphs_1D[0].getSparseForm(), input_graphs_2D[0].getSparseForm()) << std::endl;
+		std::cout << "FrobNorm are qeual: \n" << (input_graphs_1D[0].getFrobNorm() == input_graphs_2D[0].getFrobNorm()) << std::endl;
+		std::cout << "Transpose are equal: \n"<< qeual(input_graphs_1D[0].transpose(), input_graphs_2D[0].transpose()) << std::endl;
+		std::cout << "Kron Products are equal: \n"<< qeual(input_graphs_1D[0].kron(input_graphs_1D[0]), input_graphs_2D[0].kron(input_graphs_2D[0])) << std::endl;
+		std::cout << "Scattered Selections are qeual \n" << qeual(input_graphs_1D[0].getScatteredSelection(vec_A,vec_A), input_graphs_2D[0].getScatteredSelection(vec_A,vec_A)) << std::endl;
+		std::cout << "Sum of rows are equal \n" << qeual(input_graphs_1D[0].getSumOfRows(), input_graphs_2D[0].getSumOfRows()) << std::endl;
+		std::cout << "Neighbors \n" << qeual(input_graphs_1D[0].getNeighbors(4), input_graphs_2D[0].getNeighbors(4)) << std::endl;
+		std::cout << "diagonalVectorTimesMatrix \n" << qeual(input_graphs_1D[0].diagonalVectorTimesMatrix(vec_B), input_graphs_2D[0].diagonalVectorTimesMatrix(vec_B)) << std::endl;
+		std::cout << "matrixTimesDiagonalVector \n" << qeual(input_graphs_1D[0].matrixTimesDiagonalVector(vec_B), input_graphs_2D[0].matrixTimesDiagonalVector(vec_B)) << std::endl;
+		std::cout << "+ \n" << qeual(input_graphs_1D[0] + input_graphs_1D[0], input_graphs_2D[0] + input_graphs_2D[0]) << std::endl;
+		std::cout << "- \n" << qeual(input_graphs_1D[0] - input_graphs_1D[0], input_graphs_2D[0] - input_graphs_2D[0]) << std::endl;
+		std::cout << "* \n" << qeual(input_graphs_1D[0] * input_graphs_1D[0], input_graphs_2D[0] * input_graphs_2D[0]) << std::endl;
+
+
+
+
+
+
+
+
+		// for(int i = 0; i < input_graphs_2D.size(); i++)
+		// {
+		// 	std::cout << input_graphs_1D[i] << std::endl;
+		// }
 	return 0;
 }
 #endif
