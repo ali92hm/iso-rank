@@ -569,7 +569,7 @@ DenseMatrix1D<T> DenseMatrix1D<T>::transpose() const
     {
         for(int j=0;j<this->_cols;j++)
         {
-            ret_matrix._edges(j, i) = (*this)(i, j);
+            ret_matrix._edges[j * ret_matrix._cols + i] = this->_edges[i *this->_cols + j];
         }
     }
     return ret_matrix;
@@ -642,9 +642,8 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::kron(const DenseMatrix1D<T>& matrix) c
             {
                 for(int j_inner=0; j_inner < matrix._cols; j_inner++)
                 {
-                    prod_matrix.insert((i_outer*matrix._rows) + i_inner,
-                                       (j_outer*matrix._cols) + j_inner,
-                                       matrix(i_inner, j_inner) * (*this)(i_outer , j_outer));
+                    prod_matrix._edges[((i_outer*matrix._rows) + i_inner)* prod_matrix._cols + (j_outer*matrix._cols) + j_inner] 
+                        = matrix._edges[i_inner*matrix._cols+ j_inner] * this->_edges[i_outer*this->_cols + j_outer];
                 }
             }
         }
@@ -843,9 +842,9 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::operator*(const DenseMatrix1D<T>& othe
             ret_val = 0;
             for(int k = 0; k < this->_cols;k++)
             {
-               ret_val += (*this)(i, k) * other_matrix(k, j);
+               ret_val += this->_edges[i*this->_cols + k] * other_matrix._edges[k*other_matrix._cols + j];
             }
-            ret_matrix(i, j) = ret_val;
+            ret_matrix._edges[i * ret_matrix._cols + j] = ret_val;
         }
     }
     return ret_matrix;
