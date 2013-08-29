@@ -259,9 +259,10 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat)
         MPI_Recv(&this->_rows, 1, MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
         this->_cols = _rows;
         _initializeMatrix(true);
-        int recv_edges_size = (int)(0.5 * this->_rows * (this->_rows + 1));
+        int recv_edges_size;
+        MPI_Recv(&recv_edges_size, 1, MPI_INT, source, tag + 3, MPI_COMM_WORLD, &stat);
         SparseElement<T>* recv_edges = new SparseElement<T>[recv_edges_size];
-        MPI_Recv(recv_edges, recv_edges_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 3, MPI_COMM_WORLD, &stat);
+        MPI_Recv(recv_edges, recv_edges_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 4, MPI_COMM_WORLD, &stat);
         for(int i = 0;  i < recv_edges_size; i++)
         {
             (*this)(recv_edges[i].getJ(),recv_edges[i].getI()) = (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
@@ -273,9 +274,10 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat)
         MPI_Recv(&this->_rows, 1, MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
         MPI_Recv(&this->_cols, 1, MPI_INT, source, tag + 3, MPI_COMM_WORLD, &stat);
         _initializeMatrix(true);
-        int recv_edges_size = (this->_rows * this->_cols);
+        int recv_edges_size;
+        MPI_Recv(&recv_edges_size, 1, MPI_INT, source, tag + 4, MPI_COMM_WORLD, &stat);
         SparseElement<T>* recv_edges = new SparseElement<T>[recv_edges_size];
-        MPI_Recv(recv_edges, recv_edges_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 3, MPI_COMM_WORLD, &stat);
+        MPI_Recv(recv_edges, recv_edges_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 5, MPI_COMM_WORLD, &stat);
         for(int i = 0;  i < recv_edges_size; i++)
         {
             (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
@@ -300,7 +302,7 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, MPI_Status& stat)
     {
         MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
         this->_cols = _rows;
-        _initializeMatrix(false);
+        _initializeMatrix(true);
         int recv_edges_size = (int)(0.5 * this->_rows * (this->_rows + 1));
         T* recv_edges = new T[recv_edges_size];
         MPI_Bcast(recv_edges, recv_edges_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
@@ -324,10 +326,31 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, MPI_Status& stat)
     }
     else if (recv_format == _SYM_SPARSE_FORM)
     {
-
+        MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
+        this->_cols = _rows;
+        _initializeMatrix(true);
+        int recv_edges_size;
+        MPI_Bcast(&recv_edges_size, 1, MPI_INT, source, MPI_COMM_WORLD);
+        T* recv_edges = new T[recv_edges_size];
+        MPI_Bcast(recv_edges, recv_edges_size*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
+        for(int i = 0;  i < recv_edges_size; i++)
+        {
+            (*this)(recv_edges[i].getJ(),recv_edges[i].getI()) = (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
+        }
     }
     else if (recv_format == _SPARSE_FORM)
     {
+        MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
+        this->_cols = _rows;
+        _initializeMatrix(true);
+        int recv_edges_size;
+        MPI_Bcast(&recv_edges_size, 1, MPI_INT, source, MPI_COMM_WORLD);
+        T* recv_edges = new T[recv_edges_size];
+        MPI_Bcast(recv_edges, recv_edges_size*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
+        for(int i = 0;  i < recv_edges_size; i++)
+        {
+            (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
+        }
 
     }
 }
@@ -710,15 +733,18 @@ inline void DenseMatrix1D<T>::MPI_Send_Matrix(int dest, int tag, bool sparse)
     if(sparse)
     {
         MPI_Send(&_SPARSE_FORM, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        MPI_Send(&this->_rows, 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+        MPI_Send(&this->_cols, 1, MPI_INT, dest, tag + 3, MPI_COMM_WORLD);
         std::vector<T> sparse_form = this->getSparseForm();
-        MPI_Send(&sparse_form.size(), 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
-        MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
+        MPI_Send(&sparse_form.size(), 1, MPI_INT, dest, tag + 4, MPI_COMM_WORLD);
+        MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, dest, tag + 5, MPI_COMM_WORLD);
     }
     else
     {
         MPI_Send(&_DENSE_FORM, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-        MPI_Send(&this->_size, 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
-        MPI_Send(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
+        MPI_Send(&this->_rows, 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+        MPI_Send(&this->_cols, 1, MPI_INT, dest, tag + 3, MPI_COMM_WORLD);
+        MPI_Send(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, dest, tag + 4, MPI_COMM_WORLD);
     }
 }
 
@@ -733,6 +759,8 @@ inline void DenseMatrix1D<T>::MPI_Bcast_Send_Matrix(int source, bool sparse)
     if(sparse)
     {
         MPI_Bcast(&_SPARSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&this->_cols, 1, MPI_INT, source, MPI_COMM_WORLD);
         std::vector<T> sparse_form = this->getSparseForm();
         MPI_Send(&sparse_form.size(), 1, MPI_INT, source, MPI_COMM_WORLD);
         MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
@@ -740,6 +768,8 @@ inline void DenseMatrix1D<T>::MPI_Bcast_Send_Matrix(int source, bool sparse)
     else
     {
         MPI_Bcast(&_SENDING_DENSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&this->_cols, 1, MPI_INT, source, MPI_COMM_WORLD);
         MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
         MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
     }
