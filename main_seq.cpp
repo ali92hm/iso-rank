@@ -24,7 +24,7 @@
  *                                                                                                                                             *
  ***********************************************************************************************************************************************/
 
-#include "Matrices/DenseMatrix1D.h"
+#include "Matrices/DenseMatrix2D.h"
 #include "IsoRank.h"
 #include <vector>
 #include <ctime>
@@ -90,7 +90,7 @@ int main(int argc, char * argv[])
 	 */
 	int total_comparisons;
     std::vector<IsoRank_Result> isoRank_results;
-    std::vector<DenseMatrix1D<DataType>* >input_graphs;
+    std::vector<DenseMatrix2D<DataType>* >input_graphs;
     
     if(G_PRINT)
         std::cout << "Reading " << G_NUMBER_OF_FILES << " graphs from: " << G_DIR_PATH << std::endl;
@@ -104,7 +104,7 @@ int main(int argc, char * argv[])
         try
         {
             itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
-            input_graphs.push_back(new DenseMatrix1D<DataType>(itos_converter.str()));
+            input_graphs.push_back(new DenseMatrix2D<DataType>(itos_converter.str()));
             itos_converter.str(""); //clearing the stream
             itos_converter.clear();
         }
@@ -167,7 +167,7 @@ int main(int argc, char * argv[])
         delete [] res_it->assignments;
     }
     
-    typename std::vector<DenseMatrix1D<DataType>* >::iterator graph_it;
+    typename std::vector<DenseMatrix2D<DataType>* >::iterator graph_it;
     for ( graph_it = input_graphs.begin() ; graph_it < input_graphs.end(); ++graph_it )
     {
         delete  *graph_it;

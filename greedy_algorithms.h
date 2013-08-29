@@ -15,7 +15,7 @@
 #include <math.h>
 #include <vector>
 #include <cmath>
-#include "Matrices/DenseMatrix1D.h"
+#include "Matrices/DenseMatrix2D.h"
 #include "greedy_algorithms_helper.h"
 #include <limits>
 
@@ -32,7 +32,7 @@
  * @pram: array that indicates the final mappings done
  */
 template <typename DT>
-void greedy_1(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& graph1, DenseMatrix1D<float>& graph2,int* assignment){
+void greedy_1(DenseMatrix2D<DT>& matches, DenseMatrix2D<float>& graph1, DenseMatrix2D<float>& graph2,int* assignment){
     DT total_score=0;
     int graph1_nodes=matches.getNumberOfRows();
     int graph2_nodes=matches.getNumberOfColumns();
@@ -66,7 +66,7 @@ void greedy_1(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& graph1, DenseMat
  * @pram: pointer to the array that indicates the best matching
  */
 template<typename DT>
-void greedy_connectivity_1(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& graph1, DenseMatrix1D<float>& graph2,int* assignment){
+void greedy_connectivity_1(DenseMatrix2D<DT>& matches, DenseMatrix2D<float>& graph1, DenseMatrix2D<float>& graph2,int* assignment){
     
     DT total_score=0;
     int graph1_nodes=matches.getNumberOfRows();
@@ -105,7 +105,7 @@ void greedy_connectivity_1(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
  * @pram: pointer to the array that indicates the best matching
  */
 template<typename DT>
-void greedy_connectivity_2(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& graph1, DenseMatrix1D<float>& graph2,int* assignment){
+void greedy_connectivity_2(DenseMatrix2D<DT>& matches, DenseMatrix2D<float>& graph1, DenseMatrix2D<float>& graph2,int* assignment){
     
     DT max_tol=pow(10,-6),max;
     DT score=0,prev_score=0,final_score=0;
@@ -119,7 +119,7 @@ void greedy_connectivity_2(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
     init_array(assignment,graph1_nodes,-1);
     init_array(assignment2,graph1_nodes,0);
     
-    DenseMatrix1D<DT>* active_matches=new DenseMatrix1D<DT>(matches);
+    DenseMatrix2D<DT>* active_matches=new DenseMatrix2D<DT>(matches);
     DT* idxarr;
     vector<int> assigned_G1;
     int size=0,random_id,vector_size=0,curr_row;
@@ -177,7 +177,7 @@ void greedy_connectivity_2(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
  * @pram: pointer to the array that indicates the best matching
  */
 template<typename DT>
-void greedy_connectivity_3(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& graph1, DenseMatrix1D<float>& graph2,int* assignment){
+void greedy_connectivity_3(DenseMatrix2D<DT>& matches, DenseMatrix2D<float>& graph1, DenseMatrix2D<float>& graph2,int* assignment){
     
     DT total_score=0;
     DT final_score=0;
@@ -187,7 +187,7 @@ void greedy_connectivity_3(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
     int assignment2[graph1.getNumberOfRows()];
     int assignment_G1[graph1.getNumberOfRows()];
     int assignment_G2[graph2.getNumberOfRows()];;
-    DenseMatrix1D<DT>* local_matches=new DenseMatrix1D<DT>(matches);
+    DenseMatrix2D<DT>* local_matches=new DenseMatrix2D<DT>(matches);
     
     //intialize all arrays
     init_array(assignment,graph1_nodes,-1);
@@ -266,7 +266,7 @@ void greedy_connectivity_3(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
  * @pram: pointer to the array that indicates the best matching
  */
 template <typename DT>
-void greedy_connectivity_4(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& graph1, DenseMatrix1D<float>& graph2,int* assignment){
+void greedy_connectivity_4(DenseMatrix2D<DT>& matches, DenseMatrix2D<float>& graph1, DenseMatrix2D<float>& graph2,int* assignment){
     
     DT final_score=0;
     int* add_order=new int[graph1.getNumberOfRows()];
@@ -320,7 +320,7 @@ void greedy_connectivity_4(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
     
     
     //create local score matrix and only set the values for the pairs we're considering
-    DenseMatrix1D<DT>* matches_local=new DenseMatrix1D<DT>(matches.getNumberOfRows(),matches.getNumberOfColumns());
+    DenseMatrix2D<DT>* matches_local=new DenseMatrix2D<DT>(matches.getNumberOfRows(),matches.getNumberOfColumns());
     set_matrix_values(*matches_local, matches, neigh_1, neigh_2);
     
     score=0;
