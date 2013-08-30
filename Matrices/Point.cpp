@@ -45,7 +45,7 @@ inline Point::~Point()
 //===========================================================ACCESSORS===============================================================
  /*
   * X coordinate accessor
-  * @retun int x
+  * @return int x
   */
 inline int Point::getX() const
 {
@@ -54,7 +54,7 @@ inline int Point::getX() const
 
  /*
   * Y coordinate accessor
-  * @retun int y
+  * @return int y
   */
 inline int Point::getY() const
 {

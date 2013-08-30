@@ -92,11 +92,11 @@ public:
     /***********
      *ACCESSORS*
      ***********/
-    bool isSquare() const;
-    bool isSymmetric() const;
-    int getNumberOfRows() const;
-    int getNumberOfColumns() const;
-    std::vector<SparseElement<T> >getSparseForm() const;
+    bool isSquare();
+    bool isSymmetric();
+    int getNumberOfRows();
+    int getNumberOfColumns();
+    std::vector<SparseElement<T> >getSparseForm();
     DenseMatrix1D<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int> vec_B);
     
     /**********
@@ -106,14 +106,14 @@ public:
     /**********
     *OPERATIONS*
     **********/
-    T getFrobNorm() const;
-    T* getTopEigenVector() const;
-    DenseMatrix1D<T> transpose() const;
-    std::vector<T> getSumOfRows() const;
-    std::vector<int> getNeighbors(int vertex) const;
-    DenseMatrix1D<T> kron(const DenseMatrix1D<T>& matrix) const;
-    DenseMatrix1D<T> diagonalVectorTimesMatrix(const std::vector<T>&) const;
-    DenseMatrix1D<T> matrixTimesDiagonalVector(const std::vector<T>&) const;
+    T getFrobNorm();
+    T* getTopEigenVector();
+    DenseMatrix1D<T> transpose();
+    std::vector<T> getSumOfRows();
+    std::vector<int> getNeighbors(int vertex);
+    DenseMatrix1D<T> kron(const DenseMatrix1D<T>& matrix);
+    DenseMatrix1D<T> diagonalVectorTimesMatrix(const std::vector<T>&);
+    DenseMatrix1D<T> matrixTimesDiagonalVector(const std::vector<T>&);
 
     /*************
     *  MPI Send  *
@@ -129,9 +129,9 @@ public:
     T& operator()(int i, int j);
     void operator= (const DenseMatrix1D<T>&);
     bool operator==(const DenseMatrix1D<T>&);
-    DenseMatrix1D<T> operator+(const DenseMatrix1D<T>& other_matrix) const;
-    DenseMatrix1D<T> operator-(const DenseMatrix1D<T>& other_matrix) const;
-    DenseMatrix1D<T> operator*(const DenseMatrix1D<T>& other_matrix) const;
+    DenseMatrix1D<T> operator+(const DenseMatrix1D<T>& other_matrix);
+    DenseMatrix1D<T> operator-(const DenseMatrix1D<T>& other_matrix);
+    DenseMatrix1D<T> operator*(const DenseMatrix1D<T>& other_matrix);
     friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix1D<T>& matrix);
 };
 
@@ -386,7 +386,7 @@ inline DenseMatrix1D<T>::~DenseMatrix1D()
  * Returns the number of the rows.
  */
 template <typename T>
-inline int DenseMatrix1D<T>::getNumberOfRows() const
+inline int DenseMatrix1D<T>::getNumberOfRows()
 {
     return this->_rows;
 }
@@ -395,7 +395,7 @@ inline int DenseMatrix1D<T>::getNumberOfRows() const
  * Returns the number of the columns.
  */
 template <typename T>
-inline int DenseMatrix1D<T>::getNumberOfColumns() const
+inline int DenseMatrix1D<T>::getNumberOfColumns()
 {
     return this->_cols;
 }
@@ -404,7 +404,7 @@ inline int DenseMatrix1D<T>::getNumberOfColumns() const
  * Returns true if the matrix is square (i.e rows == cols)
  */
 template <typename T>
-inline bool DenseMatrix1D<T>::isSquare() const
+inline bool DenseMatrix1D<T>::isSquare()
 {
     return (this->_rows == this->_cols);
 }
@@ -413,7 +413,7 @@ inline bool DenseMatrix1D<T>::isSquare() const
  * Returns true if the matrix is symmetric (i.e values at i, j are equal to values at j, i)
  */
 template <typename T>
-inline bool DenseMatrix1D<T>::isSymmetric() const
+inline bool DenseMatrix1D<T>::isSymmetric()
 {
     //sym. matrix has to be square
     if (this->_rows != this->_cols)
@@ -440,7 +440,7 @@ inline bool DenseMatrix1D<T>::isSymmetric() const
  * Returns a std::vector<SparseElement<T>> of SparseElement objects that contain the i, j and value of the none-zero edges.
  */
 template <typename T>
-inline std::vector<SparseElement<T> > DenseMatrix1D<T>::getSparseForm() const
+inline std::vector<SparseElement<T> > DenseMatrix1D<T>::getSparseForm()
 {    
     std::vector<SparseElement<T> > sparse_form;
     for(int i = 0; i < this->_getArrSize(); i++)
@@ -506,7 +506,7 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::getScatteredSelection(const std::vecto
  * Returns the frobenius norm.
  */
 template <typename T>
-inline T DenseMatrix1D<T>::getFrobNorm() const
+inline T DenseMatrix1D<T>::getFrobNorm()
 {
     T ret_val = 0;
     for (int i = 0; i < this->_getArrSize(); i++)
@@ -521,7 +521,7 @@ inline T DenseMatrix1D<T>::getFrobNorm() const
  * Returns a std::vector<T> that contains the values of the eigenvector associated to the largest eigenvalue
  */
 template <typename T>
-inline T* DenseMatrix1D<T>::getTopEigenVector() const
+inline T* DenseMatrix1D<T>::getTopEigenVector()
 {
 #ifdef ARPACK
     int arr_size = (0.5 * this->_rows * (this->_rows+1));
@@ -584,7 +584,7 @@ inline T* DenseMatrix1D<T>::getTopEigenVector() const
  * Returns a DenseMatrix1D<T> of the transpose of this.
  */
 template <typename T>
-DenseMatrix1D<T> DenseMatrix1D<T>::transpose() const
+DenseMatrix1D<T> DenseMatrix1D<T>::transpose()
 {
     DenseMatrix1D<T> ret_matrix(this->_rows,this->_cols);
 
@@ -604,7 +604,7 @@ DenseMatrix1D<T> DenseMatrix1D<T>::transpose() const
  * @return std::vector<T>
  */
 template <typename T>
-inline std::vector<T> DenseMatrix1D<T>::getSumOfRows() const
+inline std::vector<T> DenseMatrix1D<T>::getSumOfRows()
 {
     std::vector<T> sum_vector(this->_rows);
     for(int i = 0; i < this->_getArrSize(); i++)
@@ -620,7 +620,7 @@ inline std::vector<T> DenseMatrix1D<T>::getSumOfRows() const
  * @pram int vertex
  */
 template <typename T>
-inline std::vector<int> DenseMatrix1D<T>::getNeighbors(int vertex) const
+inline std::vector<int> DenseMatrix1D<T>::getNeighbors(int vertex)
 {
     std::vector<int> neighbors;
     
@@ -639,7 +639,7 @@ inline std::vector<int> DenseMatrix1D<T>::getNeighbors(int vertex) const
  * @pram DenseMatrix1D
  */
 template <typename T>
-inline DenseMatrix1D<T> DenseMatrix1D<T>::kron(const DenseMatrix1D<T>& matrix) const
+inline DenseMatrix1D<T> DenseMatrix1D<T>::kron(const DenseMatrix1D<T>& matrix)
 {
     // checking for matrices to be square
     if (!this->isSquare() || !matrix.isSquare())
@@ -679,7 +679,7 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::kron(const DenseMatrix1D<T>& matrix) c
  * @pram std::vector<T> diagonal entires of a diagonal matrix
  */
 template <typename T>
-inline DenseMatrix1D<T> DenseMatrix1D<T>::diagonalVectorTimesMatrix(const std::vector<T>& vec) const
+inline DenseMatrix1D<T> DenseMatrix1D<T>::diagonalVectorTimesMatrix(const std::vector<T>& vec)
 {
     if(this->_rows != vec.size())
     {
@@ -700,7 +700,7 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::diagonalVectorTimesMatrix(const std::v
  * @pram std::vector<T> diagonal entires of a diagonal matrix
  */
 template <typename T>
-inline DenseMatrix1D<T> DenseMatrix1D<T>::matrixTimesDiagonalVector(const std::vector<T>& vec) const
+inline DenseMatrix1D<T> DenseMatrix1D<T>::matrixTimesDiagonalVector(const std::vector<T>& vec)
 {
     if(this->_cols != vec.size())
     {
@@ -831,7 +831,7 @@ inline bool DenseMatrix1D<T>::operator==(const DenseMatrix1D<T>& matrix)
  * @pram: DenseMatrix1D<T> 
  */
 template <typename T>
-inline DenseMatrix1D<T> DenseMatrix1D<T>::operator+(const DenseMatrix1D<T>& other_matrix) const
+inline DenseMatrix1D<T> DenseMatrix1D<T>::operator+(const DenseMatrix1D<T>& other_matrix)
 {
     DenseMatrix1D<T> ret_matrix(this->_rows,this->_cols);
     for(int i = 0; i < this->_getArrSize() ;i++)
@@ -846,7 +846,7 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::operator+(const DenseMatrix1D<T>& othe
  * @pram: DenseMatrix1D<T> 
  */
 template <typename T>
-inline DenseMatrix1D<T> DenseMatrix1D<T>::operator-(const DenseMatrix1D<T>& other_matrix) const
+inline DenseMatrix1D<T> DenseMatrix1D<T>::operator-(const DenseMatrix1D<T>& other_matrix)
 {
     DenseMatrix1D<T> ret_matrix(this->_rows,this->_cols);
     for(int i = 0; i < this->_getArrSize() ;i++)
@@ -861,7 +861,7 @@ inline DenseMatrix1D<T> DenseMatrix1D<T>::operator-(const DenseMatrix1D<T>& othe
  * @pram: DenseMatrix1D<T> 
  */
 template <typename T>
-inline DenseMatrix1D<T> DenseMatrix1D<T>::operator*(const DenseMatrix1D<T>& other_matrix) const
+inline DenseMatrix1D<T> DenseMatrix1D<T>::operator*(const DenseMatrix1D<T>& other_matrix)
 {
     DenseMatrix1D<T> ret_matrix(this->_rows,this->_cols);
     T ret_val;

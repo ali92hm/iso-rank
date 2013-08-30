@@ -128,7 +128,7 @@ inline SparseElement<T>::~SparseElement()
 //===========================================================ACCESSORS===============================================================
  /*
   * i coordinate accessor
-  * @retun int i
+  * @return int i
   */
 template <typename T>
 inline int SparseElement<T>::getI() const
@@ -138,7 +138,7 @@ inline int SparseElement<T>::getI() const
 
  /*
   * j coordinate accessor
-  * @retun int j
+  * @return int j
   */
 template <typename T>
 inline int SparseElement<T>::getJ() const
@@ -148,7 +148,7 @@ inline int SparseElement<T>::getJ() const
 
  /*
   * Value accessor
-  * @retun T value
+  * @return T value
   */
 template <typename T>
 inline T SparseElement<T>::getValue() const

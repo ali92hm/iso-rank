@@ -92,12 +92,12 @@ public:
     /***********
      *ACCESSORS*
      ***********/
-    bool isSquare() const;
-    bool isSymmetric() const;
-    int getNumberOfRows() const;
-    int getNumberOfColumns() const;
-    std::vector<SparseElement<T> >getSparseForm() const;
-    DenseMatrix2D<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B) const;
+    bool isSquare();
+    bool isSymmetric();
+    int getNumberOfRows();
+    int getNumberOfColumns();
+    std::vector<SparseElement<T> >getSparseForm();
+    DenseMatrix2D<T> getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B);
 
     /**********
      *MUTATORS*
@@ -106,14 +106,14 @@ public:
     /**********
     *OPERATIONS*
     **********/
-    T getFrobNorm() const;
-    T* getTopEigenVector() const;
-    DenseMatrix2D<T> transpose() const;
-    std::vector<T> getSumOfRows() const;
-    std::vector<int> getNeighbors(int vertex) const;
-    DenseMatrix2D<T> kron(const DenseMatrix2D<T>& matrix) const;
-    DenseMatrix2D<T> diagonalVectorTimesMatrix(const std::vector<T>&) const;
-    DenseMatrix2D<T> matrixTimesDiagonalVector(const std::vector<T>&) const;
+    T getFrobNorm();
+    T* getTopEigenVector();
+    DenseMatrix2D<T> transpose();
+    std::vector<T> getSumOfRows();
+    std::vector<int> getNeighbors(int vertex);
+    DenseMatrix2D<T> kron(const DenseMatrix2D<T>& matrix);
+    DenseMatrix2D<T> diagonalVectorTimesMatrix(const std::vector<T>&);
+    DenseMatrix2D<T> matrixTimesDiagonalVector(const std::vector<T>&);
 
     /*************
     *  MPI Send  *
@@ -129,9 +129,9 @@ public:
     T& operator()(int, int);
     void operator= (const DenseMatrix2D<T>&);
     bool operator==(const DenseMatrix2D<T>&); 
-    DenseMatrix2D<T> operator+(const DenseMatrix2D<T>& other_matrix) const;
-    DenseMatrix2D<T> operator-(const DenseMatrix2D<T>& other_matrix) const;
-    DenseMatrix2D<T> operator*(const DenseMatrix2D<T>& other_matrix) const;
+    DenseMatrix2D<T> operator+(const DenseMatrix2D<T>& other_matrix);
+    DenseMatrix2D<T> operator-(const DenseMatrix2D<T>& other_matrix);
+    DenseMatrix2D<T> operator*(const DenseMatrix2D<T>& other_matrix);
     friend std::ostream& operator<< <> (std::ostream& stream, const DenseMatrix2D<T>& matrix);
 };
 
@@ -338,7 +338,7 @@ inline DenseMatrix2D<T>::~DenseMatrix2D()
  * Returns the number of the rows.
  */
 template <typename T>
-inline int DenseMatrix2D<T>::getNumberOfRows() const
+inline int DenseMatrix2D<T>::getNumberOfRows()
 {
     return _rows;
 }
@@ -347,7 +347,7 @@ inline int DenseMatrix2D<T>::getNumberOfRows() const
  * Returns the number of the columns.
  */
 template <typename T>
-inline int DenseMatrix2D<T>::getNumberOfColumns() const
+inline int DenseMatrix2D<T>::getNumberOfColumns()
 {
     return _cols;
 }
@@ -356,7 +356,7 @@ inline int DenseMatrix2D<T>::getNumberOfColumns() const
  * Returns true if the matrix is square (i.e rows == cols)
  */
 template <typename T>
-inline bool DenseMatrix2D<T>::isSquare() const
+inline bool DenseMatrix2D<T>::isSquare()
 {
     return (this->_rows == this->_cols);
 }
@@ -365,7 +365,7 @@ inline bool DenseMatrix2D<T>::isSquare() const
  * Returns true if the matrix is symmetric (i.e values at i, j are equal to values at j, i)
  */
 template <typename T>
-inline bool DenseMatrix2D<T>::isSymmetric() const
+inline bool DenseMatrix2D<T>::isSymmetric()
 {
     //sym. matrix has to be square
     if (this->_rows != this->_cols)
@@ -393,7 +393,7 @@ inline bool DenseMatrix2D<T>::isSymmetric() const
  * Returns a std::vector<SparseElement<T>> of SparseElement objects that contain the i, j and value of the none-zero edges.
  */
 template <typename T>
-inline std::vector<SparseElement<T> > DenseMatrix2D<T>::getSparseForm() const
+inline std::vector<SparseElement<T> > DenseMatrix2D<T>::getSparseForm()
 {    
     std::vector<SparseElement<T> > sparse_form;
     for(int i = 0; i < this->_rows; i++)
@@ -416,7 +416,7 @@ inline std::vector<SparseElement<T> > DenseMatrix2D<T>::getSparseForm() const
  * @pram std::vector<int>: vector of 0's and 1's for column selection
  */
 template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B) const
+inline DenseMatrix2D<T> DenseMatrix2D<T>::getScatteredSelection(const std::vector<int>& vec_A, const std::vector<int>& vec_B)
 {
     int num_in_A = 0;
     for (int i=0; i< vec_A.size(); i++)
@@ -460,7 +460,7 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::getScatteredSelection(const std::vecto
  * Returns the frobenius norm.
  */
 template <typename T>
-inline T DenseMatrix2D<T>::getFrobNorm() const
+inline T DenseMatrix2D<T>::getFrobNorm()
 {
     T ret_val = 0;
 
@@ -478,7 +478,7 @@ inline T DenseMatrix2D<T>::getFrobNorm() const
  * Returns a std::vector<T> that contains the values of the eigenvector associated to the largest eigenvalue
  */
 template <typename T>
-inline T* DenseMatrix2D<T>::getTopEigenVector() const
+inline T* DenseMatrix2D<T>::getTopEigenVector()
 {
 #ifdef ARPACK
     int arr_size = (this->_rows*(this->_rows+1))/2;
@@ -539,7 +539,7 @@ inline T* DenseMatrix2D<T>::getTopEigenVector() const
  * Returns a DenseMatrix2D<T> of the transpose of this.
  */
 template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::transpose() const
+inline DenseMatrix2D<T> DenseMatrix2D<T>::transpose()
 {
     DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
 
@@ -557,7 +557,7 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::transpose() const
  * Returns a std::vector<T> that contains sum of the values in each row
  */
 template <typename T>
-inline std::vector<T> DenseMatrix2D<T>::getSumOfRows() const
+inline std::vector<T> DenseMatrix2D<T>::getSumOfRows()
 {
     std::vector<T> sum_vec(this->_rows);
     for(int i=0; i < _rows; i++)
@@ -575,7 +575,7 @@ inline std::vector<T> DenseMatrix2D<T>::getSumOfRows() const
  * @pram int vertex
  */
 template <typename T>
-inline std::vector<int> DenseMatrix2D<T>::getNeighbors(int vertex) const
+inline std::vector<int> DenseMatrix2D<T>::getNeighbors(int vertex)
 {
   std::vector<int> neighbors;
   for(int i = 0; i < this->_rows; i++)
@@ -593,7 +593,7 @@ inline std::vector<int> DenseMatrix2D<T>::getNeighbors(int vertex) const
  * @pram DenseMatrix2D 
  */
 template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::kron(const DenseMatrix2D<T>& matrix) const
+inline DenseMatrix2D<T> DenseMatrix2D<T>::kron(const DenseMatrix2D<T>& matrix)
 {
     // also checking for matrices to be square
     if (!this->isSquare() || !matrix.isSquare())
@@ -634,7 +634,7 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::kron(const DenseMatrix2D<T>& matrix) c
  * @pram std::vector<T> diagonal entires of a diagonal matrix
  */
 template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::diagonalVectorTimesMatrix(const std::vector<T>& vec) const
+inline DenseMatrix2D<T> DenseMatrix2D<T>::diagonalVectorTimesMatrix(const std::vector<T>& vec)
 {    
     if(_cols != vec.size())
     {
@@ -657,7 +657,7 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::diagonalVectorTimesMatrix(const std::v
  * @pram std::vector<T> diagonal entires of a diagonal matrix
  */
 template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::matrixTimesDiagonalVector(const std::vector<T>& vec) const
+inline DenseMatrix2D<T> DenseMatrix2D<T>::matrixTimesDiagonalVector(const std::vector<T>& vec)
 {    
     if(_cols != vec.size())
     {
@@ -810,7 +810,7 @@ inline bool DenseMatrix2D<T>::operator==(const DenseMatrix2D<T>& matrix)
  * @pram: DenseMatrix2D<T> 
  */
 template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::operator+(const DenseMatrix2D<T>& other_matrix) const
+inline DenseMatrix2D<T> DenseMatrix2D<T>::operator+(const DenseMatrix2D<T>& other_matrix)
 {
   DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
   for(int i = 0; i < this->_rows ;i++)
@@ -828,7 +828,7 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::operator+(const DenseMatrix2D<T>& othe
  * @pram: DenseMatrix2D<T> 
  */
 template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::operator-(const DenseMatrix2D<T>& other_matrix) const
+inline DenseMatrix2D<T> DenseMatrix2D<T>::operator-(const DenseMatrix2D<T>& other_matrix)
 {
   DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
   for(int i = 0; i < this->_rows ;i++)
@@ -846,7 +846,7 @@ inline DenseMatrix2D<T> DenseMatrix2D<T>::operator-(const DenseMatrix2D<T>& othe
  * @pram: DenseMatrix2D<T> 
  */
 template <typename T>
-inline DenseMatrix2D<T> DenseMatrix2D<T>::operator*(const DenseMatrix2D<T>& other_matrix) const
+inline DenseMatrix2D<T> DenseMatrix2D<T>::operator*(const DenseMatrix2D<T>& other_matrix)
 {
     DenseMatrix2D<T> ret_matrix(this->_rows,this->_cols, false);
     T ret_val;
