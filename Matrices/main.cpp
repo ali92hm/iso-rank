@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     const int TAG_1 = 4;
     const int TAG_2 = 10;
     const int TAG_3 = 15;
-    
+    std::cout << sizeof(SparseElement<float>) << std::endl;
     /*
      * MPI Initialization calls
      */
@@ -114,8 +114,6 @@ int main(int argc, char *argv[])
 	std::vector<DenseMatrix1D<DataType>* >input_graphs;
 
 
-	if (ID == 0)
-	{
 
 		std::ostringstream itos_converter;
 
@@ -138,9 +136,12 @@ int main(int argc, char *argv[])
 				itos_converter.clear();
 			}
 		}
+
+	if (ID == 0)
+	{
 		for(int i = 0; i < input_graphs.size(); i++)
 		{
-			input_graphs[i]->MPI_Send_Matrix(1,4);
+			input_graphs[i]->MPI_Send_Matrix(1,4, true);
 		}
 
 		for(int i = 0; i < input_graphs.size(); i++)
@@ -150,15 +151,22 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
+		std::vector<DenseMatrix1D<DataType>* >recv_graphs;
 		for(int i = 0; i < 1; i++)
 		{
-			input_graphs.push_back(new DenseMatrix1D<DataType>(0, 4, stat));
+			recv_graphs.push_back(new DenseMatrix1D<DataType>(0,4,stat));
 		}
 
-		for(int i = 0; i < input_graphs.size(); i++)
+		for(int i = 0; i < recv_graphs.size(); i++)
 		{
-			std::cout <<  "Master\n" << *input_graphs[i] << std::endl;
+			std::cout <<  "Slave\n" << *recv_graphs[i] << std::endl;
 		}
+
+		for(int i = 0; i < recv_graphs.size(); i++)
+		{
+			std::cout <<  ((*recv_graphs[i]) == (*input_graphs[i]))  << std::endl;
+		}
+
 	}
 
 

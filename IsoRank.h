@@ -40,9 +40,9 @@ struct IsoRank_Result
 
 /*
  * function used to perform the isorank algorithm
- * @param: adjacency matrix for graph1
- * @param: adjacency matrix for graph2
- * @param: the matching algorithm used to choose the best node to node mapping
+ * @pram: adjacency matrix for graph1
+ * @pram: adjacency matrix for graph2
+ * @pram: the matching algorithm used to choose the best node to node mapping
  */
 template <typename T>
 struct IsoRank_Result isoRank(DenseMatrix1D<T>& matrix_A, DenseMatrix1D<T>& matrix_B, int matching_algorithm)
@@ -254,9 +254,9 @@ struct IsoRank_Result isoRank(DenseMatrix1D<T>& matrix_A, DenseMatrix1D<T>& matr
 #ifdef USE_MPI
 /*
  * function used to send the IsoRank_Result struct between two processors
- * @param: result struct of isorank
- * @param: the destination processor
- * @param: the tag used for the MPI calls
+ * @pram: result struct of isorank
+ * @pram: the destination processor
+ * @pram: the tag used for the MPI calls
  */
 void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
 {
@@ -267,9 +267,9 @@ void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
 
 /*
  * function used to receive the IsoRank_Result struct
- * @param: the source processor where this struct came from
- * @param: the tag used by the MPI calls
- * @param: the MPI_Status object used by the MPI_calls
+ * @pram: the source processor where this struct came from
+ * @pram: the tag used by the MPI calls
+ * @pram: the MPI_Status object used by the MPI_calls
  */
 struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat)
 {

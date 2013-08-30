@@ -25,8 +25,8 @@ private:
     void _copy(const SparseElement<T>&);
     
 protected:
-    int _i;
-    int _j;
+    unsigned short _i;
+    unsigned short _j;
     T _value;
     
 public:
