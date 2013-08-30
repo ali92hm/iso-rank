@@ -77,6 +77,7 @@ int main(int argc, char * argv[])
     /*
      *Configure the program to use the command line args
      */
+    srand(time(NULL));
     parseCommandLineArgs(argc, argv, 0);
     
     /*
@@ -124,7 +125,7 @@ int main(int argc, char * argv[])
     time_start = std::clock();
     for (int i = 0; i < input_graphs.size(); i++)
     {
-        for (int j = i + 1; j < input_graphs.size(); j++)
+        for (int j = i +1; j < input_graphs.size(); j++)
         {
             try
             {

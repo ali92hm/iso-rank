@@ -889,13 +889,13 @@ template <typename T>
 inline std::ostream& operator<<(std::ostream& stream, const DenseMatrix1D<T>& matrix)
 {
     stream<< "Size: " << matrix._rows << "*" << matrix._cols << '\n';
-    for (int i = 1; i <= matrix._getArrSize(); i++)
+    for (int i = 0; i < matrix._rows; i++)
     {
-        stream << matrix._edges[i-1] << ' ';
-        if ( (i % matrix._rows) == 0)
+        for( int j = 0; j< matrix._cols; j++)
         {
-            stream << "\n";
+            stream << matrix._edges[i*matrix._cols +j] << ' ';
         }
+        stream << "\n";
     }
     stream << "\n\n\n";
     return stream;
