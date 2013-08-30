@@ -39,6 +39,28 @@ class DenseMatrix1D;
 template <typename T>
 std::ostream& operator<< (std::ostream&, const DenseMatrix1D<T>&);
 
+#ifdef USE_MPI
+int _DENSE_FORM = 0;
+int _SPARSE_FORM = 1;
+int _SYM_DENSE_FORM = 2;
+int _SYM_SPARSE_FORM = 3;
+#endif
+
+struct MPI_MatrixInfo
+{
+    int rows;
+    int cols;
+    int recv_size;
+    int send_form;
+    void setValues(int rows, int cols, int recv_size, int send_form)
+    {
+        rows = row;
+        cols = cols;
+        recv_size = recv_size;
+        send_form = send_form;
+    }
+};
+
 /*
  * DenseMatrix1D class definition and method declarations.
  */
@@ -58,12 +80,6 @@ private:
      */
     static const int _DEFAULT_MATRIX_SIZE;
     static const  T _DEFAULT_MATRIX_ENTRY;
-#ifdef USE_MPI
-    static const int _SENDING_SPARSE_FORM;
-    static const int _SENDING_DENSE_FORM;
-    static const int _SENDING_SYM_SPARSE_FORM;
-    static const int _SENDING_SYM_DENSE_FORM;
-#endif
 protected:
     int _rows;
     int _cols;
@@ -140,16 +156,6 @@ template <typename T>
 const int DenseMatrix1D<T>::_DEFAULT_MATRIX_SIZE = 1;
 template <typename T>
 const T DenseMatrix1D<T>::_DEFAULT_MATRIX_ENTRY = 1;
-#ifdef USE_MPI
-template <typename T>
-const int DenseMatrix1D<T>::_DENSE_FORM = 0;
-template <typename T>
-const int DenseMatrix1D<T>::_SPARSE_FORM = 1;
-template <typename T>
-const int DenseMatrix1D<T>::_SYM_DENSE_FORM = 2;
-template <typename T>
-const int DenseMatrix1D<T>::_SYM_SPARSE_FORM = 3;
-#endif
 //==========================================================CONSTRUCTORS============================================================
 /*
  * Default constructor:
@@ -297,7 +303,7 @@ template <typename T>
 inline DenseMatrix1D<T>::DenseMatrix1D(int source, MPI_Status& stat)
 {
     int recv_format;
-    MPI_Bcast(&recv_format, 1, MPI_INT, source, MPI_COMM_WORLD, &stat);
+    MPI_Bcast(&recv_format, 1, MPI_INT, source, MPI_COMM_WORLD);
     if(recv_format == _SYM_DENSE_FORM)
     {
         MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
@@ -322,7 +328,7 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, MPI_Status& stat)
         MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
         MPI_Bcast(&this->_cols, 1, MPI_INT, source, MPI_COMM_WORLD);
         _initializeMatrix(false);
-        MPI_Bcast(this->_edges, _getArrSize()*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD, &stat);
+        MPI_Bcast(this->_edges, _getArrSize()*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
     }
     else if (recv_format == _SYM_SPARSE_FORM)
     {
@@ -735,7 +741,7 @@ inline void DenseMatrix1D<T>::MPI_Send_Matrix(int dest, int tag, bool sparse)
         MPI_Send(&_SPARSE_FORM, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
         MPI_Send(&this->_rows, 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
         MPI_Send(&this->_cols, 1, MPI_INT, dest, tag + 3, MPI_COMM_WORLD);
-        std::vector<T> sparse_form = this->getSparseForm();
+        std::vector<SparseElement<T> > sparse_form = this->getSparseForm();
         MPI_Send(&sparse_form.size(), 1, MPI_INT, dest, tag + 4, MPI_COMM_WORLD);
         MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, dest, tag + 5, MPI_COMM_WORLD);
     }
@@ -767,7 +773,7 @@ inline void DenseMatrix1D<T>::MPI_Bcast_Send_Matrix(int source, bool sparse)
     }
     else
     {
-        MPI_Bcast(&_SENDING_DENSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_Bcast(&_DENSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
         MPI_Bcast(&this->_rows, 1, MPI_INT, source, MPI_COMM_WORLD);
         MPI_Bcast(&this->_cols, 1, MPI_INT, source, MPI_COMM_WORLD);
         MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
