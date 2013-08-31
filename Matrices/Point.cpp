@@ -136,7 +136,7 @@ inline void Point::operator=(const Point& rhs)
  */
 inline std::ostream& operator<<(std::ostream& stream, const Point& p)
 {
-    stream<< "(" << p._x << ", " << p._y << ")" << std::endl;
+    stream<< "(" << p._x << ", " << p._y << ")";
     return stream;
 }
 

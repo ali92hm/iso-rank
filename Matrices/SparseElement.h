@@ -123,7 +123,6 @@ inline SparseElement<T>::SparseElement(const SparseElement<T>& edge)
 template <typename T>
 inline SparseElement<T>::~SparseElement()
 {
-    
 }
 //===========================================================ACCESSORS===============================================================
  /*
@@ -245,7 +244,7 @@ inline SparseElement<T>& SparseElement<T>::operator=(const SparseElement<T>& rhs
 template <typename T>
 inline std::ostream& operator<<(std::ostream& stream, const SparseElement<T>& edge)
 {
-    stream<< edge._value << " at (" << edge._i << ", " << edge._j << ")" << std::endl;
+    stream<< edge._value << " at (" << edge._i << ", " << edge._j << ")";
     return stream;
 }
 
