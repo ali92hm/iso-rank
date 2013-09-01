@@ -1,8 +1,8 @@
 
 
 #include "DenseMatrix1D.h"
-// #include "DenseMatrix1D.h"
-// #include "DenseMatrix2D.h"
+#include "DenseMatrix2D.h"
+#include "SymMatrix.h"
 #include <vector>
 #include <sstream>
 #include <string>
@@ -25,26 +25,68 @@ typedef long double DataType;
 typedef float DataType;
 #endif
 
-// template <typename T>
-// bool qeual(DenseMatrix1D<T> mat1, DenseMatrix2D<T> mat2)
-// {
-// 	if (mat1.getNumberOfRows() != mat2.getNumberOfRows() || mat1.getNumberOfColumns() != mat2.getNumberOfColumns())
-// 	{
-// 		return false;
-// 	}
+template <typename T>
+bool equal(SymMatrix<T> mat1, DenseMatrix2D<T> mat2)
+{
+	if (mat1.getNumberOfRows() != mat2.getNumberOfRows() || mat1.getNumberOfColumns() != mat2.getNumberOfColumns())
+	{
+		return false;
+	}
 
-// 	for (int i = 0; i < mat1.getNumberOfRows(); i++)
-// 	{
-// 		for (int j = 0; j < mat1.getNumberOfColumns(); j++)
-// 		{
-// 			if (mat1(i,j) != mat2(i,j))
-// 			{
-// 				return false;
-// 			}
-// 		}
-// 	}
-// 	return true;
-// }
+	for (int i = 0; i < mat1.getNumberOfRows(); i++)
+	{
+		for (int j = 0; j < mat1.getNumberOfColumns(); j++)
+		{
+			if (mat1(i,j) != mat2(i,j))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+template <typename T>
+bool equal(SymMatrix<T> mat1, DenseMatrix1D<T> mat2)
+{
+	if (mat1.getNumberOfRows() != mat2.getNumberOfRows() || mat1.getNumberOfColumns() != mat2.getNumberOfColumns())
+	{
+		return false;
+	}
+
+	for (int i = 0; i < mat1.getNumberOfRows(); i++)
+	{
+		for (int j = 0; j < mat1.getNumberOfColumns(); j++)
+		{
+			if (mat1(i,j) != mat2(i,j))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+template <typename T>
+bool equal(DenseMatrix2D<T> mat1, DenseMatrix1D<T> mat2)
+{
+	if (mat1.getNumberOfRows() != mat2.getNumberOfRows() || mat1.getNumberOfColumns() != mat2.getNumberOfColumns())
+	{
+		return false;
+	}
+
+	for (int i = 0; i < mat1.getNumberOfRows(); i++)
+	{
+		for (int j = 0; j < mat1.getNumberOfColumns(); j++)
+		{
+			if (mat1(i,j) != mat2(i,j))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
 
 template<typename T>
 bool qeual(std::vector<T> vec1, std::vector<T> vec2)
@@ -100,7 +142,6 @@ int main(int argc, char *argv[])
     const int TAG_1 = 4;
     const int TAG_2 = 10;
     const int TAG_3 = 15;
-    std::cout << sizeof(SparseElement<float>) << std::endl;
     /*
      * MPI Initialization calls
      */
@@ -141,7 +182,9 @@ int main(int argc, char *argv[])
 	{
 		for(int i = 0; i < input_graphs.size(); i++)
 		{
-			input_graphs[i]->MPI_Send_Matrix(1,4, true);
+			input_graphs[i]->MPI_Send_Matrix(1,4);
+			// input_graphs[i]->MPI_Bcast_Send_Matrix(0);
+
 		}
 
 		for(int i = 0; i < input_graphs.size(); i++)
@@ -151,10 +194,11 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		std::vector<DenseMatrix1D<DataType>* >recv_graphs;
+		std::vector<DenseMatrix2D<DataType>* >recv_graphs;
 		for(int i = 0; i < 1; i++)
 		{
-			recv_graphs.push_back(new DenseMatrix1D<DataType>(0,4,stat));
+			recv_graphs.push_back(new DenseMatrix2D<DataType>(0,4,stat));
+			// recv_graphs.push_back(new DenseMatrix2D<DataType>(0,stat));
 		}
 
 		for(int i = 0; i < recv_graphs.size(); i++)
@@ -164,7 +208,7 @@ int main(int argc, char *argv[])
 
 		for(int i = 0; i < recv_graphs.size(); i++)
 		{
-			std::cout <<  ((*recv_graphs[i]) == (*input_graphs[i]))  << std::endl;
+			std::cout <<  equal(*recv_graphs[i] ,*input_graphs[i])  << std::endl;
 		}
 
 	}
@@ -177,8 +221,8 @@ int main(int argc, char *argv[])
 #else
 int main(int argc, char *argv[])
 {
-	    std::vector<DenseMatrix1D<DataType> >input_graphs_1D;
-	    std::vector<DenseMatrix2D<DataType> >input_graphs_2D;
+	    std::vector<SymMatrix<DataType> >input_graphs_1D;
+	    std::vector<SymMatrix<DataType> >input_graphs_2D;
 	    std::ostringstream itos_converter;
     	/*
     	 * Reading the graphs and storing them
@@ -188,8 +232,8 @@ int main(int argc, char *argv[])
 			try
 			{
 				itos_converter << G_DIR_PATH << i << G_FILE_EXTENSION;
-				input_graphs_1D.push_back(DenseMatrix1D<DataType>(itos_converter.str()));
-				input_graphs_2D.push_back(DenseMatrix2D<DataType>(itos_converter.str()));
+				input_graphs_1D.push_back(SymMatrix<DataType>(itos_converter.str()));
+				input_graphs_2D.push_back(SymMatrix<DataType>(itos_converter.str()));
 				itos_converter.str(""); //clearing the stream
 				itos_converter.clear();
 			}

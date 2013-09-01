@@ -27,11 +27,11 @@ inline Point::Point(int x,int y)
 
  /*
   * Copy constructor
-  * @pram edge
+  * @pram point
   */
-inline Point::Point(const Point& edge)
+inline Point::Point(const Point& p)
 {
-    _copy(edge);
+    _copy(p);
 }
 //==========================================================DESTRUCTOR==============================================================
 

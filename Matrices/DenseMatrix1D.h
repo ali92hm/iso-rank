@@ -31,6 +31,7 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
+#include "MPI_Structs.h"
 #endif
 
 template <typename T>
@@ -39,27 +40,6 @@ class DenseMatrix1D;
 template <typename T>
 std::ostream& operator<< (std::ostream&, const DenseMatrix1D<T>&);
 
-#ifdef USE_MPI
-unsigned short _DENSE_FORM = 0;
-unsigned short _SPARSE_FORM = 1;
-unsigned short _SYM_DENSE_FORM = 2;
-unsigned short _SYM_SPARSE_FORM = 3;
-#endif
-
-struct MPI_MatrixInfo
-{
-    unsigned short rows;
-    unsigned short cols;
-    unsigned short recv_size;
-    unsigned short send_form;
-    void setValues(unsigned short num_rows, unsigned short num_cols, unsigned short num_recv_size, const unsigned short const_send_form)
-    {
-        rows = num_rows;
-        cols = num_cols;
-        recv_size = num_recv_size;
-        send_form = const_send_form;
-    }
-};
 
 /*
  * DenseMatrix1D class definition and method declarations.
@@ -234,7 +214,6 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat)
 {
     MPI_MatrixInfo mat_info;
     MPI_Recv(&mat_info, sizeof(MPI_MatrixInfo), MPI_BYTE, source, tag + 1, MPI_COMM_WORLD, &stat);
-    std::cout << "recv, info" << std::endl;
     if(mat_info.send_form == _SYM_DENSE_FORM)
     {
         this->_rows = mat_info.rows;
@@ -255,13 +234,10 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat)
     }
     else if (mat_info.send_form == _DENSE_FORM)
     {
-        std::cout << "Dense form" << std::endl;
         this->_rows = mat_info.rows;
         this->_cols = mat_info.cols;
-        std::cout << this->_rows << this->_cols << std::endl;
         _initializeMatrix(false);
         MPI_Recv(this->_edges, mat_info.recv_size*sizeof(T), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
-        std::cout << "Dense form received" << std::endl;
     }
     else if (mat_info.send_form == _SYM_SPARSE_FORM)
     {
@@ -283,7 +259,6 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat)
         this->_cols = mat_info.cols;
         _initializeMatrix(true);
         SparseElement<T>* recv_edges = new SparseElement<T>[mat_info.recv_size];
-        std::cout << "rec array" << std::endl;
         MPI_Recv(recv_edges, mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
         for(int i = 0;  i < mat_info.recv_size; i++)
         {
@@ -305,7 +280,6 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, MPI_Status& stat)
 {
     MPI_MatrixInfo mat_info;
     MPI_Bcast(&mat_info, sizeof(MPI_MatrixInfo), MPI_BYTE, source, MPI_COMM_WORLD);
-    std::cout << "recv, info" << std::endl;
     if(mat_info.send_form == _SYM_DENSE_FORM)
     {
         this->_rows = mat_info.rows;
@@ -356,7 +330,6 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, MPI_Status& stat)
             (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
         }
         delete recv_edges;
-
     }
 }
 #endif
@@ -737,11 +710,9 @@ inline void DenseMatrix1D<T>::MPI_Send_Matrix(int dest, int tag, bool sparse)
 {
     if(sparse)
     {
-        std::cout << "sending sparse" << std::endl;
         MPI_MatrixInfo mat_info;
         std::vector<SparseElement<T> > sparse_form = this->getSparseForm();
         mat_info.setValues(this->_rows, this->_cols, sparse_form.size(), _SPARSE_FORM);
-        std::cout << sparse_form.size() << std::endl;
         MPI_Send(&mat_info, sizeof(MPI_MatrixInfo), MPI_BYTE, dest, tag + 1, MPI_COMM_WORLD);
         MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, dest, tag + 2, MPI_COMM_WORLD);
     }

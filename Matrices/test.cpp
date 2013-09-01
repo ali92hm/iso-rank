@@ -1,8 +1,6 @@
 
 
-#include "DenseMatrix1D.h"
-// #include "DenseMatrix1D.h"
-// #include "DenseMatrix2D.h"
+#include "Point.h"
 #include <vector>
 #include <sstream>
 #include <ostream>
@@ -76,27 +74,42 @@ int main(int argc, char *argv[])
 
 	if (ID == 0)
 	{
-		std::vector<SparseElement<DataType> > sparse_form(5);
+		// std::vector<SparseElement<DataType> > sparse_form(5);
+		// for (int i=0; i < sparse_form.size(); i++)
+		// {
+		// 	sparse_form[i] = SparseElement<DataType>(rand()%10, rand()%10, rand()%10);
+		// }
+		// std::cout << "Master: " << sparse_form << std::endl;
+		// MPI_Send(&sparse_form[0], sparse_form.size() * sizeof(SparseElement<DataType>), MPI_BYTE, 1, 5, MPI_COMM_WORLD);
+		// std::cout << "Object was sent" << std::endl;
+
+
+
+		std::vector<Point> sparse_form(5);
 		for (int i=0; i < sparse_form.size(); i++)
 		{
-			sparse_form[i] = SparseElement<DataType>(rand()%10, rand()%10, rand()%10);
+			sparse_form[i] = Point(rand()%10, rand()%10);
 		}
 		std::cout << "Master: " << sparse_form << std::endl;
-		MPI_Send(&sparse_form[0], sparse_form.size() * sizeof(SparseElement<DataType>), MPI_BYTE, 1, 5, MPI_COMM_WORLD);
+		MPI_Send(&sparse_form[0], sparse_form.size() * sizeof(Point), MPI_BYTE, 1, 5, MPI_COMM_WORLD);
 		std::cout << "Object was sent" << std::endl;
+
 
 	}
 	else
 	{
-		std::vector<SparseElement<DataType> > sparse_form(5);
+		// std::vector<SparseElement<DataType> > sparse_form(5);
+		// std::cout << "slave: " << sparse_form << std::endl;
+		// MPI_Recv(&sparse_form[0], 5 * sizeof(SparseElement<DataType>), MPI_BYTE, 0, 5, MPI_COMM_WORLD, &stat);
+		// std::cout << "slave: " << sparse_form << std::endl;
+
+
+		std::vector<Point> sparse_form(5);
 		std::cout << "slave: " << sparse_form << std::endl;
-		MPI_Recv(&sparse_form[0], 5 * sizeof(SparseElement<DataType>), MPI_BYTE, 0, 5, MPI_COMM_WORLD, &stat);
+		MPI_Recv(&sparse_form[0], 5 * sizeof(Point), MPI_BYTE, 0, 5, MPI_COMM_WORLD, &stat);
 		std::cout << "slave: " << sparse_form << std::endl;
 	}
-	while(true)
-	{
-		
-	}
+
 
 	MPI_Finalize();
 	return 0;

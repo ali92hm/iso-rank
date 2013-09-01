@@ -51,7 +51,6 @@ public:
     bool operator<(const Point&) const;
     bool operator==(const Point&) const;
     void operator=(const Point&);
-    friend struct std::hash<Point>;
     friend std::ostream& operator<<(std::ostream&, const Point&);
 };
 #endif

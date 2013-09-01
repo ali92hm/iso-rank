@@ -32,6 +32,7 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
+#include "MPI_Structs.h"
 #endif
 
 template <typename T>
@@ -59,12 +60,6 @@ private:
      */
     static const int _DEFAULT_MATRIX_SIZE;
     static const  T _DEFAULT_MATRIX_ENTRY;
-#ifdef USE_MPI
-    static const int _SPARSE_FORM;
-    static const int _DENSE_FORM;
-    static const int _SYM_SPARSE_FORM;
-    static const int _SYM_DENSE_FORM;
-#endif
     
 protected:
     int _size;
@@ -139,16 +134,6 @@ template <typename T>
 const int SymMatrix<T>::_DEFAULT_MATRIX_SIZE = 1;
 template <typename T>
 const T SymMatrix<T>::_DEFAULT_MATRIX_ENTRY = 1;
-#ifdef USE_MPI
-template <typename T>
-const int SymMatrix<T>::_SENDING_DENSE_FORM = 0;
-template <typename T>
-const int SymMatrix<T>::_SENDING_SPARSE_FORM = 1;
-template <typename T>
-const int SymMatrix<T>::_SENDING_SYM_DENSE_FORM = 2;
-template <typename T>
-const int SymMatrix<T>::_SENDING_SYM_SPARSE_FORM = 3;
-#endif
 //==========================================================CONSTRUCTORS============================================================
 
 /*
@@ -230,9 +215,56 @@ inline SymMatrix<T>::SymMatrix(int size, bool fill)
 template <typename T>
 inline SymMatrix<T>::SymMatrix(int source, int tag, MPI_Status& stat)
 {
-    MPI_Recv(&this->_size, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
-    _initializeMatrix(false);
-    MPI_Recv(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+    MPI_MatrixInfo mat_info;
+    MPI_Recv(&mat_info, sizeof(MPI_MatrixInfo), MPI_BYTE, source, tag + 1, MPI_COMM_WORLD, &stat);
+    if(mat_info.send_form == _SYM_DENSE_FORM)
+    {
+        this->_size = mat_info.rows;
+        this->_size = mat_info.cols;
+        _initializeMatrix(false);
+        MPI_Recv(this->_edges, mat_info.recv_size*sizeof(T), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+    }
+    else if (mat_info.send_form == _DENSE_FORM)
+    {
+        this->_size = mat_info.rows;
+        this->_size = mat_info.cols;
+        _initializeMatrix(false);
+        T* recv_edges = new T[mat_info.recv_size];
+        MPI_Recv(recv_edges, mat_info.recv_size*sizeof(T), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+        int counter = 0;
+        for (int i = 0; i < mat_info.recv_size; i++)
+        {
+            (*this)(i/this->_size, i%this->_size) = recv_edges[counter++];
+        }
+        delete recv_edges;
+    }
+    else if (mat_info.send_form == _SYM_SPARSE_FORM)
+    {
+        // this->_rows = mat_info.rows;
+        // this->_cols = mat_info.cols;
+        // _initializeMatrix(true);
+        // SparseElement<T>* recv_edges = new SparseElement<T>[mat_info.recv_size];
+        // MPI_Recv(recv_edges, mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+
+        // for(int i = 0;  i < mat_info.recv_size; i++)
+        // {
+        //     (*this)(recv_edges[i].getJ(),recv_edges[i].getI()) = (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
+        // }
+        // delete recv_edges;
+    }
+    else if (mat_info.send_form == _SPARSE_FORM)
+    {
+        // this->_rows = mat_info.rows;
+        // this->_cols = mat_info.cols;
+        // _initializeMatrix(true);
+        // SparseElement<T>* recv_edges = new SparseElement<T>[mat_info.recv_size];
+        // MPI_Recv(recv_edges, mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+        // for(int i = 0;  i < mat_info.recv_size; i++)
+        // {
+        //     (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
+        // }
+        // delete recv_edges;
+    }
 }
 
 /*
@@ -245,11 +277,57 @@ inline SymMatrix<T>::SymMatrix(int source, int tag, MPI_Status& stat)
 template <typename T>
 inline SymMatrix<T>::SymMatrix(int source, MPI_Status& stat)
 {
-    MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
-    _initializeMatrix(false);
-    MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
-}
+    MPI_MatrixInfo mat_info;
+    MPI_Bcast(&mat_info, sizeof(MPI_MatrixInfo), MPI_BYTE, source, MPI_COMM_WORLD);
+    if(mat_info.send_form == _SYM_DENSE_FORM)
+    {
+        this->_size = mat_info.rows;
+        this->_size = mat_info.cols;
+        _initializeMatrix(true);
+        MPI_Bcast(this->_edges, mat_info.recv_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
+    }
+    else if (mat_info.send_form == _DENSE_FORM)
+    {
+        this->_size = mat_info.rows;
+        this->_size = mat_info.cols;
+        _initializeMatrix(false);
+        T* recv_edges = new T[mat_info.recv_size];
+        MPI_Bcast(recv_edges, mat_info.recv_size*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
 
+        int counter = 0;
+        for (int i = 0; i < mat_info.recv_size; i++)
+        {
+            (*this)(i/this->_size, i%this->_size) = recv_edges[counter++];
+        }
+        delete recv_edges;
+    }
+    else if (mat_info.send_form == _SYM_SPARSE_FORM)
+    {
+        // this->_rows = mat_info.rows;
+        // this->_cols = mat_info.cols;
+        // _initializeMatrix(true);
+        // SparseElement<T>* recv_edges = new SparseElement<T>[mat_info.recv_size];
+        // MPI_Bcast(recv_edges, mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
+        // for(int i = 0;  i < mat_info.recv_size; i++)
+        // {
+        //     (*this)(recv_edges[i].getJ(),recv_edges[i].getI()) = (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
+        // }
+        // delete recv_edges;
+    }
+    else if (mat_info.send_form == _SPARSE_FORM)
+    {
+        // this->_rows = mat_info.rows;
+        // this->_cols = mat_info.cols;
+        // _initializeMatrix(true);
+        // SparseElement<T>* recv_edges = new SparseElement<T>[mat_info.recv_size];
+        // MPI_Bcast(recv_edges, mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
+        // for(int i = 0;  i < mat_info.recv_size; i++)
+        // {
+        //     (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
+        // }
+        // delete recv_edges;
+    }
+}
 #endif
 
 /*
@@ -424,27 +502,28 @@ inline DenseMatrix1D<T> SymMatrix<T>::matrixTimesDiagonalVector(const std::vecto
  * @pram bool sending sparse form, default value is false.
  */
 template <typename T>
-void SymMatrix<T>::MPI_Send_SymMatrix(int dest, int tag, bool sparse = false)
+void SymMatrix<T>::MPI_Send_Matrix(int dest, int tag, bool sparse)
 {
     if(sparse)
     {
-        MPI_Send(&_SYM_SPARSE_FORM, 1 ,MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-        std::vector<SparseElement<T> > sparse_form;
-        for (int i = 0; i < this->_size; i++)
-        {
-            for (int j = i ; j < this->_size; j++)
-            {   
-                sparse_form.push_back(SparseElement(i,j,(*this)(i,j));
-            }
-        }
-        MPI_Send(&sparse_form.size(), 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
-        MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
+        // MPI_Send(&_SYM_SPARSE_FORM, 1 ,MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        // std::vector<SparseElement<T> > sparse_form;
+        // for (int i = 0; i < this->_size; i++)
+        // {
+        //     for (int j = i ; j < this->_size; j++)
+        //     {   
+        //         sparse_form.push_back(SparseElement(i,j,(*this)(i,j));
+        //     }
+        // }
+        // MPI_Send(&sparse_form.size(), 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
+        // MPI_Send(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
     }
     else
     {
-        MPI_Send(&_SYM_DENSE_FORM, 1 ,MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-        MPI_Send(&this->_size, 1, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
-        MPI_Send(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, dest, tag + 3, MPI_COMM_WORLD);
+        MPI_MatrixInfo mat_info;
+        mat_info.setValues(this->_size, this->_size, this->_getArrSize(), _SYM_DENSE_FORM);
+        MPI_Send(&mat_info, sizeof(MPI_MatrixInfo), MPI_BYTE, dest, tag + 1, MPI_COMM_WORLD);
+        MPI_Send(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, dest, tag + 2, MPI_COMM_WORLD);
     }
 }
 
@@ -454,29 +533,29 @@ void SymMatrix<T>::MPI_Send_SymMatrix(int dest, int tag, bool sparse = false)
  * @pram bool sending sparse form, default value is false.
  */
 template <typename T>
-void SymMatrix<T>::MPI_Bcast_Send_SymMatrix(int source, bool sparse = false)
+void SymMatrix<T>::MPI_Bcast_Send_Matrix(int source, bool sparse)
 {
     if(sparse)
     {
-        MPI_Bcast(&_SYM_SPARSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-        std::vector<SparseElement<T> > sparse_form;
-        for (int i = 0; i < this->_size; i++)
-        {
-            for (int j = i ; j < this->_size; j++)
-            {   
-                sparse_form.push_back(SparseElement(i,j,(*this)(i,j));
-            }
-        }
-        MPI_Bcast(&sparse_form.size(), 1, MPI_INT, source, MPI_COMM_WORLD);
-        MPI_Bcast(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
+        // MPI_Bcast(&_SYM_SPARSE_FORM, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
+        // std::vector<SparseElement<T> > sparse_form;
+        // for (int i = 0; i < this->_size; i++)
+        // {
+        //     for (int j = i ; j < this->_size; j++)
+        //     {   
+        //         sparse_form.push_back(SparseElement(i,j,(*this)(i,j));
+        //     }
+        // }
+        // MPI_Bcast(&sparse_form.size(), 1, MPI_INT, source, MPI_COMM_WORLD);
+        // MPI_Bcast(&sparse_form[0], sparse_form.size()*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
     }
     else
     {
-        MPI_Bcast(&_SYM_DENSE_FORM, 1, MPI_INT, source, MPI_COMM_WORLD);
-        MPI_Bcast(&this->_size, 1, MPI_INT, source, MPI_COMM_WORLD);
+        MPI_MatrixInfo mat_info;
+        mat_info.setValues(this->_size, this->_size, this->_getArrSize(), _SYM_DENSE_FORM);
+        MPI_Bcast(&mat_info, sizeof(MPI_MatrixInfo), MPI_BYTE, source, MPI_COMM_WORLD);
         MPI_Bcast(this->_edges, this->_getArrSize()*sizeof(T), MPI_BYTE, source, MPI_COMM_WORLD);
     }
-
 }
 #endif
 //==========================================================OPERATIONS================================================================
