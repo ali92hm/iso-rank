@@ -244,27 +244,25 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, int tag, MPI_Status& stat)
         this->_rows = mat_info.rows;
         this->_cols = mat_info.cols;
         _initializeMatrix(true);
-        SparseElement<T>* recv_edges = new SparseElement<T>[mat_info.recv_size];
-        MPI_Recv(recv_edges, mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+        std::vector<SparseElement<T> > recv_edges(mat_info.recv_size);
+        MPI_Recv(&recv_edges[0], mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
 
         for(int i = 0;  i < mat_info.recv_size; i++)
         {
             (*this)(recv_edges[i].getJ(),recv_edges[i].getI()) = (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
         }
-        delete recv_edges;
     }
     else if (mat_info.send_form == _SPARSE_FORM)
     {
         this->_rows = mat_info.rows;
         this->_cols = mat_info.cols;
         _initializeMatrix(true);
-        SparseElement<T>* recv_edges = new SparseElement<T>[mat_info.recv_size];
-        MPI_Recv(recv_edges, mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
+        std::vector<SparseElement<T> > recv_edges(mat_info.recv_size);
+        MPI_Recv(&recv_edges[0], mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, tag + 2, MPI_COMM_WORLD, &stat);
         for(int i = 0;  i < mat_info.recv_size; i++)
         {
             (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
         }
-        delete recv_edges;
     }
 }
 
@@ -310,26 +308,24 @@ inline DenseMatrix1D<T>::DenseMatrix1D(int source, MPI_Status& stat)
         this->_rows = mat_info.rows;
         this->_cols = mat_info.cols;
         _initializeMatrix(true);
-        SparseElement<T>* recv_edges = new SparseElement<T>[mat_info.recv_size];
-        MPI_Bcast(recv_edges, mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
+        std::vector<SparseElement<T> > recv_edges(mat_info.recv_size);
+        MPI_Bcast(&recv_edges[0], mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
         for(int i = 0;  i < mat_info.recv_size; i++)
         {
             (*this)(recv_edges[i].getJ(),recv_edges[i].getI()) = (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
         }
-        delete recv_edges;
     }
     else if (mat_info.send_form == _SPARSE_FORM)
     {
         this->_rows = mat_info.rows;
         this->_cols = mat_info.cols;
         _initializeMatrix(true);
-        SparseElement<T>* recv_edges = new SparseElement<T>[mat_info.recv_size];
-        MPI_Bcast(recv_edges, mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
+        std::vector<SparseElement<T> > recv_edges(mat_info.recv_size);
+        MPI_Bcast(&recv_edges[0], mat_info.recv_size*sizeof(SparseElement<T>), MPI_BYTE, source, MPI_COMM_WORLD);
         for(int i = 0;  i < mat_info.recv_size; i++)
         {
             (*this)(recv_edges[i].getI(), recv_edges[i].getJ()) = recv_edges[i].getValue();
         }
-        delete recv_edges;
     }
 }
 #endif
