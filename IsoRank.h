@@ -12,10 +12,12 @@
 #define Sparse_Matrix_IsoRank_h
 
 #include "Matrices/DenseMatrix1D.h"
+#include "Matrices/MPI_Structs.h"
 #include "Tarjan.h"
 #include "util.h"
 #include "greedy_algorithms.h"
 #include <vector>
+
 
 const int GREEDY = 0;
 const int CON_ENF_1 = 1;
@@ -250,36 +252,5 @@ struct IsoRank_Result isoRank(DenseMatrix1D<T>& matrix_A, DenseMatrix1D<T>& matr
     delete []eigenValues;
     return ret_val;
 }
-
-#ifdef USE_MPI
-/*
- * function used to send the IsoRank_Result struct between two processors
- * @pram: result struct of isorank
- * @pram: the destination processor
- * @pram: the tag used for the MPI calls
- */
-void MPI_Send_IsoRank_Result (IsoRank_Result result, int dest, int tag)
-{
-	MPI_Send(&result.assignment_length, 1, MPI_INT, dest, tag + 1, MPI_COMM_WORLD);
-	MPI_Send(result.assignments, result.assignment_length, MPI_INT, dest, tag + 2, MPI_COMM_WORLD);
-	MPI_Send(&result.frob_norm, 1, MPI_INT, dest, tag + 3, MPI_COMM_WORLD);
-}
-
-/*
- * function used to receive the IsoRank_Result struct
- * @pram: the source processor where this struct came from
- * @pram: the tag used by the MPI calls
- * @pram: the MPI_Status object used by the MPI_calls
- */
-struct IsoRank_Result MPI_Recv_IsoRank_Result(int source, int tag, MPI_Status& stat)
-{
-	struct IsoRank_Result result;
-	MPI_Recv(&result.assignment_length, 1, MPI_INT, source, tag + 1, MPI_COMM_WORLD, &stat);
-	result.assignments = new int[result.assignment_length];
-	MPI_Recv(result.assignments ,result.assignment_length , MPI_INT, source, tag + 2, MPI_COMM_WORLD, &stat);
-	MPI_Recv(&result.frob_norm, 1, MPI_INT, source, tag + 3, MPI_COMM_WORLD, &stat);
-	return result;
-}
-#endif
 
 #endif

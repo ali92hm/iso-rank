@@ -1,9 +1,5 @@
-//
-//  MatrixExceptions.cpp
-//  Graph Matching
-//
-//  Created by Ali Hajimirza on 7/5/13.
-//  Copyright (c) 2013 Ali Hajimirza. All rights reserved.
-//
-
+/*********************************************************************************
+ * Collection of exception classes that are used in the matrix classes.          * 
+ *                                                                               *
+ *********************************************************************************/
 #include "MatrixExceptions.h"
