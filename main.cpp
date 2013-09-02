@@ -24,10 +24,6 @@
  *                                                                                                                                             *
  ***********************************************************************************************************************************************/
 
-
-#include "Matrices/SymMatrix.h"
-#include "Matrices/DenseMatrix2D.h"
-#include "IsoRank.h"
 #include <string>
 #include <sstream>
 #include <vector>
@@ -77,6 +73,8 @@ double timeElapsed(std::clock_t start, std::clock_t end);
 ******************************************************************************************/
 
 #ifdef SEQUENTIAL
+#include "Matrices/DenseMatrix1D.h"
+#include "IsoRank.h"
 /*
  * Main function
  * @pram int argc
@@ -193,9 +191,12 @@ int main(int argc, char * argv[])
 
 #ifdef NODE_PAIR_METHOD
 #include "mpi.h"
-// #ifndef USE_MPI
-// #define USE_MPI
-// #endif
+#ifndef USE_MPI
+#define USE_MPI
+#endif
+#include "Matrices/SymMatrix.h"
+#include "Matrices/DenseMatrix1D.h"
+#include "IsoRank.h"
 /*
  * Main function
  * @pram int argc
@@ -318,8 +319,8 @@ int main(int argc, char * argv[])
 						std::cout <<"Master: results were received "<< dest<< std::endl;
                     
 					//Send more graphs to worker node
-					input_graphs[i]->MPI_Send_SymMatrix(dest, TAG_1 * dest);
-					input_graphs[j]->MPI_Send_SymMatrix(dest, TAG_1 * dest + TAG_2);
+					input_graphs[i]->MPI_Send_Matrix(dest, TAG_1 * dest);
+					input_graphs[j]->MPI_Send_Matrix(dest, TAG_1 * dest + TAG_2);
 					if(G_DEBUG)
 						std::cout <<"Master: sending more graphs to: "<< dest<< std::endl;
 				}
@@ -345,8 +346,8 @@ int main(int argc, char * argv[])
  		for(int i=1; i < num_procs; i++)
  		{
  			SymMatrix<DataType> emptyMat(0);
- 			emptyMat.MPI_Send_SymMatrix (i, TAG_1*i);
- 			emptyMat.MPI_Send_SymMatrix (i, TAG_1*i+ TAG_2);
+ 			emptyMat.MPI_Send_Matrix (i, TAG_1*i);
+ 			emptyMat.MPI_Send_Matrix (i, TAG_1*i+ TAG_2);
  			if (G_DEBUG)
  				std::cout <<"Master: sending terminate signal to ID: " << i << std::endl;
  		}
@@ -384,8 +385,8 @@ int main(int argc, char * argv[])
     	while(true)
     	{
     		//Recv graphs from the master
-    		DenseMatrix2D<DataType> mat1 (MASTER_ID, TAG_1 * ID ,stat);
-    		DenseMatrix2D<DataType> mat2 (MASTER_ID, TAG_1 * ID + TAG_2 ,stat);
+    		DenseMatrix1D<DataType> mat1 (MASTER_ID, TAG_1 * ID ,stat);
+    		DenseMatrix1D<DataType> mat2 (MASTER_ID, TAG_1 * ID + TAG_2 ,stat);
             
     		if (G_DEBUG)
     			std::cout << "Process "<< ID << " : received graphs from master"<< std::endl;
@@ -451,6 +452,9 @@ int main(int argc, char * argv[])
 #ifndef USE_MPI
 #define USE_MPI
 #endif
+#include "Matrices/SymMatrix.h"
+#include "Matrices/DenseMatrix1D.h"
+#include "IsoRank.h"
 #include "Matrices/MPI_Structs.h"
 /*
  * Main function
@@ -548,8 +552,7 @@ int main(int argc, char * argv[])
 			std::cout <<"Master: sending "<<number_of_graphs << " graphs to all"<< std::endl;
 		for (int i = 0; i < input_graphs.size(); i++)
 		{
-			input_graphs[i]->MPI_Bcast_Send_SymMatrix(MASTER_ID);
-
+			input_graphs[i]->MPI_Bcast_Send_Matrix(MASTER_ID);
 		}
 		
 		/*
@@ -603,12 +606,12 @@ int main(int argc, char * argv[])
     else
     {
     	
-    	std::vector<DenseMatrix2D<DataType>* > recv_graphs;
+    	std::vector<DenseMatrix1D<DataType>* > recv_graphs;
     	
     	MPI_Bcast (&number_of_graphs, 1, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
     	for (int i = 0; i < number_of_graphs; i++)
     	{
-    		recv_graphs.push_back(new DenseMatrix2D<DataType>(MASTER_ID, stat));
+    		recv_graphs.push_back(new DenseMatrix1D<DataType>(MASTER_ID, stat));
     	}
 
 		if (G_DEBUG)
@@ -671,7 +674,7 @@ int main(int argc, char * argv[])
 				}
 			}
 		}
-		typename std::vector<DenseMatrix2D<DataType>* >::iterator graph_it;
+		typename std::vector<DenseMatrix1D<DataType>* >::iterator graph_it;
 		for ( graph_it = recv_graphs.begin() ; graph_it < recv_graphs.end(); ++graph_it )
 		{
 			delete  *graph_it;
