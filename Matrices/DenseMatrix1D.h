@@ -619,12 +619,6 @@ inline std::vector<int> DenseMatrix1D<T>::getNeighbors(int vertex)
 template <typename T>
 inline DenseMatrix1D<T> DenseMatrix1D<T>::kron(const DenseMatrix1D<T>& matrix)
 {
-    // checking for matrices to be square
-    if (!this->isSquare() || !matrix.isSquare())
-    {
-        throw NotASquareMatrixException();
-    }
-    
     //Initializing and allocating the product matrix
     int prod_size = this->_rows * matrix._rows;
     DenseMatrix1D<T> prod_matrix(prod_size, prod_size);

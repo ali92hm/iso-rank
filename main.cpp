@@ -72,6 +72,9 @@ typedef float DataType;
 void parseCommandLineArgs(int argc, char * argv[], int ID);
 double timeElapsed(std::clock_t start, std::clock_t end);
 
+/*****************************************************************************************
+*                                    Sequential method                                   *
+******************************************************************************************/
 
 #ifdef SEQUENTIAL
 /*
@@ -184,8 +187,15 @@ int main(int argc, char * argv[])
 }
 #endif
 
-#ifdef MASTER_SLAVE_GRAPH_PAIR_METHOD
+/*****************************************************************************************
+*                                          Node-pair method                              *
+******************************************************************************************/
+
+#ifdef NODE_PAIR_METHOD
 #include "mpi.h"
+// #ifndef USE_MPI
+// #define USE_MPI
+// #endif
 /*
  * Main function
  * @pram int argc
@@ -284,8 +294,8 @@ int main(int argc, char * argv[])
 				// Send a pair of graphs to all the worker nodes
 				if (dest_ID < num_procs)
 				{
-					input_graphs[i]->MPI_Send_SymMatrix(dest_ID, TAG_1 * dest_ID);
-					input_graphs[j]->MPI_Send_SymMatrix(dest_ID, TAG_1 * dest_ID + TAG_2);
+					input_graphs[i]->MPI_Send_Matrix(dest_ID, TAG_1 * dest_ID);
+					input_graphs[j]->MPI_Send_Matrix(dest_ID, TAG_1 * dest_ID + TAG_2);
 					
 					if(G_DEBUG)
 						std::cout <<"Master: sending matrix to ID: " << dest_ID << std::endl;
@@ -432,10 +442,15 @@ int main(int argc, char * argv[])
 }
 
 #endif
-
+/*****************************************************************************************
+*                                         Broadcast_Method                               *
+******************************************************************************************/
 
 #ifdef BROADCAST_METHOD
 #include "mpi.h"
+#ifndef USE_MPI
+#define USE_MPI
+#endif
 #include "Matrices/MPI_Structs.h"
 /*
  * Main function
