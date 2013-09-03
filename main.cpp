@@ -25,11 +25,19 @@
  ***********************************************************************************************************************************************/
 
 #include <string>
+#include <string.h>
 #include <iostream>
 #include <sstream>
 #include <vector>
 #include <ctime>
+#include "Matrices/SymMatrix.h"
+#include "Matrices/DenseMatrix1D.h"
+#include "Matrices/MPI_Structs.h"
+#include "IsoRank.h"
 
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
 
 /*
  * Path to the graph folders.
@@ -73,9 +81,7 @@ double timeElapsed(std::clock_t start, std::clock_t end);
 *                                    Sequential method                                   *
 ******************************************************************************************/
 
-#ifdef SEQUENTIAL
-#include "Matrices/DenseMatrix1D.h"
-#include "IsoRank.h"
+#if SEQ
 /*
  * Main function
  * @pram int argc
@@ -184,20 +190,12 @@ int main(int argc, char * argv[])
     }
     return 0;
 }
-#endif
 
 /*****************************************************************************************
 *                                          Node-pair method                              *
 ******************************************************************************************/
 
-#ifdef NODE_PAIR_METHOD
-#include "mpi.h"
-#ifndef USE_MPI
-#define USE_MPI
-#endif
-#include "Matrices/SymMatrix.h"
-#include "Matrices/DenseMatrix1D.h"
-#include "IsoRank.h"
+#elif NODE_PAIR
 /*
  * Main function
  * @pram int argc
@@ -443,20 +441,11 @@ int main(int argc, char * argv[])
     return 0;
 }
 
-#endif
 /*****************************************************************************************
 *                                         Broadcast_Method                               *
 ******************************************************************************************/
 
-#ifdef BROADCAST_METHOD
-#include "mpi.h"
-#ifndef USE_MPI
-#define USE_MPI
-#endif
-#include "Matrices/SymMatrix.h"
-#include "Matrices/DenseMatrix1D.h"
-#include "IsoRank.h"
-#include "Matrices/MPI_Structs.h"
+#else
 /*
  * Main function
  * @pram int argc
