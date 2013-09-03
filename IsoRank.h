@@ -62,14 +62,14 @@ struct IsoRank_Result isoRank(DenseMatrix1D<T>& matrix_A, DenseMatrix1D<T>& matr
     
     // Degree distribution statistics
     DenseMatrix1D<T> kron_prod = matrix_A.kron(matrix_B);
-    std::vector<vertex*> vertices = graph_con_com(kron_prod);
+    std::std::vector<vertex*> vertices = graph_con_com(kron_prod);
     T** eigenValues = new T*[kron_prod.getNumberOfColumns()];
-    vector<vector<int>*> comp_mask_values (kron_prod.getNumberOfColumns());
+    std::vector<std::vector<int>*> comp_mask_values (kron_prod.getNumberOfColumns());
     
     //for each component find the eigenvector corresponding to the scores matrix
     for(int i=0; i < kron_prod.getNumberOfColumns(); i++ )
     {
-        vector<int>* comp_mask = component_mask(vertices, i);
+        std::vector<int>* comp_mask = component_mask(vertices, i);
         comp_mask_values[i] = comp_mask;
         if (comp_mask == NULL)
         {
@@ -79,10 +79,10 @@ struct IsoRank_Result isoRank(DenseMatrix1D<T>& matrix_A, DenseMatrix1D<T>& matr
         
         DenseMatrix1D<T> L = kron_prod.getScatteredSelection(*comp_mask,*comp_mask);
         
-        std::vector<T> sum = L.getSumOfRows();
-        std::vector<T> D_neg1(sum.size());
-        std::vector<T> D_0pt5(sum.size());
-        std::vector<T> D_neg0pt5(sum.size());
+        std::std::vector<T> sum = L.getSumOfRows();
+        std::std::vector<T> D_neg1(sum.size());
+        std::std::vector<T> D_0pt5(sum.size());
+        std::std::vector<T> D_neg0pt5(sum.size());
         
         for(int j=0; j < sum.size(); j++)
         {
@@ -123,7 +123,7 @@ struct IsoRank_Result isoRank(DenseMatrix1D<T>& matrix_A, DenseMatrix1D<T>& matr
     
     
     DenseMatrix1D<T> scores;
-    vector<int>* comp_mask_curr=comp_mask_values[0];
+    std::vector<int>* comp_mask_curr=comp_mask_values[0];
     int counter_eig_vector=0;
     int counter_comp_mask=0;
     struct IsoRank_Result ret_val;
