@@ -67,13 +67,13 @@ DT max(DT* arr, int arr_size){
 }
 
 /*
- * returns the maximum value in the vector vec
- * @pram: pointer to vector
+ * returns the maximum value in the std::vector vec
+ * @pram: pointer to std::vector
  */
 template<typename DT>
-vector<DT>* vector_max(vector<DT>* vec){
+std::vector<DT>* vector_max(std::vector<DT>* vec){
     DT max_so_far= (*vec)[0];
-    vector<int>* ret_vec= new vector<int>();
+    std::vector<int>* ret_vec= new std::vector<int>();
     int vec_counter=0;
     
     for(int i=0;i<vec->size();i++){
@@ -155,10 +155,10 @@ int* find_in_arr(DT* arr,DT val, int arr_size){
 }
 
 /*
- * multiples a vector by a scalar
+ * multiples a std::vector by a scalar
  * @pram: pointer to the array returned
- * @pram: pointer to array used to represent the vector
- * @pram: the number by which the vector gets scaled
+ * @pram: pointer to array used to represent the std::vector
+ * @pram: the number by which the std::vector gets scaled
  */
 template <typename DT>
 DT* scalar_multiplication(DT *old_row,int size, DT scaling_factor){
@@ -178,12 +178,12 @@ DT* scalar_multiplication(DT *old_row,int size, DT scaling_factor){
  * signifying a component of the graph. The function returns
  * an integer array where vertices that don't belong to the
  * component are masked out.
- * @param: vector of pointers to vertex objects
+ * @param: std::vector of pointers to vertex objects
  * @param: the component we wish to mask
  */
-vector<int>* component_mask(vector<vertex*>& vertices, int component){
+std::vector<int>* component_mask(std::vector<vertex*>& vertices, int component){
     
-    vector<int>* comp_mask = NULL;
+    std::vector<int>* comp_mask = NULL;
     bool hasConnectedComponeents = false;
     
     for(int i=0;i< vertices.size();i++)
@@ -192,7 +192,7 @@ vector<int>* component_mask(vector<vertex*>& vertices, int component){
         if(curr_vertex->get_low_link()==component){
             if (!hasConnectedComponeents)
             {
-                comp_mask = new vector<int>(vertices.size(),0);
+                comp_mask = new std::vector<int>(vertices.size(),0);
                 hasConnectedComponeents = true;
             }
             (*comp_mask)[i] = 1;
