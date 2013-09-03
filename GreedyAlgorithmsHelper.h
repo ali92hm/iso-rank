@@ -45,7 +45,7 @@ struct coordinate_pair{
  * @pram: float to be compared
  */
 int compareFloats(float a, float b){
-    float smallest_float=numeric_limits<float>::epsilon();
+    float smallest_float= std::numeric_limits<float>::epsilon();
     
     if(abs(a-b)<smallest_float){
         return 0;
@@ -60,7 +60,7 @@ int compareFloats(float a, float b){
 /*
  * returns a std::vector of the columns col
  * such that (row,col) is a pair in rc
- * @pram:array of structs of coordinate pairs
+ * @pram: array of structs of coordinate pairs
  * @pram: size of the array of structs
  * @pram: the row we wish to match
  */
@@ -153,10 +153,10 @@ void neighbor_enforcement(int* row_index,int* col_index, DenseMatrix1D<float>& g
  * returns a std::vector of nodes from graph1 such that the
  * node r exists as a pair (r,c) in row_cols and
  * c is exists in array cols
- * @param: array of nodes in graph2 being considered for the matching
- * @param: size of array that contains nodes from graph2
- * @param: array of coordinate_pair structs being considered for matching
- * @param: size of the array row_cols
+ * @pram: array of nodes in graph2 being considered for the matching
+ * @pram: size of array that contains nodes from graph2
+ * @pram: array of coordinate_pair structs being considered for matching
+ * @pram: size of the array row_cols
  */
 std::vector<int>* intersect(int* cols, int cols_size, struct coordinate_pair** row_cols,int row_cols_size){
     std::vector<int>* ret_value=new std::vector<int>();
@@ -177,10 +177,10 @@ std::vector<int>* intersect(int* cols, int cols_size, struct coordinate_pair** r
 
 /*
  * returns array of nodes from graph2 that can be made availabe for matching
- * @param: DenseMatrix1D representing graph1
- * @param: array of assignments
- * @param: size of assignments array
- * @param: size of returned array
+ * @pram: DenseMatrix1D representing graph1
+ * @pram: array of assignments
+ * @pram: size of assignments array
+ * @pram: size of returned array
  */
 int* get_valid_entries(DenseMatrix1D<float> graph1, int* ass,int size,int* ret_size){
     
@@ -242,10 +242,10 @@ int* get_valid_entries(DenseMatrix1D<float> graph1, int* ass,int size,int* ret_s
 /*
  * returns an array of coordinate_pair structs (r,c)
  * such that r,c in scores_matrix has a high score
- * @param: DenseMatrix1D that represents the nodal pairings scores
- * @param: array of values that are high enough and in local_matches
- * @param: size of array val
- * @param: size of the array returned
+ * @pram: DenseMatrix1D that represents the nodal pairings scores
+ * @pram: array of values that are high enough and in local_matches
+ * @pram: size of array val
+ * @pram: size of the array returned
  */
 template <typename DT>
 struct coordinate_pair** find_all_values(DenseMatrix1D<DT>& local_matches,DT* val,int val_size,int* row_cols_size){
@@ -361,7 +361,7 @@ void set_matrix_values(DenseMatrix1D<DT>& matrix1,DenseMatrix1D<DT>& matrix2,  s
 }
 
 /*
- * finds all the occurences >= a certain value in the sparse matrix
+ * finds all the occurrences >= a certain value in the sparse matrix
  * @pram: Sparse Matrix we read in
  * @pram: value that we are comparing
  * @pram: the number of times the value shows up
@@ -403,9 +403,9 @@ DT* find_values(DenseMatrix1D<DT>& matches2,DT value,int *size){
 }
 
 /*
- * returns the idth occurence of a value greater than val in the matrix
+ * returns the idth occurrence of a value greater than val in the matrix
  * @pram: matrix that is being read in
- * @pram: the occurence of a value >= val we wish to return
+ * @pram: the occurrence of a value >= val we wish to return
  * @pram: pointer to row integer which gets set to the value we return
  * @pram: pointer to column integer which gets set to the value we return
  */
@@ -464,7 +464,7 @@ int return_max(DenseMatrix1D<DT>& matches, DT* total_score,int* max_row,int* max
         
     }
     
-    //choose a random occurence of the maximum value
+    //choose a random occurrence of the maximum value
     // to set max_row and max_col to
     
     int counter=0;
@@ -617,7 +617,7 @@ void match_rest(int* assignment, DenseMatrix1D<float>& graph1, DenseMatrix1D<flo
 
 /*
  * returns a permutation matrix with dimensions size x size
- * @param: size of the permutation matrix
+ * @pram: size of the permutation matrix
  */
 DenseMatrix1D<float> getPermMatrix(int *ass, int ass_size,const int bigger_matrix_size){
     DenseMatrix1D<float> ret_matrix(bigger_matrix_size,bigger_matrix_size);
@@ -638,8 +638,8 @@ DenseMatrix1D<float> getPermMatrix(int *ass, int ass_size,const int bigger_matri
 /*
  * looks through the std::vector of nodes and removes the
  * ones that have already been assigned
- * @param: array showing the nodal assignments
- * @param: std::vector filled with nodes that are neighbors of a node
+ * @pram: array showing the nodal assignments
+ * @pram: std::vector filled with nodes that are neighbors of a node
  */
 void invalidate_neighbors(int* assignment, std::vector<int> neigh)
 {
@@ -659,9 +659,9 @@ void invalidate_neighbors(int* assignment, std::vector<int> neigh)
 
 /*
  *initializes an array to have all indices set to init_val
- *@param: array we wish to initialize
- *@param: size of the array we wish to initiliaze
- *@param: initial value that array should be populated with
+ *@pram: array we wish to initialize
+ *@pram: size of the array we wish to initialize
+ *@pram: initial value that array should be populated with
  */
 template <typename DT>
 void init_array(DT* arr, int arr_size,DT init_val){
@@ -669,10 +669,5 @@ void init_array(DT* arr, int arr_size,DT init_val){
     for(int i=0;i<arr_size;i++){
         arr[i]=init_val;
     }
-    
-    
 }
-
-
-
 #endif

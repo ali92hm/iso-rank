@@ -41,7 +41,7 @@ void greedy_1(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& graph1, DenseMat
     int max_value;
     int row,col;
     
-    //intialize assignment array
+    //initialize assignment array
     init_array(assignment,graph1_nodes,-1);
     
     for(int i=0;i<min(graph1_nodes,graph2_nodes);i++){
@@ -58,7 +58,7 @@ void greedy_1(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& graph1, DenseMat
 
 
 /*
- * peforms a greedy algorithm to choose the best nodal pairs for matching
+ * performs a greedy algorithm to choose the best nodal pairs for matching
  * enforces connectivity: if i<->j then neigh(i)<->neigh(j) where <-> indicates a matching
  * @pram: matrix indicating scores for nodal pairs
  * @pram: adjacency matrix for graph1
@@ -76,7 +76,7 @@ void greedy_connectivity_1(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
     
     int row,col;
     
-    //intialize assignment array
+    //initialize assignment array
     init_array(assignment,graph1_nodes,-1);
     
     
@@ -99,7 +99,7 @@ void greedy_connectivity_1(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
 
 /*
  * performs a greedy matching and enforces connectivity by proceeding outwards radially
- * @pram:matrix indicating scores for nodal pairs
+ * @pram: matrix indicating scores for nodal pairs
  * @pram: adjacency matrix for graph1
  * @pram: adjacency matrix for graph2
  * @pram: pointer to the array that indicates the best matching
@@ -115,7 +115,7 @@ void greedy_connectivity_2(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
     int assignment2[graph1_nodes];
     int row,col;
     
-    //intialize assignment array
+    //initialize assignment array
     init_array(assignment,graph1_nodes,-1);
     init_array(assignment2,graph1_nodes,0);
     
@@ -171,7 +171,7 @@ void greedy_connectivity_2(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
 
 /*
  * performs a greedy matching and enforces connectivity by proceeding outwards radially
- * @pram:matrix indicating scores for nodal pairs
+ * @pram: matrix indicating scores for nodal pairs
  * @pram: adjacency matrix for graph1
  * @pram: adjacency matrix for graph2
  * @pram: pointer to the array that indicates the best matching
@@ -189,7 +189,7 @@ void greedy_connectivity_3(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
     int assignment_G2[graph2.getNumberOfRows()];;
     DenseMatrix1D<DT>* local_matches=new DenseMatrix1D<DT>(matches);
     
-    //intialize all arrays
+    //initialize all arrays
     init_array(assignment,graph1_nodes,-1);
     init_array(assignment2,graph1_nodes,0);
     init_array(assignment_G1,graph1_nodes,0);
@@ -232,7 +232,7 @@ void greedy_connectivity_3(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
         //run for loop until all neighbors are assigned and score matrix isn't all -inf
         for(int i=0;i<min(neigh_1.size(),neigh_2.size())&&!all_inf(*local_matches);i++){
             
-            //find best nodal pairing and peform assignment
+            //find best nodal pairing and perform assignment
             return_max(*local_matches,&final_score,&row,&col);
             assignment[row]=col;
             assignment2[row]=1;
@@ -260,7 +260,7 @@ void greedy_connectivity_3(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
 /*
  * performs a greedy matching and enforces connectivity by proceeding outwards radially
  * chooses the most connected neighbor at every iteration
- * @pram:matrix indicating scores for nodal pairs
+ * @pram: matrix indicating scores for nodal pairs
  * @pram: adjacency matrix for graph1
  * @pram: adjacency matrix for graph2
  * @pram: pointer to the array that indicates the best matching
@@ -282,7 +282,7 @@ void greedy_connectivity_4(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
     int add_order_counter=2;
     
     
-    //intializing all arrays
+    //initializing all arrays
     init_array(add_order,graph1.getNumberOfRows(),-1);
     init_array(ass,graph1.getNumberOfRows(),0);
     init_array(assigned_G1,graph1.getNumberOfRows(),-1);

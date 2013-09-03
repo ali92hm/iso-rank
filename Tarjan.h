@@ -10,6 +10,7 @@
 #include "Matrices/DenseMatrix1D.h"
 #include "Matrices/SparseElement.h"
 #include "Vertex.h"
+#include <vector>
 #include <stack>
 
 /*
