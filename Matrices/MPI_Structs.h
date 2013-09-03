@@ -3,7 +3,20 @@
 
 #ifndef _MPI_Structs_h
 #define _MPI_Structs_h
-#include "../IsoRank.h"
+
+/*
+ * struct used to store the result
+ * of each isorank comparison done between
+ * two graphs
+ */
+struct IsoRank_Result
+{
+    int frob_norm;
+    int assignment_length;
+    int* assignments;
+};
+
+
 #ifdef USE_MPI
 #include "mpi.h"
 

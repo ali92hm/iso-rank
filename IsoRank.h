@@ -12,12 +12,11 @@
 #define _IsoRank_h
 
 #include "Matrices/DenseMatrix1D.h"
-#include "Matrices/MPI_Structs.h"
 #include "Tarjan.h"
 #include "Utilities.h"
 #include "GreedyAlgorithms.h"
 #include <vector>
-
+#include "Matrices/MPI_Structs.h"
 
 static const int GREEDY = 0;
 static const int CON_ENF_1 = 1;
@@ -26,20 +25,6 @@ static const int CON_ENF_3 = 3;
 static const int CON_ENF_4 = 4;
 
 const int NUM_OF_ISORANK_IT = 20;
-
-
-/*
- * struct used to store the result
- * of each isorank comparison done between
- * two graphs
- */
-struct IsoRank_Result
-{
-	int frob_norm;
-    int assignment_length;
-	int* assignments;
-};
-
 /*
  * function used to perform the isorank algorithm
  * @pram: adjacency matrix for graph1
