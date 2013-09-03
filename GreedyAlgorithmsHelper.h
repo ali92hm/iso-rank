@@ -5,6 +5,9 @@
  *****************************************************************************/
 
 
+#ifndef _GREEDY_ALGORITHM_HELPER_h
+#define _GREEDY_ALGORITHM_HELPER_h
+
 #include <stdio.h>
 #include <float.h>
 #include <stdlib.h>
@@ -15,8 +18,7 @@
 #include "Matrices/DenseMatrix1D.h"
 #include <limits>
 
-#ifndef _GREEDY_ALGORITHM_HELPER_h
-#define _GREEDY_ALGORITHM_HELPER_h
+
 
 
 std::vector<int>* intersect(int*, int, struct coordinate_pair**,int);

@@ -7,6 +7,8 @@
  * file.                                                                                       *
  ***********************************************************************************************/
 
+#ifndef _GREEDY_ALGORITHM_h
+#define _GREEDY_ALGORITHM_h
 
 #include <stdio.h>
 #include <float.h>
@@ -19,8 +21,7 @@
 #include "GreedyAlgorithmsHelper.h"
 #include <limits>
 
-#ifndef _GREEDY_ALGORITHM_h
-#define _GREEDY_ALGORITHM_h
+
 
 
 /*
