@@ -19,11 +19,11 @@
 #include <vector>
 
 
-const int GREEDY = 0;
-const int CON_ENF_1 = 1;
-const int CON_ENF_2 = 2;
-const int CON_ENF_3 = 3;
-const int CON_ENF_4 = 4;
+static const int GREEDY = 0;
+static const int CON_ENF_1 = 1;
+static const int CON_ENF_2 = 2;
+static const int CON_ENF_3 = 3;
+static const int CON_ENF_4 = 4;
 
 const int NUM_OF_ISORANK_IT = 20;
 

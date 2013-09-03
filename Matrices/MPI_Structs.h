@@ -3,6 +3,7 @@
 
 #ifndef _MPI_Structs_h
 #define _MPI_Structs_h
+#include "../IsoRank.h"
 #ifdef USE_MPI
 #include "mpi.h"
 
