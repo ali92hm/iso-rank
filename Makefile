@@ -5,7 +5,9 @@ INCLUDE= -I$(ARPACK_DIR)/include/ -I$(ARPACK_DIR)/examples/matrices/nonsym -I$(A
 LIBRARIES= /share/apps/lib/libarpack.a /share/apps/lib/libsuperlu_4.3.a /usr/lib/libblas.so.3.2.1 /usr/lib/liblapack.so.3.2.1 /share/apps/lib/libf2c.a -lm
 
 all:
+	$(CC) $(CFLAGS) $(INCLUDE) $(INCLUDE_MPI) -c vertex.cpp 
 	$(CC) $(CFLAGS) $(INCLUDE) $(INCLUDE_MPI) -c main.cpp 
-	$(CC) $(CFLAGS) $(INCLUDE) -o IsoRank main.o $(LIB_MPI) $(LIBRARIES)
+	$(CC) $(CFLAGS) $(INCLUDE) -o IsoRank main.o vertex.o $(LIB_MPI) $(LIBRARIES)
+	rm -f *.o
 
 	
