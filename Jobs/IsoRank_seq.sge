@@ -29,7 +29,7 @@ echo Time is `date`
 echo "-------------------"
 echo " "
 
-.././IsoRank_seq -num_files 50 -match_alg con_enf_4 -print
+.././IsoRank -num_files 50 -match_alg con_enf_4 -print
 
 echo " "
 echo "This job is DONE!"

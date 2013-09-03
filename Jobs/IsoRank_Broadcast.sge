@@ -14,7 +14,7 @@
 echo Running on host `hostname`
 echo Time is `date`
 
-mpirun -np $NSLOTS .././IsoRank_broadcast -num_files 50 -print -match_alg con_enf_4
+mpirun -np $NSLOTS .././IsoRank -num_files 50 -print -match_alg con_enf_4
 
 echo Time is `date`
 exit 0
