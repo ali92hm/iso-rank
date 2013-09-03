@@ -8,6 +8,7 @@
 
 #include "Vertex.h"
 #include "Matrices/DenseMatrix1D.h"
+#include <vector>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

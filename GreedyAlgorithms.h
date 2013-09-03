@@ -121,7 +121,7 @@ void greedy_connectivity_2(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
     
     DenseMatrix1D<DT>* active_matches=new DenseMatrix1D<DT>(matches);
     DT* idxarr;
-    vector<int> assigned_G1;
+    std::vector<int> assigned_G1;
     int size=0,random_id,vector_size=0,curr_row;
     
     
@@ -157,8 +157,8 @@ void greedy_connectivity_2(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
         {
             curr_row=assigned_G1[i];
             curr_col=assignment[curr_row];
-            vector<int> neigh_1= graph1.getNeighbors(curr_row);
-            vector<int> neigh_2= graph2.getNeighbors(curr_col);
+            std::vector<int> neigh_1= graph1.getNeighbors(curr_row);
+            std::vector<int> neigh_2= graph2.getNeighbors(curr_col);
             set_matrix_values(*active_matches,matches,neigh_1,neigh_2);
         }
         
@@ -195,8 +195,8 @@ void greedy_connectivity_3(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
     init_array(assignment_G1,graph1_nodes,0);
     init_array(assignment_G2,graph1_nodes,0);
     
-    vector<int> neigh_1;
-    vector<int> neigh_2;
+    std::vector<int> neigh_1;
+    std::vector<int> neigh_2;
     
     //run while loop until all nodes are assigned
     while(sum_array(assignment2,graph1_nodes)<min(graph1_nodes,graph2_nodes)){
@@ -277,8 +277,8 @@ void greedy_connectivity_4(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
     int row,col,size=0;
     int assigned_G1[graph1.getNumberOfRows()];
     int assigned_G2[graph2.getNumberOfRows()];
-    vector<int> neigh_1;
-    vector<int> neigh_2;
+    std::vector<int> neigh_1;
+    std::vector<int> neigh_2;
     int add_order_counter=2;
     
     
@@ -376,8 +376,8 @@ void greedy_connectivity_4(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
                 
                 //looks through graph1 to see which edges exist and their intersection with node pairings with high enough scores
                 valid_entries= get_valid_entries(graph1,assignment,graph1.getNumberOfRows(),&valid_entries_size);
-                vector<int>* prev_assigned = intersect(valid_entries,valid_entries_size,rows_cols,size);
-                vector<int> g1c_count(graph1.getNumberOfRows(), -1);
+                std::vector<int>* prev_assigned = intersect(valid_entries,valid_entries_size,rows_cols,size);
+                std::vector<int> g1c_count(graph1.getNumberOfRows(), -1);
                 g1c_count_counter=0;
                 
                 //find the connectivity of nodes being considered for matching
@@ -398,10 +398,10 @@ void greedy_connectivity_4(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
                 }
                 
                 //find the node best_row with highest connectivity to match
-                vector<int> *max_g1c=vector_max(&g1c_count);
+                std::vector<int> *max_g1c=vector_max(&g1c_count);
                 int rand_number = rand()%(max_g1c->size());
                 best_row=(*max_g1c)[rand_number];
-                vector<int>* best_cols= new vector<int>();
+                std::vector<int>* best_cols= new std::vector<int>();
                 int best_cols_counter=0;
                 
                 //find all nodes in graph2 that are available for matching to
@@ -417,9 +417,9 @@ void greedy_connectivity_4(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
                 
                 //find node from graph2 to match to node just chosen from graph1
                 valid_entries2= get_valid_entries(graph2,assignment,graph1.getNumberOfRows(),&valid_entries2_size);
-                vector<int> *cols_chosen=choose_cols(rows_cols,rows_cols_size,best_row);
+                std::vector<int> *cols_chosen=choose_cols(rows_cols,rows_cols_size,best_row);
                 
-                vector<int> g2c_count(graph2.getNumberOfRows());
+                std::vector<int> g2c_count(graph2.getNumberOfRows());
                 int g2c_count_counter=0;
                 
                 //finds the connectivity of each of the nodes being considered
@@ -436,7 +436,7 @@ void greedy_connectivity_4(DenseMatrix1D<DT>& matches, DenseMatrix1D<float>& gra
                     g2c_count_counter++;
                 }
                 
-                vector<int> *max_g2c=vector_max(&g2c_count);
+                std::vector<int> *max_g2c=vector_max(&g2c_count);
                 rand_number = rand()%(max_g2c->size());
                 best_col=(*max_g2c)[rand_number];
                 

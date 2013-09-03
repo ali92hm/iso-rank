@@ -19,10 +19,10 @@
 #define _GREEDY_ALGORITHM_HELPER_h
 
 
-vector<int>* intersect(int*, int, struct coordinate_pair**,int);
+std::vector<int>* intersect(int*, int, struct coordinate_pair**,int);
 void match_rest(int*, DenseMatrix1D<float>&, DenseMatrix1D<float>&);
 int* get_valid_entries(DenseMatrix1D<float>, int*,int,int*);
-vector<int>* choose_cols(struct coordinate_pair**,int,int);
+std::vector<int>* choose_cols(struct coordinate_pair**,int,int);
 
 
 /*
@@ -58,14 +58,14 @@ int compareFloats(float a, float b){
 }
 
 /*
- * returns a vector of the columns col
+ * returns a std::vector of the columns col
  * such that (row,col) is a pair in rc
  * @pram:array of structs of coordinate pairs
  * @pram: size of the array of structs
  * @pram: the row we wish to match
  */
-vector<int>* choose_cols(struct coordinate_pair** rc,int rc_size,int row){
-    vector<int> *ret_vec= new vector<int>(0);
+std::vector<int>* choose_cols(struct coordinate_pair** rc,int rc_size,int row){
+    std::vector<int> *ret_vec= new std::vector<int>(0);
     
     for(int i=0;i<rc_size;i++){
         struct coordinate_pair *pair=rc[i];
@@ -84,10 +84,10 @@ vector<int>* choose_cols(struct coordinate_pair** rc,int rc_size,int row){
  * @pram: a pointer to an array of doubles which represents the eigenvector
  * @pram: number of rows in the matrix returned
  * @pram: number of columns in the matrix returned
- * @pram: component mask vector indicating which nodes are present in current component
+ * @pram: component mask std::vector indicating which nodes are present in current component
  */
 template <typename DT>
-DenseMatrix1D<DT> reshape(DT* eigenvector,const int rows,const int cols, vector<int> &comp_mask){
+DenseMatrix1D<DT> reshape(DT* eigenvector,const int rows,const int cols, std::vector<int> &comp_mask){
     
     DenseMatrix1D<DT> matrix(rows,cols);
     int counter_eig_vector=0;
@@ -150,7 +150,7 @@ void neighbor_enforcement(int* row_index,int* col_index, DenseMatrix1D<float>& g
 }
 
 /*
- * returns a vector of nodes from graph1 such that the
+ * returns a std::vector of nodes from graph1 such that the
  * node r exists as a pair (r,c) in row_cols and
  * c is exists in array cols
  * @param: array of nodes in graph2 being considered for the matching
@@ -158,8 +158,8 @@ void neighbor_enforcement(int* row_index,int* col_index, DenseMatrix1D<float>& g
  * @param: array of coordinate_pair structs being considered for matching
  * @param: size of the array row_cols
  */
-vector<int>* intersect(int* cols, int cols_size, struct coordinate_pair** row_cols,int row_cols_size){
-    vector<int>* ret_value=new vector<int>();
+std::vector<int>* intersect(int* cols, int cols_size, struct coordinate_pair** row_cols,int row_cols_size){
+    std::vector<int>* ret_value=new std::vector<int>();
     int counter=0;
     
     for(int j=0;j<row_cols_size;j++){
@@ -184,7 +184,7 @@ vector<int>* intersect(int* cols, int cols_size, struct coordinate_pair** row_co
  */
 int* get_valid_entries(DenseMatrix1D<float> graph1, int* ass,int size,int* ret_size){
     
-    vector<int> assigned;
+    std::vector<int> assigned;
     DenseMatrix1D<float>* graph_copy=new DenseMatrix1D<float>(graph1);
     
     for(int i=0;i<size;i++){
@@ -335,11 +335,11 @@ void set_to_min(DenseMatrix1D<DT>& matrix){
  * sets certain values of matrix1 to be certain values of matrix2
  * @pram: DenseMatrix1D which gets changed
  * @pram: DenseMatrix1D whose values are used to change matrix1
- * @pram: vector representing the rows that need to be changed
- * @pram: vector representing the columns that need to be changed
+ * @pram: std::vector representing the rows that need to be changed
+ * @pram: std::vector representing the columns that need to be changed
  */
 template<typename DT>
-void set_matrix_values(DenseMatrix1D<DT>& matrix1,DenseMatrix1D<DT>& matrix2,  vector<int>& rows, vector<int>& cols){
+void set_matrix_values(DenseMatrix1D<DT>& matrix1,DenseMatrix1D<DT>& matrix2,  std::vector<int>& rows, std::vector<int>& cols){
     int r;
     int c;
     
@@ -636,12 +636,12 @@ DenseMatrix1D<float> getPermMatrix(int *ass, int ass_size,const int bigger_matri
 }
 
 /*
- * looks through the vector of nodes and removes the
+ * looks through the std::vector of nodes and removes the
  * ones that have already been assigned
  * @param: array showing the nodal assignments
- * @param: vector filled with nodes that are neighbors of a node
+ * @param: std::vector filled with nodes that are neighbors of a node
  */
-void invalidate_neighbors(int* assignment, vector<int> neigh)
+void invalidate_neighbors(int* assignment, std::vector<int> neigh)
 {
     int hold;
     
