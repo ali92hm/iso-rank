@@ -9,13 +9,13 @@
 
 #include "Matrices/DenseMatrix1D.h"
 #include "Matrices/SparseElement.h"
-#include "vertex.h"
+#include "Vertex.h"
 #include <stack>
 
 /*
  * performs a binary search on the edges of sparse graph
  * to find edge with node curr_row as an endpoint
- * @pram: pointer to the 2-d array rep of a sparsegraph
+ * @pram: pointer to the 2-d array rep of a sparse graph
  * @pram: int signifying the vertex we wish to work with
  */
 

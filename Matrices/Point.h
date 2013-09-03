@@ -2,8 +2,8 @@
  * This class represent a point with a x and y coordinate.                       *
  *********************************************************************************/
 
-#ifndef __Point__
-#define __Point__
+#ifndef _Point_h
+#define _Point_h
 
 #include <iostream>
 #include "MatrixExceptions.h"

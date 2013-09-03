@@ -8,14 +8,14 @@
  *                                                                                  *
  ************************************************************************************/
 
-#ifndef Sparse_Matrix_IsoRank_h
-#define Sparse_Matrix_IsoRank_h
+#ifndef _IsoRank_h
+#define _IsoRank_h
 
 #include "Matrices/DenseMatrix1D.h"
 #include "Matrices/MPI_Structs.h"
 #include "Tarjan.h"
-#include "util.h"
-#include "greedy_algorithms.h"
+#include "Utilities.h"
+#include "GreedyAlgorithms.h"
 #include <vector>
 
 

@@ -4,8 +4,8 @@
  *                                                                               *
  *********************************************************************************/
 
-#ifndef _DenseMatrix_h
-#define _DenseMatrix_h
+#ifndef _DenseMatrix2D_h
+#define _DenseMatrix2D_h
 
 #include <cstdlib>
 #include <iostream>

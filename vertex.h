@@ -4,10 +4,8 @@
  ***********************************************************************************/
 
 
-#ifndef _vertex_h
-#define _vertex_h
-
-#include <iostream>
+#ifndef _Vertex_h
+#define _Vertex_h
 
 class vertex
 {

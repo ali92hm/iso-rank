@@ -3,8 +3,8 @@
  *                                                                               *
  *********************************************************************************/
 
-#ifndef __MatrixExceptions__
-#define __MatrixExceptions__
+#ifndef _MatrixExceptions_h
+#define _MatrixExceptions_h
 
 #include <iostream>
 #include <stdexcept>

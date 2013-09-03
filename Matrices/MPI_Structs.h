@@ -1,8 +1,8 @@
 
 
 
-#ifndef __MPI_Structs__
-#define __MPI_Structs__
+#ifndef _MPI_Structs_h
+#define _MPI_Structs_h
 #ifdef USE_MPI
 #include "mpi.h"
 
@@ -12,6 +12,9 @@ static const unsigned short _SPARSE_FORM = 1;
 static const unsigned short _SYM_DENSE_FORM = 2;
 static const unsigned short _SYM_SPARSE_FORM = 3;
 
+/*
+ * Structure to send the matrix meta data.
+ */
 struct MPI_MatrixInfo
 {
     unsigned short rows;
@@ -27,6 +30,9 @@ struct MPI_MatrixInfo
     }
 };
 
+/*
+ * Structure to send the offsets to nodes
+ */
 struct Offset
 {
     int i_start;

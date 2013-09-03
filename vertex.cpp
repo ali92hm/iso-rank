@@ -1,4 +1,4 @@
-#include "vertex.h"
+#include "Vertex.h"
 
 /*vertex class default constructor
  */
@@ -10,8 +10,8 @@ vertex:: vertex(){
 }
 
 /*vertex class constructor
- *@param: a is vertex_name
- *@param: b is the index used for Tarjan's Algorithm
+ *@pram: a is vertex_name
+ *@pram: b is the index used for Tarjan's Algorithm
  */
 vertex::vertex(int a,int b){
     this->vertex_name=a;
@@ -26,7 +26,7 @@ vertex::~vertex()
 
 /*vertex class function
  *operator == that checks if this vertex is equal to parameter
- *@param:vertex to check for equality
+ *@pram: vertex to check for equality
  */
 bool vertex::operator==(const vertex &rhs){
     return this->vertex_name==rhs.vertex_name;
@@ -42,7 +42,7 @@ bool vertex::operator!=(const vertex &rhs){
 
 /*vertex class function
  *operator = sets this vertex to parameter
- *@param: vertex to set this vertex to
+ *@pram: vertex to set this vertex to
  */
 vertex* vertex::operator=(const vertex *rhs){
     this->vertex_name=rhs->vertex_name;
@@ -63,7 +63,7 @@ vertex& vertex::operator=(const vertex &rhs){
 
 /*vertex class function
  *sets this vertex's index to a
- *@param: integer to set index to
+ *@pram: integer to set index to
  */
 void vertex::set_index(long a){
     this->index=a;
@@ -71,10 +71,9 @@ void vertex::set_index(long a){
 
 /*vertex class function
  *sets this vertex's low_link to b
- *@param: integer to set low link to
+ *@pram: integer to set low link to
  */
 void vertex::set_low_link(long b){
-    //std::cout<< "setting low link of "<<this->get_vertex_name()<<  "to:" << b << std::endl;
     this->tarjan_flag=1;
     this->low_link=b;
 }
