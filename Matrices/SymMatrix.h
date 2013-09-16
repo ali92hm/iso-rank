@@ -345,10 +345,7 @@ inline SymMatrix<T>::SymMatrix(const SymMatrix<T>& matrix)
 template <typename T>
 inline SymMatrix<T>::~SymMatrix()
 {
-    if (_edges != NULL)
-    {
-        delete [] _edges;
-    }
+    delete [] _edges;
 }
 
 //===========================================================ACCESSORS===============================================================

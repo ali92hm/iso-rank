@@ -360,14 +360,11 @@ inline DenseMatrix2D<T>::DenseMatrix2D(const DenseMatrix2D<T>& matrix)
 template <typename T>
 inline DenseMatrix2D<T>::~DenseMatrix2D()
 {
-    if (_edges != NULL)
+    for(int i=0; i < this->_rows; i++)
     {
-        for(int i=0; i < this->_rows; i++)
-        {
-            delete [] _edges[i];
-        }
-        delete [] _edges;
+        delete [] _edges[i];
     }
+    delete [] _edges;
 }
 
 //===========================================================ACCESSORS===============================================================
@@ -805,14 +802,11 @@ inline T&  DenseMatrix2D<T>::operator()(int i, int j)
 template <typename T>
 inline void DenseMatrix2D<T>::operator=(const DenseMatrix2D<T>& matrix)
 {
-    if (_edges != NULL)
+    for(int i=0; i < this->_rows; i++)
     {
-        for(int i=0; i < this->_rows; i++)
-        {
-            delete [] _edges[i];
-        }
-        delete [] _edges;
-    }   
+        delete [] _edges[i];
+    }
+    delete [] _edges;
     _copy(matrix);
 }
 

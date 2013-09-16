@@ -349,10 +349,7 @@ inline DenseMatrix1D<T>::DenseMatrix1D(const DenseMatrix1D<T>& matrix)
 template <typename T>
 inline DenseMatrix1D<T>::~DenseMatrix1D()
 {
-    if (this->_edges != NULL)
-    {
-        delete [] this->_edges;
-    }
+    delete [] this->_edges;
 }
 
 //===========================================================ACCESSORS===============================================================
@@ -760,10 +757,7 @@ inline T& DenseMatrix1D<T>::operator()(int i, int j)
 template <typename T>
 inline void DenseMatrix1D<T>::operator=(const DenseMatrix1D<T>& matrix)
 {
-    if (this->_edges != NULL)
-    {
-        delete [] this->_edges;
-    }
+    delete [] this->_edges;
     _copy(matrix);
 }
 
