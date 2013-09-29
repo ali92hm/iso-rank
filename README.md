@@ -18,19 +18,20 @@ Compilation:
 ------------
 
 To compile this project you can use the make file included in the directory:
-	command: make Makefile
+	command line: 
+		make Makefile
 
 preprocessor flags: 
 
 	Library flags:
 		-DARPACK: To use Arpack++ library for eigenvector decomposition.
 		-DEIGEN: To use Eigen3 for eigenvector decomposition.
-		* Only one of the library flags should be set.
+	* Only one of the library flags should be set.
 
 	Executable flag:
 		-DSEQ: to compile the serial version
 		-DNODE_PAIR: to compile parallel version using node pair method (see Parallelization)
-		* The default parallelization method is Broadcast (see Parallelization)
+	* The default parallelization method is Broadcast (see Parallelization)
 
 
 
@@ -41,29 +42,31 @@ There are three versions of the graph matching software available, a sequential 
 
 To run the sequential version: 
 
-		./IsoRank [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
+		./IsoRank [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] 
+			[-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
 
 To run the parallel versions with mpi:
 
-mpirun -np #number_of_processors ./IsoRank [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
+		mpirun -np #number_of_processors ./IsoRank [-dir <directory_name>] [-ext <file_extension>] 
+		[-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
 
 Explanation of flags:
-[-dir <directory_name>] -dir indicates that the files where the graphs are stored are in the directory called directory_name:
-	(default directory is "IsoRank/Sample input/")
-[-ext <file_extension>] -ext indicates that the extension of the files being read is file_extension:
-	(default for file_extension is .dat)
-[-num_files <number_of_files>] -num_files indicates that number_of_files need to be read in to be compared:
-	(default for number_of_files is 2)
-[-match_alg <matching_algorithm>] -match_alg indicates that matching_algorithm needs be used to map nodes to nodes:
-	(default value for matching_algorithm is greedy)
-	(matching_algorithm options: greedy,con-enf-1, con-enf-2,con-enf-3,con-enf-4)
-[-alg <graph_matching_alg>] -alg indicates that graph_matching_alg is to be used:
-	(default value for graph_matching_alg is isorank)
-	(graph_matching_alg options: isorank, gpgm)
-[-print] prints out results i.e. frobenius norm, time taken,  etc.
-[-debug] prints out values useful for debugging your program
+		[-dir <directory_name>] -dir indicates that the files where the graphs are stored are in the directory called directory_name:
+			(default directory is "IsoRank/Sample input/")
+		[-ext <file_extension>] -ext indicates that the extension of the files being read is file_extension:
+			(default for file_extension is .dat)
+		[-num_files <number_of_files>] -num_files indicates that number_of_files need to be read in to be compared:
+			(default for number_of_files is 2)
+		[-match_alg <matching_algorithm>] -match_alg indicates that matching_algorithm needs be used to map nodes to nodes:
+			(default value for matching_algorithm is greedy)
+			(matching_algorithm options: greedy,con-enf-1, con-enf-2,con-enf-3,con-enf-4)
+		[-alg <graph_matching_alg>] -alg indicates that graph_matching_alg is to be used:
+			(default value for graph_matching_alg is isorank)
+			(graph_matching_alg options: isorank, gpgm)
+		[-print] prints out results i.e. frobenius norm, time taken,  etc.
+		[-debug] prints out values useful for debugging your program
 
--np #number_of_processors indicates that #number_of_processors need to be used to run the program in parallel.
+		-np #number_of_processors indicates that #number_of_processors need to be used to run the program in parallel.
 
 
 Format of Input Files:
@@ -73,17 +76,17 @@ Each graph in the graph matching algorithm is represented by an adjacency matrix
 line of the file should have 3 integers: #nodes, #nodes, and number of non-zero values (each separated by a space). Each of the following lines should contain
 the row and column of the matrix where a non-zero value resides**. For example the input file for the following matrix:
 
-1 0 0
-0 1 1
-0 1 1 
+		1 0 0
+		0 1 1
+		0 1 1 
 
-Should look like
-3 3 5
-1 1
-2 2
-2 3
-3 2
-3 3
+		Should look like
+		3 3 5
+		1 1
+		2 2
+		2 3
+		3 2
+		3 3
 
 Sample files are included under the "Sample input" folder and you can open them using a text editor.
 **The program expects files that have row/column indices that are 1-based. So the upper-left most value in a matrix A is A(1,1).  
