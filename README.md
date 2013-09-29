@@ -30,9 +30,7 @@ preprocessor flags:
 	Executable flag:
 		-DSEQ: to compile the serial version
 		-DNODE_PAIR: to compile parallel version using node pair method (see Parallelization)
-
-	# Add -DSEQ for sequential code
-# Add -DNODE_PAIR
+		* The default parallelization method is Broadcast (see Parallelization)
 
 
 
@@ -43,7 +41,7 @@ There are three versions of the graph matching software available, a sequential 
 
 To run the sequential version: 
 
-./IsoRank [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
+		./IsoRank [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
 
 To run the parallel versions with mpi:
 
