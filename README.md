@@ -16,9 +16,7 @@ Materials Science & Engineering Department at University of Illinois at Urbana-C
 Compilation:
 ------------
 
-To compile this project you can use the make file included in the directory:
-		Command line:
-			make Makefile
+To compile this project you can use the make file included in the directory:Command line:make Makefile
 
 Preprocessor flags: 
 
