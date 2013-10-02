@@ -8,8 +8,7 @@ each node to node mapping and then scores are chosen to create an appropriate ma
 the IsoRank Algorithm and for the second step there are 5 possible algorithms one can choose to run: simple greedy,
 greedy connectivity 1, greedy connectivity 2, greedy connectivity 3 and greedy connectivity 4. The program takes as input
 a directory where each file represents a graph. Each graph in the directory is compared to every other graph and for each pair of
-graphs three values are computed: a node to node mapping, a score indicating how appropriate the mapping is, and another value the
-frobenius norm to indicate the quality of mapping (the higher the score the better, the lower the frobenius norm the better).
+graphs three values are computed: a node to node mapping, a score indicating how appropriate the mapping is, and another value the frobenius norm to indicate the quality of mapping (the higher the score the better, the lower the frobenius norm the better).
 Created in the summer of 2013 this software was originally written with the intention of being used by the Ferguson group at the
 Materials Science & Engineering Department at University of Illinois at Urbana-Champaign. This software however, can be used for any purpose that requires an approximate solution to the graph matching problem.     
 
@@ -18,10 +17,10 @@ Compilation:
 ------------
 
 To compile this project you can use the make file included in the directory:
-	command line: 
-		make Makefile
+		Command line:
+			make Makefile
 
-preprocessor flags: 
+Preprocessor flags: 
 
 	Library flags:
 		-DARPACK: To use Arpack++ library for eigenvector decomposition.
@@ -33,6 +32,8 @@ preprocessor flags:
 		-DNODE_PAIR: to compile parallel version using node pair method (see Parallelization)
 	* The default parallelization method is Broadcast (see Parallelization)
 
+The library path must be set for Arpack++ and Eigen depend on the one that you are using.
+You need Open MPI 32 bit compiler.
 
 
 Execution:
@@ -51,18 +52,24 @@ To run the parallel versions with mpi:
 		[-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
 
 Explanation of flags:
+
 		[-dir <directory_name>] -dir indicates that the files where the graphs are stored are in the directory called directory_name:
-			(default directory is "IsoRank/Sample input/")
+			*Default directory is "IsoRank/Sample input/"
+
 		[-ext <file_extension>] -ext indicates that the extension of the files being read is file_extension:
-			(default for file_extension is .dat)
+			*Default for file_extension is .dat
+
 		[-num_files <number_of_files>] -num_files indicates that number_of_files need to be read in to be compared:
-			(default for number_of_files is 2)
+			*Default for number_of_files is 2
+
 		[-match_alg <matching_algorithm>] -match_alg indicates that matching_algorithm needs be used to map nodes to nodes:
-			(default value for matching_algorithm is greedy)
-			(matching_algorithm options: greedy,con-enf-1, con-enf-2,con-enf-3,con-enf-4)
+			matching_algorithm options: greedy, con-enf-1, con-enf-2,con-enf-3,con-enf-4
+			*Default value for matching_algorithm is greedy
+
 		[-alg <graph_matching_alg>] -alg indicates that graph_matching_alg is to be used:
-			(default value for graph_matching_alg is isorank)
-			(graph_matching_alg options: isorank, gpgm)
+			graph_matching_alg options: isorank, gpgm
+			Default value for graph_matching_alg is isorank
+
 		[-print] prints out results i.e. frobenius norm, time taken,  etc.
 		[-debug] prints out values useful for debugging your program
 
@@ -98,16 +105,15 @@ Design Decisions:
 
 ###Matrices Implemented 
 
-Each graph is represented as an adjacency matrix where if matrix(i, j)==1 then there is an edge between node i and node j and if 
+Each graph is represented as an adjacency matrix where if matrix(i, j)==1 then there is an edge between node i and node j, and if 
 matrix(i, j)==0 then there is no edge between node i and node j. All matrix classes can be found in the Matrices directory. There 
-are 5 classes that have been implemented: DenseMatrix1D.h, DenseMatrix2D.h, SparseMatrix.h,SymMatrix.h, and SymSparseMatrix.h. DenseMatrix2D
+are 3 classes that have been implemented: DenseMatrix1D.h, DenseMatrix2D.h, SymMatrix.h. DenseMatrix2D
 uses a 2-dimensional array to represent the adjacency matrix. DenseMatrix1D uses a 1-d array to represent the adjacency matrix using 
-row major order. SparseMatrix.h uses a hash table where only the values that are non-zero are stored in the hash table. SymMatrix.h uses
-a 1-dimensional array to represent the adjacency matrix as well but since the matrix is symmetric only half the values are stored. 
-SymSparseMatrix.h uses a hash table the way SparseMatrix.h does but only half the values are stored in SymSparseMatrix.h. 
+row major order. SymMatrix.h uses a 1-dimensional array to represent the adjacency matrix as well but since the matrix is symmetric only half the values are stored. 
 
-The default Matrix class we've used in the program is the DenseMatrix2D.h class.
+The default Matrix class we've used in the program is the DenseMatrix1D.h class.
 
+**Note that the SymMatrix class is not complete and only some of the methods are implemented.
 
 ###Connectivity Algorithms
 
@@ -121,22 +127,35 @@ not as good as either 3 or 4.
 
 ###Parallelization
 
-Two parallelization methods have been used. The first is a simple master-slave architecture. Each worker node is passed a pair of graphs and once a worker node
+Two parallelization methods have been used. 
+
+#####Node_Pair method:
+This method is a simple master-slave architecture. Each worker node is passed a pair of graphs and once a worker node
 is done performing the computation on the pair of graphs, it returns the result to the master node and requests for another pair of graphs. 
 
-In the second parallelization (Broadcast method) method each worker node reads in all the graphs. The master node then assigns each worker node indices indicating which subset 
+
+#####Broadcast method:
+In the second parallelization method each worker node reads in all the graphs. The master node then assigns each worker node indices indicating which subset 
 of the graphs to run isorank on.
 
 After benchmarking both parallelization methods we have come to the conclusion that the second method is faster than the first method.  
 
 Note: It is simple to have each of the processors read all the graphs and then compute their portion of the graphs. This method will save time in the case that the number of inputs are large.
 
+###Send/Recv Matrices:
 
+All the matrix classes can send and receive data from each other except full matrices to SymMatrix class while full matrices can receive data from a SymMatrix and they assume that the matrix is symmetric. 
+
+Sending matrices is done by calling the the method MPI_Send_Matrix/MPI_Bcast_Send_Matrix. In addition to require parameters for these method there is an optional boolean that if set to true matrices will send sparse data. This method is useful is the matrices are enormous and very sparse.
+
+Receiving matrices is being done by calling the constructor of your desired matrix type, setting the template data type and giving it the right parameters. You do not need to tell it that it's receiving a sparse matrix in case that sender is sending sparse form.
 
 
 Potential Bugs:
 ---------------
 
 As mentioned previously Greedy Connectivity 1 and 2 were implemented as stepping stones to be able to implement Greedy Connectivity 3 and Greedy Connectivity 4. Although we have tested connectivity 1 and 2, there may be potential bugs in the code.
+
+Sending and receiving sparse matrices on OSX. 
 
 
