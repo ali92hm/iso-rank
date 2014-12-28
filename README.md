@@ -1,4 +1,4 @@
-# IsoRank
+#IsoRank
 
 This software is meant to be a program that can be used to obtain an approximate answer to the NP-hard graph matching problem. 
 The program written takes two graphs at a time and finds a node to node mapping between the two graphs so that a subgraph
@@ -11,8 +11,8 @@ graphs three values are computed: a node to node mapping, a score indicating how
 Created in the summer of 2013 this software was originally written with the intention of being used by the Ferguson group at the
 Materials Science & Engineering Department at University of Illinois at Urbana-Champaign. This software however, can be used for any purpose that requires an approximate solution to the graph matching problem.     
 
-
-## Compilation:
+##Usage
+###Compilation:
 
 To compile this project you can use the make file included in the directory:
 
@@ -36,7 +36,7 @@ The library path must be set for Arpack++ and Eigen depend on the one that you a
 You need Open MPI 32 bit compiler.
 
 
-##Execution:
+###Execution:
 
 There are three versions of the graph matching software available, a sequential version and two parallel versions. 
 
@@ -72,7 +72,7 @@ Explanation of flags:
 	-np number_of_processors indicates that number_of_processors need to be used to run the program in parallel.
 ```
 
-### Format of Input Files:
+###Format of Input Files:
 
 
 Each graph in the graph matching algorithm is represented by an adjacency matrix. The program expects that input files be formatted in a specific way. The first
@@ -140,6 +140,6 @@ As mentioned previously Greedy Connectivity 1 and 2 were implemented as stepping
 
 Sending and receiving sparse matrices on OSX. 
 
-## License
+##License
 
 [MIT license](http://opensource.org/licenses/MIT)
