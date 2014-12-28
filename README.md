@@ -139,3 +139,7 @@ Potential Bugs:
 As mentioned previously Greedy Connectivity 1 and 2 were implemented as stepping stones to be able to implement Greedy Connectivity 3 and Greedy Connectivity 4. Although we have tested connectivity 1 and 2, there may be potential bugs in the code.
 
 Sending and receiving sparse matrices on OSX. 
+
+## License
+
+[MIT license](http://opensource.org/licenses/MIT)
