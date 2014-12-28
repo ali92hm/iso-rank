@@ -46,7 +46,7 @@ To run the sequential version:
 ```
 To run the parallel versions with mpi:
 ```bash
-	mpirun -np #number_of_processors ./IsoRank [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
+	mpirun -np number_of_processors ./IsoRank [-dir <directory_name>] [-ext <file_extension>] [-num_files <number_of_files>] [-match_alg <matching_algorithm>] [-alg <graph_matching_alg>] [-print] [-debug]
 ```
 Explanation of flags:
 ```bash
@@ -69,7 +69,7 @@ Explanation of flags:
 	[-print] prints out results i.e. frobenius norm, time taken,  etc.
 		[-debug] prints out values useful for debugging your program
 
-	-np number_of_processors indicates that #number_of_processors need to be used to run the program in parallel.
+	-np number_of_processors indicates that number_of_processors need to be used to run the program in parallel.
 ```
 
 ### Format of Input Files:
