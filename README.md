@@ -69,7 +69,7 @@ Explanation of flags:
 	[-print] prints out results i.e. frobenius norm, time taken,  etc.
 		[-debug] prints out values useful for debugging your program
 
-	-np #number_of_processors indicates that #number_of_processors need to be used to run the program in parallel.
+	-np number_of_processors indicates that #number_of_processors need to be used to run the program in parallel.
 ```
 
 ### Format of Input Files:
