@@ -133,13 +133,11 @@ Sending matrices is done by calling the the method MPI_Send_Matrix/MPI_Bcast_Sen
 
 Receiving matrices is being done by calling the constructor of your desired matrix type, setting the template data type and giving it the right parameters. You do not need to tell it that it's receiving a sparse matrix in case that sender is sending sparse form.
 
-Potential Bugs:
----------------
+##Potential Bugs:
 
 As mentioned previously Greedy Connectivity 1 and 2 were implemented as stepping stones to be able to implement Greedy Connectivity 3 and Greedy Connectivity 4. Although we have tested connectivity 1 and 2, there may be potential bugs in the code.
 
 Sending and receiving sparse matrices on OSX. 
 
 ##License
-
 [MIT license](http://opensource.org/licenses/MIT)
