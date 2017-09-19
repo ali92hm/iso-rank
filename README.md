@@ -1,4 +1,4 @@
-#IsoRank
+# IsoRank
 This software is meant to be a program that can be used to obtain an approximate answer to the NP-hard graph matching problem. 
 The program written takes two graphs at a time and finds a node to node mapping between the two graphs so that a subgraph
 isomorphism graph can be found between two graphs. The graph matching algorithm has two steps: first a score is assigned to
@@ -10,8 +10,8 @@ graphs three values are computed: a node to node mapping, a score indicating how
 Created in the summer of 2013 this software was originally written with the intention of being used by the Ferguson group at the
 Materials Science & Engineering Department at University of Illinois at Urbana-Champaign. This software however, can be used for any purpose that requires an approximate solution to the graph matching problem.     
 
-##Usage
-###Compilation:
+## Usage
+### Compilation:
 
 To compile this project you can use the make file included in the directory:
 
@@ -35,7 +35,7 @@ The library path must be set for Arpack++ and Eigen depend on the one that you a
 You need Open MPI 32 bit compiler.
 
 
-###Execution:
+### Execution:
 
 There are three versions of the graph matching software available, a sequential version and two parallel versions. 
 
@@ -71,7 +71,7 @@ Explanation of flags:
 -np number_of_processors indicates that number_of_processors need to be used to run the program in parallel.
 ```
 
-###Format of Input Files:
+### Format of Input Files:
 Each graph in the graph matching algorithm is represented by an adjacency matrix. The program expects that input files be formatted in a specific way. The first
 line of the file should have 3 integers: #nodes, #nodes, and number of non-zero values (each separated by a space). Each of the following lines should contain
 the row and column of the matrix where a non-zero value resides**. For example the input file for the following matrix:
@@ -103,32 +103,32 @@ The default Matrix class we've used in the program is the DenseMatrix1D.h class.
 ###Connectivity Algorithms
 Recall that the second step of the algorithm requires us to choose the best scores to create a final mapping. There are 5 connectivity algorithms we've implemented. We recommend that that one use either the simple greedy algorithm, greedy connectivity 3 or greedy connectivity 4. Simple greedy is the fastest of the 5 algorithms and gives a fairly good approximate isomorphic graph for graphs. Greedy connectivity 3 and 4 both perform slower than simple greedy but both do a much better job of giving an isomorphic graph for input graphs that are very highly connected. Greedy Connectivity 1 and 2 were both implemented since they contain elements of greedy connectivity 3 and 4, but their performance is not as good as either 3 or 4. 
 
-###Parallelization
+### Parallelization
 Two parallelization methods have been used. 
 
-#####Node_Pair method:
+##### Node_Pair method:
 This method is a simple master-slave architecture. Each worker node is passed a pair of graphs and once a worker node
 is done performing the computation on the pair of graphs, it returns the result to the master node and requests for another pair of graphs. 
 
-#####Broadcast method:
+##### Broadcast method:
 In the second parallelization method each worker node reads in all the graphs. The master node then assigns each worker node indices indicating which subset of the graphs to run isorank on.
 
 After benchmarking both parallelization methods we have come to the conclusion that the second method is faster than the first method.  
 
 Note: It is simple to have each of the processors read all the graphs and then compute their portion of the graphs. This method will save time in the case that the number of inputs are large.
 
-###Send/Recv Matrices:
+### Send/Recv Matrices:
 All the matrix classes can send and receive data from each other except full matrices to SymMatrix class while full matrices can receive data from a SymMatrix and they assume that the matrix is symmetric. 
 
 Sending matrices is done by calling the the method MPI_Send_Matrix/MPI_Bcast_Send_Matrix. In addition to require parameters for these method there is an optional boolean that if set to true matrices will send sparse data. This method is useful is the matrices are enormous and very sparse.
 
 Receiving matrices is being done by calling the constructor of your desired matrix type, setting the template data type and giving it the right parameters. You do not need to tell it that it's receiving a sparse matrix in case that sender is sending sparse form.
 
-##[Potential Bugs](https://github.com/A92hm/iso-rank/issues)
+## [Potential Bugs](https://github.com/A92hm/iso-rank/issues)
 
 *As mentioned previously Greedy Connectivity 1 and 2 were implemented as stepping stones to be able to implement Greedy Connectivity 3 and Greedy Connectivity 4. Although we have tested connectivity 1 and 2, there may be potential bugs in the code.
 
 *Sending and receiving sparse matrices on OSX. 
 
-##License
+## License
 [MIT license](http://opensource.org/licenses/MIT)
