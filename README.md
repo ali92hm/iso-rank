@@ -8,6 +8,7 @@ the IsoRank Algorithm and for the second step there are 5 possible algorithms on
 greedy connectivity 1, greedy connectivity 2, greedy connectivity 3 and greedy connectivity 4. The program takes as input
 a directory where each file represents a graph. Each graph in the directory is compared to every other graph and for each pair of
 graphs three values are computed: a node to node mapping, a score indicating how appropriate the mapping is, and another value the frobenius norm to indicate the quality of mapping (the higher the score the better, the lower the frobenius norm the better).
+
 Created in the summer of 2013 this software was originally written with the intention of being used by the Ferguson group at the
 Materials Science & Engineering Department at University of Illinois at Urbana-Champaign. This software however, can be used for any purpose that requires an approximate solution to the graph matching problem.
 
@@ -124,7 +125,7 @@ is done performing the computation on the pair of graphs, it returns the result 
 
 ##### Broadcast method
 
-In the second parallelization method each worker node reads in all the graphs. The master node then assigns each worker node indices indicating which subset of the graphs to run isorank on.
+In the second parallelization method each worker node reads in all the graphs. The master node then assigns each worker node indices indicating which subset of the graphs to run IsoRank on.
 
 After benchmarking both parallelization methods we have come to the conclusion that the second method is faster than the first method.
 
@@ -140,9 +141,9 @@ Receiving matrices is being done by calling the constructor of your desired matr
 
 ## [Potential Bugs](https://github.com/Ali92hm/iso-rank/issues)
 
-*As mentioned previously Greedy Connectivity 1 and 2 were implemented as stepping stones to be able to implement Greedy Connectivity 3 and Greedy Connectivity 4. Although we have tested connectivity 1 and 2, there may be potential bugs in the code.
+* As mentioned previously Greedy Connectivity 1 and 2 were implemented as stepping stones to be able to implement Greedy Connectivity 3 and Greedy Connectivity 4. Although we have tested connectivity 1 and 2, there may be potential bugs in the code.
 
-*Sending and receiving sparse matrices on OSX.
+* Sending and receiving sparse matrices on OSX.
 
 ## License
 
